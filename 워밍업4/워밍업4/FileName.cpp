@@ -6,8 +6,8 @@
 using namespace std;
 
 // 상수 
-const int BoardSIZE = 20;       // 보드 크기
-const int ITEM_COUNT = 10; // 아이템 개수
+const int BoardSIZE = 20;   // 보드 크기
+const int ITEM_COUNT = 10;  // 아이템 개수
 
 // 칸 종류
 const int EMPTY = 0;
