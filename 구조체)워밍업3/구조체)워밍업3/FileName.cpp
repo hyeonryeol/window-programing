@@ -2,6 +2,8 @@
 #include <windows.h>
 #include <conio.h>
 #include <string>
+#include <sstream>
+#include <iomanip>
 
 using namespace std;
 
@@ -70,10 +72,10 @@ void board(int mindex, int tindex, reservation res[], int resCount) //보드출�
 					}
 				}
 				SetConsoleTextAttribute(hConsole, 7); // 예약한 자리 표시
-				if (num != -1)
-					cout << num << "  "; // 예매번호 출력
-				else
-					cout << "O  ";
+			if (num != -1)
+				cout << setw(2) << setfill('0') << num << setfill(' ') << " "; // 예매번호 2자리 출력
+			else
+				cout << setw(2) << setfill('0') << resCount +9 << setfill(' ') << " ";
 			}
 			else
 			{
@@ -184,30 +186,49 @@ int main()
 			res[resCount].fseat1 = res[resCount].seat2 - 1;  // fseat1 = 열 인덱스 (seat2)
 			res[resCount].fseat2 = res[resCount].seat1 - 1;  // fseat2 = 행 인덱스 (seat1)
 
-			// 이미 예매된 좌석인지 확인
-			for (int s = 0; s < seatCount; s++)
-			{
-				if (movies[mindex].board[tindex][res[resCount].fseat2][res[resCount].fseat1 + s] == 1)
-				{
-					cout << res[resCount].seat1 << res[resCount].seat2 + s << "already reservation." << endl;
-					break;
-				}
-			}
+            // 좌석 유효성 및 중복 예약 확인
+            bool conflict = false;
+            // 범위 검사
+            if (res[resCount].fseat2 < 0 || res[resCount].fseat2 >= 10 || res[resCount].fseat1 < 0 || res[resCount].fseat1 + seatCount - 1 >= 10)
+            {
+                cout << "Seat out of range." << endl;
+                conflict = true;
+            }
 
-			// 좌석 예매 처리
-			for (int s = 0; s < seatCount; s++)
-				movies[mindex].board[tindex][res[resCount].fseat2][res[resCount].fseat1 + s] = 1;
-			res[resCount].seatCount = seatCount;
-			res[resCount].reserved = true;
-			res[resCount].number = resCount + 1; // 예매번호 = 순서
+            // 이미 예매된 좌석인지 확인 (모든 좌석이 비어있는지 확인)
+            for (int s = 0; !conflict && s < seatCount; s++)
+            {
+                int col = res[resCount].fseat1 + s;
+                if (movies[mindex].board[tindex][res[resCount].fseat2][col] == 1)
+                {
+                    cout << "Seat " << (res[resCount].seat1) << "," << (res[resCount].seat2 + s) << " already reserved." << endl;
+                    conflict = true;
+                }
+            }
 
-			cout << "reservation" << endl;
-			cout << "Movie name: " << res[resCount].movie << endl;
-			cout << "Time: " << res[resCount].time << endl;
-			cout << "Seat number: " << res[resCount].seat1 << " " << res[resCount].seat2 << endl;
-			cout << "reservation number: " << res[resCount].number << endl;
+            if (conflict)
+            {
+                cout << "Reservation failed" << endl;
+                break; // 예약 취소 처리로 돌아감
+            }
 
-			resCount++; // 예약 수 증가
+            // 모든 좌석이 유효하면 한 번에 예매 처리
+            for (int s = 0; s < seatCount; s++)
+            {
+                int col = res[resCount].fseat1 + s;
+                movies[mindex].board[tindex][res[resCount].fseat2][col] = 1;
+            }
+            res[resCount].seatCount = seatCount;
+            res[resCount].reserved = true;
+            res[resCount].number = resCount + 10; // 예매번호 = 순서
+
+            cout << "reservation" << endl;
+            cout << "Movie name: " << res[resCount].movie << endl;
+            cout << "Time: " << res[resCount].time << endl;
+            cout << "Seat number: " << res[resCount].seat1 << " " << res[resCount].seat2 << endl;
+            cout << "reservation number: " << setw(2) << setfill('0') << res[resCount].number << setfill(' ') << endl;
+
+            resCount++; // 예약 수 증가
 			break;
 		}
 		case 'c':
@@ -226,10 +247,15 @@ int main()
 					cout << "Time: " << res[k].time << endl;
 					cout << "Seat number: " << res[k].seat1 << res[k].seat2 << endl;
 
-					// 좌석 복구
-					int mindex = getMovieIndex(res[k].movie);
-					int tindex = getTimeIndex(mindex, res[k].time);
-					movies[mindex].board[tindex][res[k].fseat2][res[k].fseat1] = 0;
+                    // 좌석 복구: 예약한 모든 좌석을 원복
+                    int mindex = getMovieIndex(res[k].movie);
+                    int tindex = getTimeIndex(mindex, res[k].time);
+                    for (int s = 0; s < res[k].seatCount; s++)
+                    {
+                        int col = res[k].fseat1 + s; // 열 인덱스
+                        if (col >= 0 && col < 10)
+                            movies[mindex].board[tindex][res[k].fseat2][col] = 0;
+                    }
 
 					res[k].reserved = false;
 					cout << "Reservation is cancelled." << endl;

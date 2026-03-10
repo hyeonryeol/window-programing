@@ -1,10 +1,45 @@
 ﻿#include <iostream>
 #include <cctype>
 #include <algorithm>
+#include <cstring>
 
 using namespace std;
 
 int main() {
+
+    
+    auto printWithPeriod = [](const char* s) {
+        const int MAX = 40;
+        char buf[101]{};
+        int i = 0;
+        for (; i < MAX && s[i] != '\0'; ++i)
+            buf[i] = s[i];
+        buf[i] = '\0';
+
+        
+        while (i > 0 && buf[i - 1] == ' ') {
+            buf[--i] = '\0';
+        }
+
+        if (i == 0) {
+            cout << "." << endl;
+            return;
+        }
+
+        if (buf[i - 1] == '.')
+            cout << buf << endl;
+        else
+            cout << buf << "." << endl;
+    };
+
+    
+    auto syncOriginToStr = [&](char* dest, const char* src) {
+        
+        const int MAX = 40;
+        int i = 0;
+        for (; i < MAX && src[i] != '\0'; ++i) dest[i] = src[i];
+        dest[i] = '\0';
+    };
 
 	char str[100]{};
 	cout << "Enter the sentence:";
@@ -15,13 +50,16 @@ int main() {
 		cin.clear();
 		cin.ignore(numeric_limits<streamsize>::max(), '\n');
 	}
-	char origin[100]{};
-	for (int i = 0; i < 40; ++i)
-		origin[i] = str[i];
+    char origin[100]{};
+    for (int i = 0; i < 40; ++i)
+        origin[i] = str[i];
+    origin[40] = '\0';
+
+	
 
 	bool pressed = false; 
 	bool pressed4 = false;
-
+	
 	while (1)
 	{
 		char command;
@@ -50,7 +88,11 @@ int main() {
 				}
 
 			}
-			cout << str << endl;
+	
+				
+            printWithPeriod(str);
+            
+            
 			break;
 
 		case '2':
@@ -84,7 +126,10 @@ int main() {
 						++i;
 				}
 			}
-			cout << origin << endl;
+
+            printWithPeriod(origin);
+            
+            syncOriginToStr(str, origin);
 			break;
 		case '3':
 		{
@@ -137,7 +182,7 @@ int main() {
 			}
 			else
 			{
-				cout << origin << endl; //한번 더 누르면 원래 문장 출력
+                printWithPeriod(origin); //한번 더 누르면 원래 문장 출력
 				pressed = 0;
 			}
 
@@ -198,7 +243,7 @@ int main() {
 			}
 			else
 			{
-				cout << origin << endl; // 다시 누르면 원래 문장
+                printWithPeriod(origin); // 다시 누르면 원래 문장
 				pressed4 = false;
 			}
 			break;
@@ -224,7 +269,7 @@ int main() {
 
 				}
 			}
-			cout << str << endl;
+            printWithPeriod(str);
 			break;
 		}
 	}

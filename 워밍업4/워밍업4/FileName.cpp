@@ -23,6 +23,7 @@ int stone2r, stone2c; // 돌2 위치
 int score1, score2;   // 각 돌의 아이템 획득 수
 int itemsLeft;        // 남은 아이템 수
 int turn;             // 0=돌1 차례, 1=돌2 차례
+int under1, under2;   // 각 돌 밑에 있는 칸(빈칸 또는 장애물)
 
 // 장애물 크기 3개
 int obsH[3] = { 3, 5, 4 }; // 높이
@@ -127,12 +128,13 @@ void placeItems()
 }
 
 //돌 초기 배치
-void placeStone(int& r, int& c, int type)
+void placeStone(int& r, int& c, int type, int& under)
 {
     do {
         r = rand() % BoardSIZE;
         c = rand() % BoardSIZE;
     } while (board[r][c] != EMPTY);
+    under = EMPTY; // 돌이 처음 놓일 때 밑에는 빈칸
     board[r][c] = type;
 }
 
@@ -147,11 +149,13 @@ void init()
     score1 = 0;
     score2 = 0;
     turn = 0;
+    under1 = EMPTY;
+    under2 = EMPTY;
 
     placeObstacles();
     placeItems();
-    placeStone(stone1r, stone1c, STONE1);
-    placeStone(stone2r, stone2c, STONE2);
+    placeStone(stone1r, stone1c, STONE1, under1);
+    placeStone(stone2r, stone2c, STONE2, under2);
 }
 
 // 종료 출력
@@ -168,7 +172,7 @@ void printResult()
 
 // 돌 이동
 // dr,dc: 방향 / r,c: 현재 위치 / score: 해당 돌 점수 / type: STONE1 or STONE2
-bool moveStone(int dr, int dc, int& r, int& c, int& score, int type)
+bool moveStone(int dr, int dc, int& r, int& c, int& score, int type, int& under)
 {
     int nr = (r + dr + BoardSIZE) % BoardSIZE; 
     int nc = (c + dc + BoardSIZE) % BoardSIZE;
@@ -176,13 +180,22 @@ bool moveStone(int dr, int dc, int& r, int& c, int& score, int type)
     if (board[nr][nc] == OBSTACLE) return false; // 장애물 통과 불가
     if (board[nr][nc] == STONE1 || board[nr][nc] == STONE2) return false; // 다른 돌 위치
 
-    board[r][c] = EMPTY; // 원래 자리 비우기
+    // 원래 자리에는 돌이 밟고 있던 아래 칸 상태를 복원
+    board[r][c] = under;
 
+    // 이동할 칸이 아이템이면 점수 증가, 남은 아이템 감소
+    // 그리고 그 칸은 돌이 떠난 뒤 장애물로 남아야 하므로
+    // 현재 돌의 'under' 값을 OBSTACLE로 설정한다.
     if (board[nr][nc] == ITEM)
     {
         score++;
         itemsLeft--;
-        board[nr][nc] = OBSTACLE; // 아이템 먹으면 장애물로 변환
+        under = OBSTACLE; // 이동 후 이 돌이 떠나면 장애물이 되도록 저장
+    }
+    else
+    {
+        // 이동할 칸의 현재 상태(대체로 EMPTY)를 기록
+        under = board[nr][nc];
     }
 
     r = nr;
@@ -222,20 +235,20 @@ int main()
 
         if (turn == 0) // 돌1 차례: wasd
         {
-            if (cmd == 'w') moved = moveStone(-1, 0, stone1r, stone1c, score1, STONE1);
-            else if (cmd == 's') moved = moveStone(1, 0, stone1r, stone1c, score1, STONE1);
-            else if (cmd == 'a') moved = moveStone(0, -1, stone1r, stone1c, score1, STONE1);
-            else if (cmd == 'd') moved = moveStone(0, 1, stone1r, stone1c, score1, STONE1);
+            if (cmd == 'w') moved = moveStone(-1, 0, stone1r, stone1c, score1, STONE1, under1);
+            else if (cmd == 's') moved = moveStone(1, 0, stone1r, stone1c, score1, STONE1, under1);
+            else if (cmd == 'a') moved = moveStone(0, -1, stone1r, stone1c, score1, STONE1, under1);
+            else if (cmd == 'd') moved = moveStone(0, 1, stone1r, stone1c, score1, STONE1, under1);
             else continue; // 유효하지 않은 키면 차례 안 넘김
 
             if (moved) turn = 1; // 이동 성공 시 차례 교체
         }
         else // 돌2 차례: ijkl
         {
-            if (cmd == 'i') moved = moveStone(-1, 0, stone2r, stone2c, score2, STONE2);
-            else if (cmd == 'k') moved = moveStone(1, 0, stone2r, stone2c, score2, STONE2);
-            else if (cmd == 'j') moved = moveStone(0, -1, stone2r, stone2c, score2, STONE2);
-            else if (cmd == 'l') moved = moveStone(0, 1, stone2r, stone2c, score2, STONE2);
+            if (cmd == 'i') moved = moveStone(-1, 0, stone2r, stone2c, score2, STONE2, under2);
+            else if (cmd == 'k') moved = moveStone(1, 0, stone2r, stone2c, score2, STONE2, under2);
+            else if (cmd == 'j') moved = moveStone(0, -1, stone2r, stone2c, score2, STONE2, under2);
+            else if (cmd == 'l') moved = moveStone(0, 1, stone2r, stone2c, score2, STONE2, under2);
             else continue;
 
             if (moved) turn = 0;
