@@ -1,0 +1,7 @@
+<Solution>
+  <Configurations>
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Project Path="자료구조 롤챔피언/자료구조 롤챔피언.vcxproj" />
+</Solution>
