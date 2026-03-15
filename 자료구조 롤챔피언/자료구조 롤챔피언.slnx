@@ -3,5 +3,5 @@
     <Platform Name="x64" />
     <Platform Name="x86" />
   </Configurations>
-  <Project Path="자료구조 롤챔피언/자료구조 롤챔피언.vcxproj" />
+  <Project Path="자료구조 롤챔피언/자료구조 롤챔피언.vcxproj" Id="3ab17a25-4c22-45db-956a-3c9419cdf017" />
 </Solution>
