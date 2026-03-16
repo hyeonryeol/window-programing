@@ -1,4 +1,4 @@
-#include <windows.h> //윈도우 좌표값, 창크기, 색, 크기 조정이 가능한 두꺼운 경계선, 이름
+#include <windows.h> //윈도우 좌표값, 창크기, 색, 이름
 #include <tchar.h>
 
 HINSTANCE g_hlnst;
@@ -28,7 +28,7 @@ int WINAPI WinMain(HINSTANCE hlnstance, HINSTANCE hPrevlnstance, LPSTR IpszCmdPa
 	WndClass.hIconSm = LoadIcon(NULL, IDI_APPLICATION);
 	RegisterClassEx(&WndClass);
 
-	hWND = CreateWindow(IpszClass, IpszWindowName, WS_OVERLAPPEDWINDOW | WS_SYSMENU | WS_HSCROLL | WS_VSCROLL | WS_MAXIMIZEBOX / WS_MINIMIZEBOX| WS_THICKFRAME, 50, 150, 1000, 600, NULL, (HMENU)NULL, hlnstance, NULL);
+	hWND = CreateWindow(IpszClass, IpszWindowName, WS_OVERLAPPEDWINDOW | WS_SYSMENU | WS_HSCROLL | WS_VSCROLL | WS_MAXIMIZEBOX / WS_MINIMIZEBOX, 50, 150, 1000, 600, NULL, (HMENU)NULL, hlnstance, NULL);
 
 	ShowWindow(hWND, nCmdShow);
 	UpdateWindow(hWND);
