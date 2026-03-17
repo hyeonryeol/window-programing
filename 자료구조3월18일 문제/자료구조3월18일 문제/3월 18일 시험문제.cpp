@@ -1,43 +1,38 @@
 ﻿#include <iostream>
-#include <algorithm>
 
 using namespace std;
 
-char board[19][19];//보드 배열
+char board[19][19];
+bool turn = false;
 int wstonecount = 0;
 int bstonecount = 0;
-bool turn = false;
 
-void inboard()//보드 입력함수(기본 바둑판)
+void inboard()
 {
-	for (int i = 0; i < 19;++i)
+	for (int i = 0; i < 19; ++i)
 	{
 		for (int j = 0; j < 19; ++j)
 		{
 			board[i][j] = '+';
 		}
-		cout << endl;
+
 	}
 }
-
-void printboard() //보드 출력함수
+void printboard()
 {
-	for (int i = 0; i < 19; i++)
+	for (int i = 0; i < 19; ++i)
 	{
-		for (int j = 0; j < 19; j++)
+		for (int j = 0; j < 19; ++j)
 		{
 			cout << board[i][j] << " ";
 		}
 		cout << endl;
 	}
-	
 }
-void position(int garo, int sero, char stone) //돌 위치 저장
+void position(int garo, int sero, char stone)
 {
 	board[garo][sero] = stone;
 }
-
-
 
 int main()
 {
@@ -47,61 +42,88 @@ int main()
 	{
 		if (turn == false)
 		{
-			int x, y;
-			cout << "흰 돌을 놓을 곳을 입력하세요.(가로, 세로):";
+			cout << "흰 돌의 좌표를 입력하세요. 좌상귀(0,0)우하귀(18,18):";
+			int x;
+			int y;
 			cin >> x;
 			cin >> y;
-			int a = x - 1; //배열이라 마이너스 해주기
-			int b = y - 1;
-			
-			
-
-			if (board[b][a] != '+')
+			if (cin.fail())
 			{
-				cout << "이미 돌이 놓여있습니다. 다른 곳을 입력하세요.";
-			}
-			
+				cout << "정상적인 입력이 아닙니다." << endl;
 
+				cin.clear();
+				cin.ignore(1000, '\n');
+			}
 			else
 			{
-				position(b, a, 'O');
-				printboard();
-				if (board[b][a] == 'O')
+				if (x < 19 && y < 19)
 				{
-					wstonecount++;
+					if (board[y][x] != '+')
+					{
+						cout << "이미 돌이 놓여있습니다." << endl;
+					}
+					else
+					{
+						position(y, x, '0');
+						printboard();
+						wstonecount++;
+						cout << "흰돌의 개수:" << wstonecount << " ";
+						cout << "검은돌의 개수:" << bstonecount << endl;
+						turn = true;
+					}
 				}
-				cout <<"흰 돌의 갯수:" << wstonecount;
-				cout << endl;
-				turn = true;
+				else
+				{
+					cout << "숫자가 너무 큽니다." << endl;
+				}
+
 			}
 
 
 		}
-		if (turn == true)
+		else if (turn == true)
 		{
-			int x, y;
-			cout << "검은 돌을 놓을 곳을 입력하세요.(가로, 세로):";
+			cout << "검은 돌의 좌표를 입력하세요. 좌상귀(0,0)우하귀(18,18):";
+			int x;
+			int y;
 			cin >> x;
 			cin >> y;
-			int a = x - 1; //배열이라 마이너스 해주기
-			int b = y - 1;
-
-			if (board[b][a] != '+')
+			if (cin.fail())
 			{
-				cout << "이미 돌이 놓여있습니다. 다른 곳을 입력하세요.";
+				cout << "정상적인 입력이 아닙니다." << endl;
+
+				cin.clear();
+				cin.ignore(1000, '\n');
 			}
 			else
 			{
-				position(b, a, 'X');
-				printboard();
-				if (board[b][a] == 'X')
+				if (x < 19 && y < 19)
 				{
-					bstonecount++;
+					if (board[y][x] != '+')
+					{
+						cout << "이미 돌이 놓여있습니다." << endl;
+					}
+					else
+					{
+						position(y, x, 'X');
+						printboard();
+						bstonecount++;
+						cout << "흰돌의 개수:" << wstonecount << " ";
+						cout << "검은돌의 개수:" << bstonecount << endl;
+						turn = false;
+					}
 				}
-				cout << "검은 돌의 갯수:" << bstonecount;
-				cout << endl;
-				turn = false;
+				else
+				{
+					cout << "숫자가 너무 큽니다." << endl;
+				}
 			}
+
+
+
 		}
+
 	}
+
+
 }
