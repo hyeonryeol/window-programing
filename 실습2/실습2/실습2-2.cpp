@@ -57,55 +57,55 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM IParam)
 
 	switch (iMessage) {
 	case WM_PAINT:
+	{
 		hDC = BeginPaint(hWnd, &ps);
-		rect.left = 325;
-		rect.top = 260;
-		rect.right = 475;
-		rect.bottom = 340;
+		rect.left = 0;
+		rect.top = 0;
+		rect.right = 100;
+		rect.bottom = 50;
 
-		wsprintf(lpOut, L" %d:(400,300)", 0);
-		DrawText(hDC, lpOut, lstrlen(lpOut), &rect, DT_SINGLELINE | DT_CENTER | DT_VCENTER);
-
-		RECT rects[15]; //저장할 곳
-
-		for (int i = 0; i < 15; ++i)
+		for (int k = 1; k < 10; ++k)
 		{
-			RECT newRect; //새거 저장할 곳
-			BOOL overlap; //겹치는지 여부판단
-			do //반복
+
+			for (int i = 1; i < 10; ++i)
 			{
-				overlap = false; 
-				int l = rand() % 600;      // 랜덤값 생성
 
-				int t = rand() % 500;
+				RECT r = rect;
+				r.top += i * 30;
+				r.bottom = r.top + 30;
 
-				newRect.left = l;
-				newRect.top = t;
-				newRect.right = l + 150;
-				newRect.bottom = t + 80;
+				r.left += (k - 2) * 95;
+				r.right = r.left + 80;
 
-
-				for (int j = 0; j < i; ++j) //비교
-				{
-					RECT temp;
-
-					if (IntersectRect(&temp, &newRect, &rects[j])) //IntersectRect가 사각형이 겹치는지 검사하는 함수. 겹치면 다시 생성
-					{
-						overlap = TRUE;
-						break;
-					}
-				}
-			} while (overlap);
-
-			rects[i] = newRect; //겹치지 않는 친구 저장
-
-			TCHAR buf[100];
-			wsprintf(buf, L" %d:(%d,%d)", i+1, rects[i].left,rects[i].top);
-			DrawText(hDC, buf, lstrlen(buf), &rects[i], DT_SINGLELINE | DT_CENTER | DT_VCENTER);
-
+				wsprintf(lpOut, L" %d X %d =%d", k, i, i * k);
+				DrawText(hDC, lpOut, lstrlen(lpOut), &r, DT_SINGLELINE | DT_CENTER | DT_VCENTER);
+			}
 		}
-		EndPaint(hWnd, &ps);
-		break;
+		int rowbottom=300;
+		for (int k = 9; k >= 1; --k)
+		{
+
+			for (int i = 1; i < 10; ++i)
+			{
+
+				RECT r = rect;
+				r.top += rowbottom + i * 30;
+				r.bottom = r.top + 30;
+
+				r.left += (9 - k) * 95;
+				r.right = r.left + 80;
+
+				wsprintf(lpOut, L" %d X %d =%d", k, i, k * i);
+				DrawText(hDC, lpOut, lstrlen(lpOut), &r, DT_SINGLELINE | DT_CENTER | DT_VCENTER);
+			}
+		}
+
+
+
+
+	}
+	EndPaint(hWnd, &ps);
+	break;
 
 	case WM_DESTROY:
 		PostQuitMessage(0);
