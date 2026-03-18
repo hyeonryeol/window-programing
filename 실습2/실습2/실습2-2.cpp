@@ -56,56 +56,82 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM IParam)
 
 
 	switch (iMessage) {
-	case WM_PAINT:
-	{
-		hDC = BeginPaint(hWnd, &ps);
-		rect.left = 0;
-		rect.top = 0;
-		rect.right = 100;
-		rect.bottom = 50;
+    case WM_PAINT:
+    {
+        hDC = BeginPaint(hWnd, &ps);
 
-		for (int k = 1; k < 10; ++k)
-		{
+        RECT client;
+        GetClientRect(hWnd, &client);
 
-			for (int i = 1; i < 10; ++i)
-			{
+        TCHAR lpOut[100];
 
-				RECT r = rect;
-				r.top += i * 30;
-				r.bottom = r.top + 30;
+        // 1. 가로 분할 랜덤 
+        int garo = rand() % 9 + 2;
 
-				r.left += (k - 2) * 95;
-				r.right = r.left + 80;
+        // 2. 세로 2등분
+        int sero = 600 / 2;
 
-				wsprintf(lpOut, L" %d X %d =%d", k, i, i * k);
-				DrawText(hDC, lpOut, lstrlen(lpOut), &r, DT_SINGLELINE | DT_CENTER | DT_VCENTER);
-			}
-		}
-		int rowbottom=300;
-		for (int k = 9; k >= 1; --k)
-		{
+        // 3. 셀 크기
+        int cellWidth = 800 / garo; //한칸 너비
+        int cellHeight = (sero - client.top) / 9; //한칸 높이
 
-			for (int i = 1; i < 10; ++i)
-			{
+        int startDan = 2;
+        int endDan = startDan + garo - 1;
 
-				RECT r = rect;
-				r.top += rowbottom + i * 30;
-				r.bottom = r.top + 30;
+        
+        for (int c = 0; c < garo; ++c)
+        {
+            int dan = startDan + c;
 
-				r.left += (9 - k) * 95;
-				r.right = r.left + 80;
+            for (int i = 1; i <= 9; ++i)
+            {
+                RECT r;
 
-				wsprintf(lpOut, L" %d X %d =%d", k, i, k * i);
-				DrawText(hDC, lpOut, lstrlen(lpOut), &r, DT_SINGLELINE | DT_CENTER | DT_VCENTER);
-			}
-		}
+                r.left = client.left + c * cellWidth; //각 칸 위치의 시작
+                r.right = r.left + cellWidth;
 
+                r.top = client.top + (i - 1) * cellHeight;
+                r.bottom = r.top + cellHeight;
 
+                wsprintf(lpOut, L"%d x %d = %d", dan, i, dan * i);
 
+                DrawText(hDC, lpOut, lstrlen(lpOut), &r,
+                    DT_SINGLELINE | DT_CENTER | DT_VCENTER);
+            }
+        }
 
-	}
-	EndPaint(hWnd, &ps);
-	break;
+        
+        for (int c = 0; c < garo; ++c)
+        {
+            int dan = endDan - c;
+
+            for (int i = 1; i <= 9; ++i)
+            {
+                RECT r;
+
+                r.left = client.left + c * cellWidth;
+                r.right = r.left + cellWidth;
+
+                r.top = sero + (i - 1) * cellHeight;
+                r.bottom = r.top + cellHeight;
+
+                wsprintf(lpOut, L"%d x %d = %d", dan, i, dan * i);
+
+                DrawText(hDC, lpOut, lstrlen(lpOut), &r,
+                    DT_SINGLELINE | DT_CENTER | DT_VCENTER);
+            }
+        }
+
+        // 등분 개수 출력
+        RECT info = { 0, 0, client.right, 30 };
+        wsprintf(lpOut, L"가로 등분: %d", garo);
+
+        DrawText(hDC, lpOut, lstrlen(lpOut), &info,
+            DT_SINGLELINE | DT_CENTER | DT_VCENTER);
+
+        EndPaint(hWnd, &ps);
+    }
+    break;
 
 	case WM_DESTROY:
 		PostQuitMessage(0);
