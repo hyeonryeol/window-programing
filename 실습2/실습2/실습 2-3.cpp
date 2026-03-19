@@ -44,6 +44,18 @@ int WINAPI WinMain(HINSTANCE hlnstance, HINSTANCE hPrevlnstance, LPSTR IpszCmdPa
     }
     return Message.wParam;
 }
+COLORREF GetColor(int index)
+{
+    switch (index % 5)
+    {
+    case 0: return RGB(255, 0, 0);   // 빨강
+    case 1: return RGB(0, 255, 0);   // 초록
+    case 2: return RGB(0, 0, 255);   // 파랑
+    case 3: return RGB(255, 0, 255); // 보라
+    case 4: return RGB(255, 165, 0); // 주황
+    }
+    return RGB(0, 0, 0);
+}
 LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM IParam)
 {
     PAINTSTRUCT ps;
@@ -52,8 +64,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM IParam)
     RECT rect;
     int x = 0, y = 0;
     TCHAR lpOut[100];
-    int n = rand() & 10;
+    int n = rand() % 10;
 
+    
 
     switch (iMessage) {
     case WM_PAINT:
@@ -65,10 +78,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM IParam)
         GetClientRect(hWnd, &client);
 
         TCHAR lpOut[100];
-        if (n % 2 == 0)
+        if (n  %  2 == 1)
         {
             // 1. 가로 분할 랜덤 
-            int garo = rand() % 15 + 2;
+            int garo = rand() % 5 + 2;
 
             // 2. 세로 2등분
             int sero = 600 / 2;
@@ -85,6 +98,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM IParam)
             {
                 int dan = startDan + c;
 
+                COLORREF color = GetColor(c); // 단 기준
+
+                SetTextColor(hDC, color);
+
+                
                 for (int i = 1; i <= 9; ++i)
                 {
                     RECT r;
@@ -95,8 +113,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM IParam)
                     r.top = client.top + (i - 1) * cellHeight;
                     r.bottom = r.top + cellHeight;
 
+                    
                     wsprintf(lpOut, L"%d x %d = %d", dan, i, dan * i);
-                    SetTextColor(hDC, RGB(255, 255, 255));
                     DrawText(hDC, lpOut, lstrlen(lpOut), &r,
                         DT_SINGLELINE | DT_CENTER | DT_VCENTER);
                 }
@@ -106,6 +124,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM IParam)
             for (int c = 0; c < garo; ++c)
             {
                 int dan = endDan - c;
+                COLORREF color = GetColor(c); // 단 기준
+
+                SetTextColor(hDC, color);
 
                 for (int i = 1; i <= 9; ++i)
                 {
@@ -134,10 +155,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM IParam)
             EndPaint(hWnd, &ps);
         break;
         }
-        else
+        else if(n % 2 == 0)
         {
             // 1. 가로 분할 랜덤 
-            int garo = rand() % 15 + 2;
+            int garo = rand() % 5 + 2;
 
             // 2. 세로 2등분
             int sero = 600 / 2;
@@ -164,6 +185,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM IParam)
                     r.top = client.top + (i - 1) * cellHeight;
                     r.bottom = r.top + cellHeight;
 
+                    COLORREF color = GetColor(i); // 줄 기준
+
+                    SetTextColor(hDC, color);
+
                     wsprintf(lpOut, L"%d x %d = %d", dan, i, dan * i);
 
                     DrawText(hDC, lpOut, lstrlen(lpOut), &r,
@@ -186,8 +211,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM IParam)
                     r.top = sero + (i - 1) * cellHeight;
                     r.bottom = r.top + cellHeight;
 
-                    wsprintf(lpOut, L"%d x %d = %d", dan, i, dan * i);
+                    COLORREF color = GetColor(i); // 줄 기준
 
+                    SetTextColor(hDC, color);
+                   
+                    wsprintf(lpOut, L"%d x %d = %d", dan, i, dan * i);
                     DrawText(hDC, lpOut, lstrlen(lpOut), &r,
                         DT_SINGLELINE | DT_CENTER | DT_VCENTER);
                 }
