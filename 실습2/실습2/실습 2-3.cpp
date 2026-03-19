@@ -96,7 +96,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM IParam)
                     r.bottom = r.top + cellHeight;
 
                     wsprintf(lpOut, L"%d x %d = %d", dan, i, dan * i);
-                    SetTextColor(hDC, RGB(255, 0, 0));
+                    SetTextColor(hDC, RGB(255, 255, 255));
                     DrawText(hDC, lpOut, lstrlen(lpOut), &r,
                         DT_SINGLELINE | DT_CENTER | DT_VCENTER);
                 }
