@@ -5,7 +5,7 @@
 
 using namespace std;
 
-struct legueoflegendes
+struct legueoflegendes //구조체
 {
 	string name; //이름
 	int hp; //체력
@@ -17,8 +17,8 @@ struct legueoflegendes
 
 int main()
 {
-	legueoflegendes LOL[172];
-	int count = 0;
+	legueoflegendes LOL[172]; //롤 챔피언수만큼 배열 선언함
+	int count = 0; //파일의 챔피언 수
 
 	ifstream file("testdata.txt");  // 파일 열기
 
@@ -36,7 +36,7 @@ int main()
 		>> LOL[count].range
 		>> LOL[count].positon) // 한 줄씩 읽기
 	{
-		++count;
+		++count; //저거 다 읽으면 챔피언 하나 추가
 	}
 
 	file.close();               // 파일 닫기
@@ -179,6 +179,8 @@ int main()
 				{
 					maxhp = LOL[i].hp;
 				}
+
+
 				
 			}
 			for (int i = 0; i < count; i++)
