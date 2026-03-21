@@ -1,6 +1,7 @@
 #include <iostream>
 #include <string>
 #include <fstream>
+#include <algorithm>
 
 using namespace std;
 
@@ -167,6 +168,39 @@ int main()
 					<< LOL[i].range << " "
 					<< LOL[i].positon << endl << endl;
 			}
+		}
+		else if (command == "FindMaxHp")
+		{
+			int maxhp = LOL[0].hp; 
+			for (int i = 1; i < count; ++i)
+			{
+				
+				if (LOL[i].hp > maxhp)
+				{
+					maxhp = LOL[i].hp;
+				}
+				
+			}
+			for (int i = 0; i < count; i++)
+			{
+				if (maxhp == LOL[i].hp)
+				{
+					cout << LOL[i].name << " "
+						<< LOL[i].hp << " "
+						<< LOL[i].mp << " "
+						<< LOL[i].speed << " "
+						<< LOL[i].range << " "
+						<< LOL[i].positon << endl;
+				}
+			}
+			
+		}
+		else if (command == "SortByHp")
+		{
+			sort(LOL, LOL + count, [](legueoflegendes a, legueoflegendes b)
+				{
+					return a.hp > b.hp;
+				});
 		}
 	}
 }
