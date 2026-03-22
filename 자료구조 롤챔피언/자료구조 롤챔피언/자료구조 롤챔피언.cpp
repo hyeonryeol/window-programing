@@ -1,7 +1,6 @@
 #include <iostream>
 #include <string>
 #include <fstream>
-#include <algorithm>
 
 using namespace std;
 
@@ -29,38 +28,65 @@ int main()
 	}
 
 
-	while (file >> LOL[count].name
-		>> LOL[count].hp
-		>> LOL[count].mp
-		>> LOL[count].speed
-		>> LOL[count].range
-		>> LOL[count].positon) // 한 줄씩 읽기
+	string line;
+	while (getline(file, line))
 	{
-		++count; //저거 다 읽으면 챔피언 하나 추가
+		if (line.empty()) continue;
+
+		// 단어로 쪼개기
+		string words[100];
+		int wordCount = 0;
+		string cur = "";
+		for (int i = 0; i <= (int)line.size(); i++)
+		{
+			if (i == (int)line.size() || line[i] == ' ' || line[i] == '\t')
+			{
+				if (!cur.empty())
+				{
+					words[wordCount++] = cur;
+					cur = "";
+				}
+			}
+			else
+			{
+				cur += line[i];
+			}
+		}
+
+		// 숫자 나오기 전까지 이름
+		LOL[count].name = "";
+		int i = 0;
+		while (i < wordCount && !isdigit(words[i][0]))
+		{
+			if (i > 0) LOL[count].name += " ";
+			LOL[count].name += words[i];
+			i++;
+		}
+
+		// 나머지 순서대로
+		LOL[count].hp = stoi(words[i++]);
+		LOL[count].mp = stoi(words[i++]);
+		LOL[count].speed = stoi(words[i++]);
+		LOL[count].range = stoi(words[i++]);
+		LOL[count].positon = words[i];
+		count++;
 	}
 
 	file.close();               // 파일 닫기
-	for (int i = 0; i < count; ++i)
-	{
-		cout << LOL[i].name << " "
-			<< LOL[i].hp << " "
-			<< LOL[i].mp << " "
-			<< LOL[i].speed << " "
-			<< LOL[i].range << " "
-			<< LOL[i].positon << endl;
-	}
+	
 
 
 	while (1)
 	{
-		cout << "Search [챔피언이름] : 주어진 챔피언의 정보를 출력한다."<< endl
+		cout << "Search 챔피언이름 : 주어진 챔피언의 정보를 출력한다."<< endl
 			<< "Insert : 새로운 챔피언의 정보를 입력받아 삽입한다." << endl
-			<< "Delete[챔피언이름] : 주어진 챔피언에 대한 정보를 삭제한다." << endl
-			<< "DeleteAll[position] : 주어진 위치의 모든 챔피언 정보를 삭제한다." << endl
+			<< "Delete 챔피언이름 : 주어진 챔피언에 대한 정보를 삭제한다." << endl
+			<< "DeleteAll 포지션 : 주어진 위치의 모든 챔피언 정보를 삭제한다." << endl
 			<< "PrintAll : 모든 챔피언의 정보를 배열에 저장된 순서대로 출력한다." << endl
 			<< "FindMaxHp : 가장 체력이 큰 챔피언의 정보를 출력한다." << endl
 		    << "SortByHp : 체력이 큰 챔피언부터 순서대로 저장한다 : " << endl;
 		string command;
+		cout << "명령어를 입력하세요." << endl;
 		cin >> command;
 		if (command == "Search")
 		{
@@ -91,8 +117,10 @@ int main()
 		}
 		else if (command == "Insert")
 		{
+			cin.ignore();
+
 			cout << "새로운 챔피언의 이름을 입력하세요." << endl;
-			cin >> LOL[count].name;
+			getline(cin, LOL[count].name);
 			cout << "새로운 챔피언의 체력을 입력하세요." << endl;
 			cin >> LOL[count].hp;
 			cout << "새로운 챔피언의 마나를 입력하세요." << endl;
@@ -109,7 +137,7 @@ int main()
 		else if (command == "Delete")
 		{
 			string champ;
-			cout << "삭제할 챔피언 이름을 입력하세요." << endl;
+			
 			cin >> champ;
 
 			int index = -1;
@@ -150,8 +178,9 @@ int main()
 						{
 							LOL[j] = LOL[j + 1];
 						}
-						count--;
 					}
+						count--;
+						i--;
 				}
 				
 			}
@@ -199,10 +228,18 @@ int main()
 		}
 		else if (command == "SortByHp")
 		{
-			sort(LOL, LOL + count, [](legueoflegendes a, legueoflegendes b)
+			for (int i = 0; i < count - 1; ++i)
+			{
+				for (int j = i + 1; j < count; ++j)
 				{
-					return a.hp > b.hp;
-				});
+					if (LOL[i].hp < LOL[j].hp) // hp 기준 내림차순
+					{
+						legueoflegendes temp = LOL[i];
+						LOL[i] = LOL[j];
+						LOL[j] = temp;
+					}
+				}
+			}
 		}
 	}
 }
