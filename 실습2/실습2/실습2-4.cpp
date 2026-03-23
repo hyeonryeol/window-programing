@@ -98,7 +98,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM IParam)
             int areaTop = client.top;
             int areaHeight = client.bottom;
             int cellHeight = areaHeight / 9;
-            int cellWidth = 400 / garo;
+            int cellWidth = 700 / garo;
             int width = 200; // 텍스트 박스 너비
 
             for (int i = 1; i <= 9; ++i)
