@@ -1,4 +1,4 @@
-#include <windows.h> //윈도우 좌표값, 창크기, 색, 이름
+﻿#include <windows.h> //윈도우 좌표값, 창크기, 색, 이름
 #include <tchar.h>
 #include<time.h>
 #include<stdlib.h>
