@@ -22,8 +22,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdPa
     srand(time(NULL));
 
     // 랜덤 위치/색상 초기화
-    startX = rand() % 601;       // 0~600
-    startY = rand() % 501;       // 0~500
+    startX = rand() % 600;       // 0~600
+    startY = rand() % 500;       // 0~500
     int r = rand() % 256;
     int g = rand() % 256;
     int b = rand() % 256;
