@@ -145,7 +145,7 @@ int main()
 			int index = -1;
 			for (int i = 0; i < count; ++i)
 			{
-				if (LOL[i].name == champ)
+				if (champ == LOL[i].name)
 				{
 					index = i;
 					cout << "삭제되었습니다." << endl;
