@@ -122,7 +122,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
         hDC = BeginPaint(hWnd, &ps);
         SetTextColor(hDC, textColor);
         SetBkMode(hDC, TRANSPARENT);
-
+        TextOut(hDC, startX, startY, L"출력할 문자열", );
 
 
 

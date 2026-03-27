@@ -28,7 +28,7 @@ int WINAPI WinMain(HINSTANCE hlnstance, HINSTANCE hPrevlnstance, LPSTR IpszCmdPa
 	WndClass.hIconSm = LoadIcon(NULL, IDI_APPLICATION);
 	RegisterClassEx(&WndClass);
 
-	hWND = CreateWindow(IpszClass, IpszWindowName, WS_OVERLAPPEDWINDOW| WS_SYSMENU| WS_HSCROLL | WS_VSCROLL |WS_MAXIMIZEBOX / WS_MINIMIZEBOX, 100, 50, 800, 600, NULL, (HMENU)NULL, hlnstance, NULL);
+	hWND = CreateWindow(IpszClass, IpszWindowName, WS_OVERLAPPEDWINDOW| WS_SYSMENU| WS_HSCROLL | WS_VSCROLL |WS_MAXIMIZEBOX | WS_MINIMIZEBOX, 100, 50, 800, 600, NULL, (HMENU)NULL, hlnstance, NULL);
 
 	ShowWindow(hWND, nCmdShow);
 	UpdateWindow(hWND);
