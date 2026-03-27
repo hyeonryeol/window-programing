@@ -11,8 +11,9 @@ LPCTSTR lpszWindowName = L"windows program 3";
 int startX, startY, r, g, b, R, G, B, n, count;         // 시작 위치
 COLORREF textColor;         // 텍스트 색상
 TCHAR lines[5][21];         // 최대 5줄, 각 20자
+int lineLens[5];  // 각 줄의 글자 수
 COLORREF BkColor;           //배경 색
-int CNT = 0;
+int CNT = 0; //엔터 누름
 LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam);
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdParam, int nCmdShow)
@@ -32,7 +33,11 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdPa
     int count = rand() % 16 + 5;
     textColor = RGB(r, g, b);
     BkColor = RGB(R, G, B);
-    
+
+    for (int i = 0; i < 5; i++) {
+        lineLens[i] = 0;
+        lines[i][0] = L'\0';
+    }
    
 
     HWND hWnd;
@@ -71,7 +76,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 {
     PAINTSTRUCT ps;
     HDC hDC;
-
+    static int curLine = 0;            // 현재 줄 번호
+    static int totalLines = 1;         // 총 줄 수
     switch (iMessage)
     {
     case WM_KEYDOWN:
