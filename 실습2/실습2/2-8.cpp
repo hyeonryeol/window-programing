@@ -170,11 +170,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 
 			if (overwriteMode)
 			{
-				// 1. 맨 앞이면 삭제 금지
+				//맨 앞이면 삭제 금지
 				if (curidx == 0)
 					return 0;
 
-				// 2. 현재 줄에서 삭제
+				//현재 줄에서 삭제
 				TCHAR deleted = lines[curLine][curidx - 1];
 
 				for (int i = curidx - 1; i < lineLens[curLine] - 1; i++)
@@ -187,7 +187,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 
 				lines[curLine][lineLens[curLine]] = L'\0';
 
-				// 3. ⭐ 다음 줄에서 땡겨오기
+				// 다음 줄에서 땡겨오기
 				if (curLine < totalLines - 1 && lineLens[curLine] < 30)
 				{
 					TCHAR nextChar = lines[curLine + 1][0];
