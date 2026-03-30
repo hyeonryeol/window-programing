@@ -1,180 +1,321 @@
-﻿// 윈플 연습장.cpp : 애플리케이션에 대한 진입점을 정의합니다.
-//
+﻿#include <windows.h>
+#include <tchar.h>
 
-#include "framework.h"
-#include "윈플 연습장.h"
+HINSTANCE g_hInst;
+LPCTSTR lpszClass = L"Window Class Name";
+LPCTSTR lpszWindowName = L"메모장";
 
-#define MAX_LOADSTRING 100
+// 최대 10줄, 각 30글자
+TCHAR lines[10][31];
+int   lineLens[10];    // 각 줄의 글자 수
+int   curLine = 0;     // 현재 줄 번호
+int   curIdx = 0;     // 현재 줄의 글자 위치
+int cursorX = 10;
+int cursorY = 10;
+bool overwrite = false;
+int totalLines = 1;
 
-// 전역 변수:
-HINSTANCE hInst;                                // 현재 인스턴스입니다.
-WCHAR szTitle[MAX_LOADSTRING];                  // 제목 표시줄 텍스트입니다.
-WCHAR szWindowClass[MAX_LOADSTRING];            // 기본 창 클래스 이름입니다.
+LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam);
 
-// 이 코드 모듈에 포함된 함수의 선언을 전달합니다:
-ATOM                MyRegisterClass(HINSTANCE hInstance);
-BOOL                InitInstance(HINSTANCE, int);
-LRESULT CALLBACK    WndProc(HWND, UINT, WPARAM, LPARAM);
-INT_PTR CALLBACK    About(HWND, UINT, WPARAM, LPARAM);
-
-int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
-                     _In_opt_ HINSTANCE hPrevInstance,
-                     _In_ LPWSTR    lpCmdLine,
-                     _In_ int       nCmdShow)
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
+	LPSTR lpszCmdParam, int nCmdShow)
 {
-    UNREFERENCED_PARAMETER(hPrevInstance);
-    UNREFERENCED_PARAMETER(lpCmdLine);
+	HWND       hWnd;
+	MSG        Message;
+	WNDCLASSEX WndClass;
+	g_hInst = hInstance;
 
-    // TODO: 여기에 코드를 입력합니다.
+	WndClass.cbSize = sizeof(WndClass);
+	WndClass.style = CS_HREDRAW | CS_VREDRAW;
+	WndClass.lpfnWndProc = WndProc;
+	WndClass.cbClsExtra = 0;
+	WndClass.cbWndExtra = 0;
+	WndClass.hInstance = hInstance;
+	WndClass.hIcon = LoadIcon(NULL, IDI_APPLICATION);
+	WndClass.hCursor = LoadCursor(NULL, IDC_ARROW);
+	WndClass.hbrBackground = (HBRUSH)GetStockObject(WHITE_BRUSH);
+	WndClass.lpszMenuName = NULL;
+	WndClass.lpszClassName = lpszClass;
+	WndClass.hIconSm = LoadIcon(NULL, IDI_APPLICATION);
 
-    // 전역 문자열을 초기화합니다.
-    LoadStringW(hInstance, IDS_APP_TITLE, szTitle, MAX_LOADSTRING);
-    LoadStringW(hInstance, IDC_MY, szWindowClass, MAX_LOADSTRING);
-    MyRegisterClass(hInstance);
+	RegisterClassEx(&WndClass);
 
-    // 애플리케이션 초기화를 수행합니다:
-    if (!InitInstance (hInstance, nCmdShow))
-    {
-        return FALSE;
-    }
+	hWnd = CreateWindow(lpszClass, lpszWindowName, WS_OVERLAPPEDWINDOW,
+		100, 100, 800, 600,
+		NULL, NULL, hInstance, NULL);
 
-    HACCEL hAccelTable = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDC_MY));
+	ShowWindow(hWnd, nCmdShow);
+	UpdateWindow(hWnd);
 
-    MSG msg;
+	while (GetMessage(&Message, 0, 0, 0))
+	{
+		TranslateMessage(&Message);
+		DispatchMessage(&Message);
+	}
 
-    // 기본 메시지 루프입니다:
-    while (GetMessage(&msg, nullptr, 0, 0))
-    {
-        if (!TranslateAccelerator(msg.hwnd, hAccelTable, &msg))
-        {
-            TranslateMessage(&msg);
-            DispatchMessage(&msg);
-        }
-    }
-
-    return (int) msg.wParam;
+	return (int)Message.wParam;
 }
 
-
-
-//
-//  함수: MyRegisterClass()
-//
-//  용도: 창 클래스를 등록합니다.
-//
-ATOM MyRegisterClass(HINSTANCE hInstance)
+LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage,
+	WPARAM wParam, LPARAM lParam)
 {
-    WNDCLASSEXW wcex;
+	PAINTSTRUCT ps;
+	HDC         hDC;
 
-    wcex.cbSize = sizeof(WNDCLASSEX);
+	switch (iMessage)
+	{
+	case WM_CREATE:
+		// 줄 초기화
+		for (int i = 0; i < 10; ++i)
+		{
+			lineLens[i] = 0;
+			lines[i][0] = L'\0';
+		}
+		curLine = 0;
+		curIdx = 0;
 
-    wcex.style          = CS_HREDRAW | CS_VREDRAW;
-    wcex.lpfnWndProc    = WndProc;
-    wcex.cbClsExtra     = 0;
-    wcex.cbWndExtra     = 0;
-    wcex.hInstance      = hInstance;
-    wcex.hIcon          = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_MY));
-    wcex.hCursor        = LoadCursor(nullptr, IDC_ARROW);
-    wcex.hbrBackground  = (HBRUSH)(COLOR_WINDOW+1);
-    wcex.lpszMenuName   = MAKEINTRESOURCEW(IDC_MY);
-    wcex.lpszClassName  = szWindowClass;
-    wcex.hIconSm        = LoadIcon(wcex.hInstance, MAKEINTRESOURCE(IDI_SMALL));
+		// 캐럿(커서) 생성: 폭 2픽셀, 높이 20픽셀짜리 직사각형
+		CreateCaret(hWnd, NULL, 2, 20);
+		// 초기 위치 설정 (문자 폭 8 가정, 줄 간격 20 가정)
+		SetCaretPos(cursorX, cursorY);
+		// 캐럿 보이기
+		ShowCaret(hWnd);
+		break;
 
-    return RegisterClassExW(&wcex);
-}
+	case WM_CHAR:
+	{
+		TCHAR ch = (TCHAR)wParam;
 
-//
-//   함수: InitInstance(HINSTANCE, int)
-//
-//   용도: 인스턴스 핸들을 저장하고 주 창을 만듭니다.
-//
-//   주석:
-//
-//        이 함수를 통해 인스턴스 핸들을 전역 변수에 저장하고
-//        주 프로그램 창을 만든 다음 표시합니다.
-//
-BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
-{
-   hInst = hInstance; // 인스턴스 핸들을 전역 변수에 저장합니다.
+		if (ch == 27) // ESC
+		{
+			for (int i = 0; i < 10; ++i)
+			{
+				lineLens[i] = 0;
+				lines[i][0] = L'\0';
+			}
+			curLine = 0;
+			curIdx = 0;
+			cursorX = 10;
+			cursorY = 10;
+			overwrite = false;  
+			int totalLines = 1;
 
-   HWND hWnd = CreateWindowW(szWindowClass, szTitle, WS_OVERLAPPEDWINDOW,
-      CW_USEDEFAULT, 0, CW_USEDEFAULT, 0, nullptr, nullptr, hInstance, nullptr);
+			SetCaretPos(cursorX, cursorY);
+			InvalidateRect(hWnd, NULL, TRUE);
+			return 0;
+		}
 
-   if (!hWnd)
-   {
-      return FALSE;
-   }
+		// 엔터 → 다음 줄로 이동
+		if (ch == '\r')
+		{
+			if (curLine < 9)
+			{
+				curLine++;
+				curIdx = 0;
+				if (curLine >= totalLines) totalLines = curLine + 1;
+			}
+			InvalidateRect(hWnd, NULL, TRUE);
+			// 캐럿 위치 갱신
+			HDC hDC = GetDC(hWnd);
 
-   ShowWindow(hWnd, nCmdShow);
-   UpdateWindow(hWnd);
+			TEXTMETRIC tm;
+			GetTextMetrics(hDC, &tm);   // 글자 높이 가져오기
 
-   return TRUE;
-}
+			SIZE sz;
+			GetTextExtentPoint32(hDC, lines[curLine], curIdx, &sz); // 현재 줄에서 폭
 
-//
-//  함수: WndProc(HWND, UINT, WPARAM, LPARAM)
-//
-//  용도: 주 창의 메시지를 처리합니다.
-//
-//  WM_COMMAND  - 애플리케이션 메뉴를 처리합니다.
-//  WM_PAINT    - 주 창을 그립니다.
-//  WM_DESTROY  - 종료 메시지를 게시하고 반환합니다.
-//
-//
-LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
-{
-    switch (message)
-    {
-    case WM_COMMAND:
-        {
-            int wmId = LOWORD(wParam);
-            // 메뉴 선택을 구문 분석합니다:
-            switch (wmId)
-            {
-            case IDM_ABOUT:
-                DialogBox(hInst, MAKEINTRESOURCE(IDD_ABOUTBOX), hWnd, About);
-                break;
-            case IDM_EXIT:
-                DestroyWindow(hWnd);
-                break;
-            default:
-                return DefWindowProc(hWnd, message, wParam, lParam);
-            }
-        }
-        break;
-    case WM_PAINT:
-        {
-            PAINTSTRUCT ps;
-            HDC hdc = BeginPaint(hWnd, &ps);
-            // TODO: 여기에 hdc를 사용하는 그리기 코드를 추가합니다...
-            EndPaint(hWnd, &ps);
-        }
-        break;
-    case WM_DESTROY:
-        PostQuitMessage(0);
-        break;
-    default:
-        return DefWindowProc(hWnd, message, wParam, lParam);
-    }
-    return 0;
-}
+			ReleaseDC(hWnd, hDC);
 
-// 정보 대화 상자의 메시지 처리기입니다.
-INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
-{
-    UNREFERENCED_PARAMETER(lParam);
-    switch (message)
-    {
-    case WM_INITDIALOG:
-        return (INT_PTR)TRUE;
+			cursorX = 10 + sz.cx;
+			cursorY = 10 + curLine * tm.tmHeight;   // 여기서 tm.tmHeight 사용
 
-    case WM_COMMAND:
-        if (LOWORD(wParam) == IDOK || LOWORD(wParam) == IDCANCEL)
-        {
-            EndDialog(hDlg, LOWORD(wParam));
-            return (INT_PTR)TRUE;
-        }
-        break;
-    }
-    return (INT_PTR)FALSE;
+			SetCaretPos(cursorX, cursorY);
+			break;
+		}
+
+		// 출력 가능한 문자(알파벳/숫자/기호 등), 백스페이스는 제외
+		if (isprint((unsigned char)ch) && ch != '\b')
+		{
+			if (!overwrite)
+			{
+				if (curIdx < 30)
+				{
+					lines[curLine][curIdx] = ch;
+					curIdx++;
+					lineLens[curLine] = curIdx;
+					lines[curLine][curIdx] = L'\0';
+					InvalidateRect(hWnd, NULL, TRUE);
+				}
+				else
+				{
+					if (curLine < 9)
+					{
+						curLine++;
+						curIdx = 0;
+
+						lines[curLine][curIdx] = ch;
+						curIdx++;
+						lineLens[curLine] = curIdx;
+						lines[curLine][curIdx] = L'\0';
+
+						if (curLine >= totalLines) totalLines = curLine + 1;
+					}
+					else
+					{
+						overwrite = true;
+
+						curLine = 0;
+						curIdx = 0;
+
+						
+
+						lines[curLine][curIdx] = ch;
+						if (curIdx + 1 > lineLens[curLine])
+							lineLens[curLine] = curIdx + 1;
+						
+						curIdx++;
+						lines[curLine][curIdx] = L'\0';
+					}
+				}
+			}
+			else
+			{
+				lines[curLine][curIdx] = ch;
+
+				if (curIdx + 1 > lineLens[curLine])
+					lineLens[curLine] = curIdx + 1;
+				curIdx++;
+
+				if (curIdx >= 30)
+				{
+					curIdx = 0;
+					curLine++;
+					if (curLine > 9)
+					{
+						curLine = 0;
+					}
+				}
+				lines[curLine][lineLens[curLine]] = L'\0';
+			}
+			
+			InvalidateRect(hWnd, NULL, TRUE);
+
+			// 캐럿 위치 갱신
+			HDC hDC = GetDC(hWnd);
+
+			TEXTMETRIC tm;
+			GetTextMetrics(hDC, &tm);   // 글자 높이
+
+			SIZE sz;
+			GetTextExtentPoint32(hDC, lines[curLine], curIdx, &sz);
+			ReleaseDC(hWnd, hDC);
+
+			cursorX = 10 + sz.cx;
+			cursorY = 10 + curLine * tm.tmHeight; // tmHeight는 글자 높이
+			SetCaretPos(cursorX, cursorY);
+		}
+	}
+	break;
+
+	case WM_KEYDOWN:
+		if (wParam == VK_BACK)
+		{
+			if (curIdx > 0)
+			{
+				// 1) 현재 줄에서 한 글자 삭제 + 앞으로 당기기
+				int delPos = curIdx - 1;
+
+				for (int i = delPos; i < lineLens[curLine] - 1; ++i)
+				{
+					lines[curLine][i] = lines[curLine][i + 1];
+				}
+
+				lineLens[curLine]--;
+				curIdx--;
+				lines[curLine][lineLens[curLine]] = L'\0';
+			}
+			else if (curIdx == 0 && curLine > 0)
+			{
+				// 2) 줄 맨 앞에서 BKSP: 윗줄 끝과 합치고 아래 줄 당기기
+
+				// 먼저 현재 줄을 윗줄 뒤에 이어붙이기
+				int prevLine = curLine - 1;
+				int prevLen = lineLens[prevLine];
+				int thisLen = lineLens[curLine];
+
+				// 현재 줄 글자를 prevLine 뒤에 이어붙임 (최대 30자까지)
+				for (int i = 0; i < thisLen && prevLen + i < 30; ++i)
+				{
+					lines[prevLine][prevLen + i] = lines[curLine][i];
+				}
+
+				int newLen = prevLen + thisLen;
+				if (newLen > 30) newLen = 30;
+
+				lineLens[prevLine] = newLen;
+				lines[prevLine][newLen] = L'\0';
+
+				// 이제 현재 줄( curLine )은 "비워진 줄"이 된 상태.
+				// 아래 줄들을 한 칸씩 위로 당긴다.
+				for (int ln = curLine; ln < totalLines - 1; ++ln)
+				{
+					lstrcpy(lines[ln], lines[ln + 1]);
+					lineLens[ln] = lineLens[ln + 1];
+				}
+
+				// 마지막 줄은 비우기
+				lineLens[totalLines - 1] = 0;
+				lines[totalLines - 1][0] = L'\0';
+
+				totalLines--;
+				curLine = prevLine;
+				curIdx = lineLens[prevLine];
+			}
+
+			InvalidateRect(hWnd, NULL, TRUE);
+
+			// 캐럿 위치 갱신
+			HDC hDC = GetDC(hWnd);
+
+			TEXTMETRIC tm;
+			GetTextMetrics(hDC, &tm);
+
+			SIZE sz;
+			GetTextExtentPoint32(hDC, lines[curLine], curIdx, &sz);
+			ReleaseDC(hWnd, hDC);
+
+			cursorX = 10 + sz.cx;
+			cursorY = 10 + curLine * tm.tmHeight;
+			SetCaretPos(cursorX, cursorY);
+		}
+		break;
+
+	case WM_PAINT:
+	{
+		hDC = BeginPaint(hWnd, &ps);
+
+		TEXTMETRIC tm;
+		GetTextMetrics(hDC, &tm);
+		int charH = tm.tmHeight;
+
+		for (int i = 0; i < totalLines; ++i)
+		{
+			TextOut(hDC, 10, 10 + i * charH, lines[i], lineLens[i]);
+		}
+
+		EndPaint(hWnd, &ps);
+		break;
+	}
+		
+
+	case WM_DESTROY:
+		DestroyCaret();
+		PostQuitMessage(0);
+		break;
+
+	default:
+		return DefWindowProc(hWnd, iMessage, wParam, lParam);
+	}
+
+	return 0;
 }
