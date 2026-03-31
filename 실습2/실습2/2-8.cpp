@@ -1,4 +1,4 @@
-#include <windows.h>
+﻿#include <windows.h>
 #include <tchar.h>
 #include <time.h>
 #include <stdlib.h>
@@ -187,7 +187,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 
 				lines[curLine][lineLens[curLine]] = L'\0';
 
-				// 다음 줄에서 땡겨오기
+				//다음 줄에서 땡겨오기
 				if (curLine < totalLines - 1 && lineLens[curLine] < 30)
 				{
 					TCHAR nextChar = lines[curLine + 1][0];
@@ -331,6 +331,173 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 				SetCaretPos(cursorX, cursorY);
 				InvalidateRect(hWnd, NULL, TRUE);
 			}
+		}
+		TCHAR ch = (TCHAR)wParam;
+		if (wParam == VK_LEFT)
+		{
+			if (curidx > 0)
+			{
+
+				curidx--;
+
+
+			}
+			else if (curLine > 0)
+			{
+
+				curLine--;
+				curidx = lineLens[curLine];
+			}
+
+
+			// 캐럿 위치 갱신
+			HDC hDC = GetDC(hWnd);
+			TEXTMETRIC tm;
+			GetTextMetrics(hDC, &tm);
+
+			SIZE sz;
+			GetTextExtentPoint32(hDC, lines[curLine], curidx, &sz);
+			ReleaseDC(hWnd, hDC);
+
+			cursorX = 10 + sz.cx;
+			cursorY = 10 + curLine * tm.tmHeight;
+			SetCaretPos(cursorX, cursorY);
+			InvalidateRect(hWnd, NULL, TRUE);
+		}
+		if (wParam == VK_RIGHT)
+		{
+			if (curidx < 30)
+			{
+				curidx++;
+
+			}
+			else if (curLine < 10)
+			{
+				curLine++;
+				curidx = lineLens[curLine];
+			}
+
+
+			// 캐럿 위치 갱신
+			HDC hDC = GetDC(hWnd);
+			TEXTMETRIC tm;
+			GetTextMetrics(hDC, &tm);
+
+			SIZE sz;
+			GetTextExtentPoint32(hDC, lines[curLine], curidx, &sz);
+			ReleaseDC(hWnd, hDC);
+
+			cursorX = 10 + sz.cx;
+			cursorY = 10 + curLine * tm.tmHeight;
+			SetCaretPos(cursorX, cursorY);
+			InvalidateRect(hWnd, NULL, TRUE);
+		}
+		if (wParam == VK_UP)
+		{
+			if (curLine > 0)
+			{
+				curLine--;
+			}
+			// 캐럿 위치 갱신
+			HDC hDC = GetDC(hWnd);
+			TEXTMETRIC tm;
+			GetTextMetrics(hDC, &tm);
+
+			SIZE sz;
+			GetTextExtentPoint32(hDC, lines[curLine], curidx, &sz);
+			ReleaseDC(hWnd, hDC);
+
+			cursorX = 10 + sz.cx;
+			cursorY = 10 + curLine * tm.tmHeight;
+			SetCaretPos(cursorX, cursorY);
+			InvalidateRect(hWnd, NULL, TRUE);
+		}
+		if (wParam == VK_DOWN)
+		{
+			if (curLine < 10)
+			{
+				curLine++;
+			}
+			// 캐럿 위치 갱신
+			HDC hDC = GetDC(hWnd);
+			TEXTMETRIC tm;
+			GetTextMetrics(hDC, &tm);
+
+			SIZE sz;
+			GetTextExtentPoint32(hDC, lines[curLine], curidx, &sz);
+			ReleaseDC(hWnd, hDC);
+
+			cursorX = 10 + sz.cx;
+			cursorY = 10 + curLine * tm.tmHeight;
+			SetCaretPos(cursorX, cursorY);
+			InvalidateRect(hWnd, NULL, TRUE);
+		}
+		if (wParam == VK_TAB)
+		{
+			if (curidx < 28)
+			{
+				for (int i = 0; i < 3; ++i)
+				{
+					curidx++;
+				}
+			}
+			else if (curLine < 10)
+			{
+				curLine++;
+				curidx = lineLens[curLine];
+			}
+
+			// 캐럿 위치 갱신
+			HDC hDC = GetDC(hWnd);
+			TEXTMETRIC tm;
+			GetTextMetrics(hDC, &tm);
+
+			SIZE sz;
+			GetTextExtentPoint32(hDC, lines[curLine], curidx, &sz);
+			ReleaseDC(hWnd, hDC);
+
+			cursorX = 10 + sz.cx;
+			cursorY = 10 + curLine * tm.tmHeight;
+			SetCaretPos(cursorX, cursorY);
+			InvalidateRect(hWnd, NULL, TRUE);
+		}
+		if (wParam == VK_HOME)
+		{
+			overwriteMode = true;
+
+			curidx = 0; // 맨 앞으로
+
+				// 캐럿 위치 계산
+				HDC hDC = GetDC(hWnd);
+				TEXTMETRIC tm;
+				GetTextMetrics(hDC, &tm);
+				ReleaseDC(hWnd, hDC);
+
+				cursorX = 10;                           //x는 맨 앞
+				cursorY = 10 + curLine * tm.tmHeight;
+				SetCaretPos(cursorX, cursorY);
+				InvalidateRect(hWnd, NULL, TRUE);
+
+		}
+		if (wParam == VK_END)
+		{
+
+		}
+		if (wParam == VK_INSERT)
+		{
+
+		}
+		if (wParam == VK_DELETE)
+		{
+
+		}
+		if (wParam == VK_PRIOR)
+		{
+
+		}
+		if (wParam == VK_NEXT)
+		{
+
 		}
 		break;
 	}

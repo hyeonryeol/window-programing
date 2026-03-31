@@ -3,5 +3,5 @@
     <Platform Name="x64" />
     <Platform Name="x86" />
   </Configurations>
-  <Project Path="윈플 연습장.vcxproj" />
+  <Project Path="윈플 연습장.vcxproj" Id="753a704a-149b-4579-aece-aa623797ad0f" />
 </Solution>
