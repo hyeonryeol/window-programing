@@ -18,7 +18,7 @@ int triangle = 0;
 POINT g_tri[5][3];
 void maketriangle()
 {
-	triangle = rand() % 5 + 1;
+	triangle = rand() % 3 + 1;
 	for (int i = 0; i < triangle; ++i)
 	{
 		int triW = 30;
@@ -39,7 +39,7 @@ int rectangle = 0;
 int g_rect[5][4];
 void makerectangle()
 {
-	rectangle = rand() % 5 + 1;
+	rectangle = rand() % 3 + 1;
 	for (int i = 0; i < rectangle; ++i)
 	{
 		int w = 40, h = 30;
@@ -49,6 +49,7 @@ void makerectangle()
 
 		int right = left + w;
 		int bottom = top + h;
+
 
 		g_rect[i][0] = { left};
 		g_rect[i][1] = { top};
@@ -62,7 +63,7 @@ int won = 0;
 int g_won[5][4];
 void makewon()
 {
-	won = rand() % 5 + 1;
+	won = rand() % 3 + 1;
 	for (int i = 0; i < won; ++i)
 	{
 		int w = 40, h = 30;
