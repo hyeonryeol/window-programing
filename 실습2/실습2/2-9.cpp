@@ -1,39 +1,46 @@
-﻿#include <windows.h>
-#include <tchar.h>
+﻿#include <windows.h>   // Win32 API (창, 메시지, GDI)
+#include <tchar.h>     // TCHAR, _istdigit, _toupper/_tolower 등
 #include <time.h>
 #include <stdlib.h>
-#include <tchar.h> //대소문자 헤더
+#include <tchar.h> // 대소문자/문자분류 관련 (중복 include지만 동작에는 문제 없음)
 
 HINSTANCE g_hInst;
 LPCTSTR lpszClass = L"Window Class Name";
 LPCTSTR lpszWindowName = L"메모장";
 
+// 캐럿(커서) 화면 좌표
 int cursorX = 10;
 int cursorY = 10;
-TCHAR lines[10][31];         // 최대 10줄, 각 30자
-int lineLens[10];            // 각 줄 길이
-int curLine = 0;            // 현재 줄
-int totalLines = 1;         // 총 줄 수
-int curidx = 0; //현재 몇번째 글자
-bool overwriteMode = false;
-bool insertmode = false;
-bool uppermode = false;
-bool gongback = false;
 
+// 텍스트 버퍼: 최대 10줄, 줄당 최대 30자 + '\0'
+TCHAR lines[10][31];
+int lineLens[10];      // 각 줄의 실제 길이
+int curLine = 0;       // 현재 줄 인덱스
+int totalLines = 1;    // 현재 사용 중인 총 줄 수
+int curidx = 0;        // 현재 줄 내 커서 문자 위치
+bool overwriteMode = false; // 덮어쓰기 성격 플래그
+bool insertmode = false;    // 삽입 모드 여부
+bool uppermode = false;     // 대문자 입력 모드(F1)
+bool gongback = false;      // F3에서 괄호 번갈아 넣기용 상태
+
+// F5 토글(마스킹)용 백업 버퍼
 bool f5Masked = false;
 TCHAR backupLines[10][31];
 int backupLens[10];
 
+// 현재 curLine/curidx 기준으로 캐럿 좌표를 계산해 반영
 void UpdateCaret(HWND hWnd)
 {
 	HDC hDC = GetDC(hWnd);
 	TEXTMETRIC tm{};
 	GetTextMetrics(hDC, &tm);
 
+	// 인덱스 경계 보정
 	if (curidx < 0) curidx = 0;
 	if (curidx > lineLens[curLine]) curidx = lineLens[curLine];
 
 	SIZE sz{ 0,0 };
+	// 줄 시작~curidx까지의 폭을 구해 X 좌표 계산
 	if (curidx > 0)
 		GetTextExtentPoint32(hDC, lines[curLine], curidx, &sz);
 
@@ -44,6 +51,7 @@ void UpdateCaret(HWND hWnd)
 	SetCaretPos(cursorX, cursorY);
 }
 
+// 현재 편집 상태를 백업
 void BackupAllLines()
 {
 	for (int i = 0; i < 10; ++i)
@@ -53,6 +61,7 @@ void BackupAllLines()
 	}
 }
 
+// 백업 상태를 복원
 void RestoreAllLines()
 {
 	for (int i = 0; i < 10; ++i)
@@ -62,19 +71,20 @@ void RestoreAllLines()
 	}
 }
 
+// 각 줄에서 "가장 많이 나온 문자(공백 제외)"를 '@'로 치환
 void MaskMostFrequentPerLine()
 {
 	for (int i = 0; i < totalLines; ++i)
 	{
-		int freq[65536] = { 0 }; // wchar 대응
+		int freq[65536] = { 0 }; // wchar 범위 대응 카운팅
 		int bestCnt = 0;
 		TCHAR bestCh = 0;
 
-		// 빈도 계산 (공백 제외)
+		// 문자 빈도 계산
 		for (int j = 0; j < lineLens[i]; ++j)
 		{
 			TCHAR c = lines[i][j];
-			if (c == L' ') continue;
+			if (c == L' ') continue; // 공백 제외
 			freq[(unsigned short)c]++;
 			if (freq[(unsigned short)c] > bestCnt)
 			{
@@ -83,7 +93,7 @@ void MaskMostFrequentPerLine()
 			}
 		}
 
-		// 치환
+		// 최빈문자 '@' 치환
 		if (bestCnt > 0)
 		{
 			for (int j = 0; j < lineLens[i]; ++j)
@@ -95,42 +105,44 @@ void MaskMostFrequentPerLine()
 	}
 }
 
+// Delete 키: 커서 위치 기준으로 "다음 단어" 삭제
 void DeleteWordAtCaret(HWND hWnd)
 {
 	int len = lineLens[curLine];
 	if (len == 0) return;
+
+	// 인덱스 경계 보정
 	if (curidx < 0) curidx = 0;
 	if (curidx > len) curidx = len;
 
 	int pos = curidx;
 
-	// 1) 현재가 공백이면 공백 스킵 후 다음 단어 삭제
+	// 1) 현재가 공백이면 공백을 건너뛰고
 	while (pos < len && lines[curLine][pos] == L' ')
 		pos++;
 
-	// 삭제할 단어 없음
+	// 삭제할 단어가 없으면 종료
 	if (pos >= len) {
-		// 규칙: 마지막 삭제 상황이면 끝으로
 		if (curidx > len) curidx = len;
 		UpdateCaret(hWnd);
 		InvalidateRect(hWnd, NULL, TRUE);
 		return;
 	}
 
-	// 2) 단어 끝 찾기
+	// 2) 단어 구간 [start, end) 찾기
 	int start = pos;
 	int end = pos;
 	while (end < len && lines[curLine][end] != L' ')
 		end++;
 
-	// 3) [start, end) 삭제: 뒤를 앞으로 당김 (널 포함)
+	// 3) 삭제: 뒤 문자열을 앞으로 당김('\0' 포함)
 	memmove(&lines[curLine][start],
 		&lines[curLine][end],
 		(len - end + 1) * sizeof(TCHAR));
 
 	lineLens[curLine] -= (end - start);
 
-	// 4) 캐럿 위치 유지 + 경계 보정
+	// 4) 커서 보정 및 갱신
 	if (curidx > lineLens[curLine])
 		curidx = lineLens[curLine];
 
@@ -139,6 +151,7 @@ void DeleteWordAtCaret(HWND hWnd)
 }
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam);
+
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdParam, int nCmdShow)
 {
 	HWND hWnd;
@@ -146,11 +159,13 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdPa
 	WNDCLASSEX WndClass;
 	g_hInst = hInstance;
 
-	// 줄 초기화
+	// 줄 버퍼 초기화
 	for (int i = 0; i < 10; i++) {
 		lineLens[i] = 0;
 		lines[i][0] = L'\0';
 	}
+
+	// 윈도우 클래스 등록
 	WndClass.cbSize = sizeof(WndClass);
 	WndClass.style = CS_HREDRAW | CS_VREDRAW;
 	WndClass.lpfnWndProc = WndProc;
@@ -165,12 +180,14 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdPa
 	WndClass.hIconSm = LoadIcon(NULL, IDI_APPLICATION);
 	RegisterClassEx(&WndClass);
 
+	// 메인 창 생성
 	hWnd = CreateWindow(lpszClass, lpszWindowName, WS_OVERLAPPEDWINDOW,
 		100, 100, 800, 600, NULL, NULL, hInstance, NULL);
 
 	ShowWindow(hWnd, nCmdShow);
 	UpdateWindow(hWnd);
 
+	// 메시지 루프
 	while (GetMessage(&Message, 0, 0, 0))
 	{
 		TranslateMessage(&Message);
@@ -178,7 +195,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdPa
 	}
 
 	return Message.wParam;
-
 }
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
@@ -189,40 +205,41 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 	switch (iMessage)
 	{
 	case WM_CREATE:
-
-		CreateCaret(hWnd, NULL, 2, 20); // 너비2, 높이20 캐럿 생성
-		ShowCaret(hWnd);                // 캐럿 표시
-		SetCaretPos(10, 10);            // 초기 위치
+		// 캐럿 생성/표시/초기위치
+		CreateCaret(hWnd, NULL, 2, 20);
+		ShowCaret(hWnd);
+		SetCaretPos(10, 10);
 		break;
 
 	case WM_CHAR:
 	{
 		TCHAR ch = (TCHAR)wParam;
+
+		// F1 모드: 알파벳이면 대문자로 변환 후 입력
 		if (uppermode == true)
 		{
 			if (isalpha(ch))
 			{
 				ch = _toupper(ch);
-				if (curidx < 30) // 0자 미만이면 현재 줄에 추가
+
+				if (curidx < 30)
 				{
+					// 현재 위치에 문자 기록
+					lines[curLine][curidx] = ch;
 
-					lines[curLine][curidx] = ch;           //  curidx 위치에 덮어쓰기
-
+					// overwriteMode가 아니면 길이/널 처리
 					if (!overwriteMode)
 					{
 						lines[curLine][curidx + 1] = L'\0';
 						if (curidx == lineLens[curLine])
 						{
-							lineLens[curLine]++;               // 새 글자일 때만 길이 증가
+							lineLens[curLine]++;
 							lines[curLine][curidx + 1] = L'\0';
 						}
 					}
-					curidx++;                              // 다음 위치로
+					curidx++;
 
-
-
-
-					// 글자 크기 측정
+					// 캐럿 위치 갱신
 					HDC hDC = GetDC(hWnd);
 					SIZE sz;
 					GetTextExtentPoint32(hDC, lines[curLine], curidx, &sz);
@@ -232,9 +249,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 					SetCaretPos(cursorX, cursorY);
 
 					InvalidateRect(hWnd, NULL, TRUE);
-
 				}
-				else // 30자 넘으면 다음 줄로 자동 이동
+				else // 줄 끝이면 다음 줄로
 				{
 					if (curLine < 9)
 					{
@@ -252,6 +268,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 							lines[curLine][1] = L'\0';
 							curidx = 1;
 						}
+
 						HDC hDC = GetDC(hWnd);
 						TEXTMETRIC tm;
 						GetTextMetrics(hDC, &tm);
@@ -259,14 +276,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 						GetTextExtentPoint32(hDC, &ch, 1, &sz);
 						ReleaseDC(hWnd, hDC);
 
-						cursorX = 10 + sz.cx;           // x는 첫 글자 다음으로
-						cursorY = 10 + curLine * tm.tmHeight; // y는 현재 줄 위치로
+						cursorX = 10 + sz.cx;
+						cursorY = 10 + curLine * tm.tmHeight;
 						SetCaretPos(cursorX, cursorY);
-
 					}
-					else //  10줄 꽉 찼으면 첫 줄 첫 칸으로
+					else // 10줄 꽉 차면 첫 줄부터 덮어쓰기
 					{
-
 						curLine = 0;
 						curidx = 0;
 						overwriteMode = true;
@@ -278,41 +293,36 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 						GetTextExtentPoint32(hDC, &ch, 1, &sz);
 						ReleaseDC(hWnd, hDC);
 
-						cursorX = 10 + sz.cx; // 첫 글자 다음
-						cursorY = 10;          // 첫 줄 y위치
+						cursorX = 10 + sz.cx;
+						cursorY = 10;
 						SetCaretPos(cursorX, cursorY);
 					}
-
 				}
 				InvalidateRect(hWnd, NULL, TRUE);
 			}
 		}
 		else
 		{
+			// 일반 입력 모드(삽입모드가 아닐 때)
 			if (insertmode == false)
 			{
 				if (32 <= ch)
 				{
-					if (curidx < 30) // 0자 미만이면 현재 줄에 추가
+					if (curidx < 30)
 					{
-
-						lines[curLine][curidx] = ch;           //  curidx 위치에 덮어쓰기
+						lines[curLine][curidx] = ch;
 
 						if (!overwriteMode)
 						{
 							lines[curLine][curidx + 1] = L'\0';
 							if (curidx == lineLens[curLine])
 							{
-								lineLens[curLine]++;               // 새 글자일 때만 길이 증가
+								lineLens[curLine]++;
 								lines[curLine][curidx + 1] = L'\0';
 							}
 						}
-						curidx++;                              // 다음 위치로
+						curidx++;
 
-
-
-
-						// 글자 크기 측정
 						HDC hDC = GetDC(hWnd);
 						SIZE sz;
 						GetTextExtentPoint32(hDC, lines[curLine], curidx, &sz);
@@ -322,9 +332,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 						SetCaretPos(cursorX, cursorY);
 
 						InvalidateRect(hWnd, NULL, TRUE);
-
 					}
-					else // 30자 넘으면 다음 줄로 자동 이동
+					else // 줄 넘침 -> 다음 줄
 					{
 						if (curLine < 9)
 						{
@@ -342,6 +351,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 								lines[curLine][1] = L'\0';
 								curidx = 1;
 							}
+
 							HDC hDC = GetDC(hWnd);
 							TEXTMETRIC tm;
 							GetTextMetrics(hDC, &tm);
@@ -349,14 +359,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 							GetTextExtentPoint32(hDC, &ch, 1, &sz);
 							ReleaseDC(hWnd, hDC);
 
-							cursorX = 10 + sz.cx;           // x는 첫 글자 다음으로
-							cursorY = 10 + curLine * tm.tmHeight; // y는 현재 줄 위치로
+							cursorX = 10 + sz.cx;
+							cursorY = 10 + curLine * tm.tmHeight;
 							SetCaretPos(cursorX, cursorY);
-
 						}
-						else //  10줄 꽉 찼으면 첫 줄 첫 칸으로
+						else
 						{
-
 							curLine = 0;
 							curidx = 0;
 							overwriteMode = true;
@@ -368,59 +376,46 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 							GetTextExtentPoint32(hDC, &ch, 1, &sz);
 							ReleaseDC(hWnd, hDC);
 
-							cursorX = 10 + sz.cx; // 첫 글자 다음
-							cursorY = 10;          // 첫 줄 y위치
+							cursorX = 10 + sz.cx;
+							cursorY = 10;
 							SetCaretPos(cursorX, cursorY);
 						}
-
 					}
 					InvalidateRect(hWnd, NULL, TRUE);
-
 				}
 			}
 		}
-		
 
+		// 삽입 모드: 현재 위치에 삽입(오른쪽으로 밀기)
 		if (insertmode == true)
 		{
 			if (32 <= ch)
 			{
-				if (curidx < 30) // 0자 미만이면 현재 줄에 추가
+				if (curidx < 30)
 				{
 					int len = lineLens[curLine];
-					// 1) 범위 보정
 					if (curidx < 0) curidx = 0;
 					if (curidx > len) curidx = len;
+
 					for (int i = len; i >= curidx; --i) {
 						lines[curLine][i + 1] = lines[curLine][i];
 					}
 
-					// 3) 현재 위치에 새 문자 넣기
 					lines[curLine][curidx] = ch;
-
-					// 4) 길이/커서 갱신
 					lineLens[curLine]++;
-					//curidx++;
+					// 필요하면 curidx++ 해도 됨
 				}
 				InvalidateRect(hWnd, NULL, TRUE);
 			}
-
 		}
-
-
-
-		else if (ch == '\b') // 백스페이스 → 마지막 문자 삭제
+		// 주의: 이 else-if는 바로 위 if(insertmode==true)에 결합됨
+		else if (ch == '\b') // 백스페이스
 		{
-
 			if (overwriteMode)
 			{
-				//맨 앞이면 삭제 금지
-				if (curidx == 0)
-					return 0;
+				if (curidx == 0) return 0;
 
-				//현재 줄에서 삭제
-				TCHAR deleted = lines[curLine][curidx - 1];
-
+				// 현재 줄에서 삭제
 				for (int i = curidx - 1; i < lineLens[curLine] - 1; i++)
 				{
 					lines[curLine][i] = lines[curLine][i + 1];
@@ -428,20 +423,17 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 
 				lineLens[curLine]--;
 				curidx--;
-
 				lines[curLine][lineLens[curLine]] = L'\0';
 
-				//다음 줄에서 땡겨오기
+				// 다음 줄 첫 글자 당겨오기
 				if (curLine < totalLines - 1 && lineLens[curLine] < 30)
 				{
 					TCHAR nextChar = lines[curLine + 1][0];
 
-					// 현재 줄 끝에 추가
 					lines[curLine][lineLens[curLine]] = nextChar;
 					lineLens[curLine]++;
 					lines[curLine][lineLens[curLine]] = L'\0';
 
-					// 다음 줄 당기기
 					for (int i = 0; i < lineLens[curLine + 1] - 1; i++)
 					{
 						lines[curLine + 1][i] = lines[curLine + 1][i + 1];
@@ -450,7 +442,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 					lineLens[curLine + 1]--;
 					lines[curLine + 1][lineLens[curLine + 1]] = L'\0';
 
-					// 빈 줄 제거
+					// 빈 줄 정리
 					if (lineLens[curLine + 1] == 0)
 					{
 						for (int i = curLine + 1; i < totalLines - 1; i++)
@@ -462,7 +454,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 					}
 				}
 
-				// 4. 캐럿 이동
 				HDC hDC = GetDC(hWnd);
 				SIZE sz;
 				GetTextExtentPoint32(hDC, lines[curLine], curidx, &sz);
@@ -473,7 +464,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 
 				InvalidateRect(hWnd, NULL, TRUE);
 			}
-
 			else
 			{
 				if (lineLens[curLine] > 0)
@@ -484,28 +474,21 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 					curidx--;
 					lines[curLine][lineLens[curLine]] = L'\0';
 					curidx = lineLens[curLine];
-					//  캐럿 왼쪽으로 이동
+
 					HDC hDC = GetDC(hWnd);
 					SIZE sz;
-
 					GetTextExtentPoint32(hDC, &deleted, 1, &sz);
 					ReleaseDC(hWnd, hDC);
 
-					cursorX -= sz.cx;  // 왼쪽으로
+					cursorX -= sz.cx;
 					SetCaretPos(cursorX, cursorY);
 
 					InvalidateRect(hWnd, NULL, TRUE);
 				}
-				else if (curLine > 0) //  현재 줄이 비어있고 이전 줄이 있으면
+				else if (curLine > 0)
 				{
-
-
-
-					// 한 칸 왼쪽으로 이동
 					curidx--;
 					curLine--;
-
-					// 뒤 문자들을 앞으로 당김
 
 					for (int i = curidx; i < lineLens[curLine] - 1; i++)
 					{
@@ -515,7 +498,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 					lineLens[curLine]--;
 					lines[curLine][lineLens[curLine]] = L'\0';
 
-					// 캐럿을 이전 줄 끝으로 이동
 					HDC hDC = GetDC(hWnd);
 					TEXTMETRIC tm;
 					GetTextMetrics(hDC, &tm);
@@ -523,20 +505,15 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 					GetTextExtentPoint32(hDC, lines[curLine], lineLens[curLine], &sz);
 					ReleaseDC(hWnd, hDC);
 
-					cursorX = 10 + sz.cx;              // 이전 줄 마지막 글자 다음
-					cursorY = 10 + curLine * tm.tmHeight; // 이전 줄 y위치
+					cursorX = 10 + sz.cx;
+					cursorY = 10 + curLine * tm.tmHeight;
 					SetCaretPos(cursorX, cursorY);
 					InvalidateRect(hWnd, NULL, TRUE);
-
 				}
-
 			}
-
-
 		}
-		else if (ch == 27) // ESC → 종료
+		else if (ch == 27) // ESC: 전체 초기화
 		{
-			// 모든 줄 초기화
 			for (int i = 0; i < 10; i++)
 			{
 				lineLens[i] = 0;
@@ -545,7 +522,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 			curLine = 0;
 			totalLines = 1;
 			curidx = 0;
-			cursorX = 10;  // 캐럿 초기 위치로
+			cursorX = 10;
 			cursorY = 10;
 			SetCaretPos(cursorX, cursorY);
 			InvalidateRect(hWnd, NULL, TRUE);
@@ -553,39 +530,37 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 		return 0;
 	}
 
-
 	case WM_KEYDOWN:
 	{
-		if (wParam == VK_RETURN) // 엔터키 - 새 랜덤값 추가
+		// Enter: 다음 줄로 이동
+		if (wParam == VK_RETURN)
 		{
-			if (curLine < 9) // 마지막 줄이 아니면
+			if (curLine < 9)
 			{
 				curLine++;
 				if (curLine >= totalLines) totalLines = curLine + 1;
-				curidx = 0; // 맨 앞으로
+				curidx = 0;
 
-				// 캐럿 위치 계산
 				HDC hDC = GetDC(hWnd);
 				TEXTMETRIC tm;
 				GetTextMetrics(hDC, &tm);
 				ReleaseDC(hWnd, hDC);
 
-				cursorX = 10;                           //x는 맨 앞
+				cursorX = 10;
 				cursorY = 10 + curLine * tm.tmHeight;
 				SetCaretPos(cursorX, cursorY);
 				InvalidateRect(hWnd, NULL, TRUE);
 			}
 		}
+
+		// 방향/기능키 처리
 		TCHAR ch = (TCHAR)wParam;
+
 		if (wParam == VK_LEFT)
 		{
 			if (lines[curLine][curidx - 1] != L'\0')
 			{
-				if (curidx > 0)
-				{
-					curidx--;
-
-				}
+				if (curidx > 0) curidx--;
 			}
 			if (curidx == 0 && curLine > 0)
 			{
@@ -593,12 +568,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 				curidx = lineLens[curLine];
 			}
 
-
-			// 캐럿 위치 갱신
 			HDC hDC = GetDC(hWnd);
 			TEXTMETRIC tm;
 			GetTextMetrics(hDC, &tm);
-
 			SIZE sz;
 			GetTextExtentPoint32(hDC, lines[curLine], curidx, &sz);
 			ReleaseDC(hWnd, hDC);
@@ -608,16 +580,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 			SetCaretPos(cursorX, cursorY);
 			InvalidateRect(hWnd, NULL, TRUE);
 		}
+
 		if (wParam == VK_RIGHT)
 		{
 			if (lines[curLine][curidx] != L'\0')
 			{
-				if (curidx < 30)
-				{
-					curidx++;
-
-				}
-
+				if (curidx < 30) curidx++;
 			}
 			if (curidx == 30 && curLine < 10)
 			{
@@ -625,12 +593,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 				curidx = 0;
 			}
 
-
-			// 캐럿 위치 갱신
 			HDC hDC = GetDC(hWnd);
 			TEXTMETRIC tm;
 			GetTextMetrics(hDC, &tm);
-
 			SIZE sz;
 			GetTextExtentPoint32(hDC, lines[curLine], curidx, &sz);
 			ReleaseDC(hWnd, hDC);
@@ -640,21 +605,17 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 			SetCaretPos(cursorX, cursorY);
 			InvalidateRect(hWnd, NULL, TRUE);
 		}
+
 		if (wParam == VK_UP)
 		{
 			if (lines[curLine - 1][curidx] != L'\0')
 			{
-				if (curLine > 0)
-				{
-					curLine--;
-				}
+				if (curLine > 0) curLine--;
 			}
 
-			// 캐럿 위치 갱신
 			HDC hDC = GetDC(hWnd);
 			TEXTMETRIC tm;
 			GetTextMetrics(hDC, &tm);
-
 			SIZE sz;
 			GetTextExtentPoint32(hDC, lines[curLine], curidx, &sz);
 			ReleaseDC(hWnd, hDC);
@@ -664,21 +625,17 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 			SetCaretPos(cursorX, cursorY);
 			InvalidateRect(hWnd, NULL, TRUE);
 		}
+
 		if (wParam == VK_DOWN)
 		{
 			if (lines[curLine + 1][curidx] != L'\0')
 			{
-				if (curLine < 10)
-				{
-					curLine++;
-				}
+				if (curLine < 10) curLine++;
 			}
 
-			// 캐럿 위치 갱신
 			HDC hDC = GetDC(hWnd);
 			TEXTMETRIC tm;
 			GetTextMetrics(hDC, &tm);
-
 			SIZE sz;
 			GetTextExtentPoint32(hDC, lines[curLine], curidx, &sz);
 			ReleaseDC(hWnd, hDC);
@@ -688,11 +645,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 			SetCaretPos(cursorX, cursorY);
 			InvalidateRect(hWnd, NULL, TRUE);
 		}
+
 		if (wParam == VK_TAB)
 		{
+			// 공백 3개 삽입
 			if (curidx < 28)
 			{
-				// 공백 3개 실제로 넣기
 				for (int i = 0; i < 3; ++i)
 				{
 					lines[curLine][curidx] = L' ';
@@ -709,7 +667,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 				curidx = 0;
 			}
 
-			// 캐럿 위치 갱신
 			HDC hDC = GetDC(hWnd);
 			TEXTMETRIC tm;
 			GetTextMetrics(hDC, &tm);
@@ -722,33 +679,29 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 			SetCaretPos(cursorX, cursorY);
 			InvalidateRect(hWnd, NULL, TRUE);
 		}
+
 		if (wParam == VK_HOME)
 		{
+			curidx = 0;
 
-
-			curidx = 0; // 맨 앞으로
-
-			// 캐럿 위치 계산
 			HDC hDC = GetDC(hWnd);
 			TEXTMETRIC tm;
 			GetTextMetrics(hDC, &tm);
 			ReleaseDC(hWnd, hDC);
 
-			cursorX = 10;                           //x는 맨 앞
+			cursorX = 10;
 			cursorY = 10 + curLine * tm.tmHeight;
 			SetCaretPos(cursorX, cursorY);
 			InvalidateRect(hWnd, NULL, TRUE);
-
 		}
+
 		if (wParam == VK_END)
 		{
 			curidx = lineLens[curLine];
 
-			// 캐럿 위치 갱신(curidx값으로 캐럿을 이동)
 			HDC hDC = GetDC(hWnd);
 			TEXTMETRIC tm;
 			GetTextMetrics(hDC, &tm);
-
 			SIZE sz;
 			GetTextExtentPoint32(hDC, lines[curLine], curidx, &sz);
 			ReleaseDC(hWnd, hDC);
@@ -758,42 +711,37 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 			SetCaretPos(cursorX, cursorY);
 			InvalidateRect(hWnd, NULL, TRUE);
 		}
+
 		if (wParam == VK_INSERT)
 		{
+			// 삽입/덮어쓰기 토글
 			if (insertmode == true)
 			{
-
 				insertmode = false;
 				overwriteMode = false;
-
 			}
-			else if (insertmode == false)
+			else
 			{
 				insertmode = true;
 				overwriteMode = true;
 			}
-
 		}
-		if (wParam == VK_DELETE) //어렵..
+
+		if (wParam == VK_DELETE)
 		{
 			DeleteWordAtCaret(hWnd);
 			return 0;
 		}
-		if (wParam == VK_PRIOR)
+
+		if (wParam == VK_PRIOR) // PageUp: 3줄 위
 		{
 			if (curLine > 0)
 			{
-				for (int i = 0; i < 3; ++i)
-				{
-
-					curLine--;
-				}
+				for (int i = 0; i < 3; ++i) curLine--;
 			}
-			// 캐럿 위치 갱신
 			HDC hDC = GetDC(hWnd);
 			TEXTMETRIC tm;
 			GetTextMetrics(hDC, &tm);
-
 			SIZE sz;
 			GetTextExtentPoint32(hDC, lines[curLine], curidx, &sz);
 			ReleaseDC(hWnd, hDC);
@@ -803,21 +751,16 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 			SetCaretPos(cursorX, cursorY);
 			InvalidateRect(hWnd, NULL, TRUE);
 		}
-		if (wParam == VK_NEXT)
+
+		if (wParam == VK_NEXT) // PageDown: 3줄 아래
 		{
 			if (curLine < 10)
 			{
-				for (int i = 0; i < 3; ++i)
-				{
-
-					curLine++;
-				}
+				for (int i = 0; i < 3; ++i) curLine++;
 			}
-			// 캐럿 위치 갱신
 			HDC hDC = GetDC(hWnd);
 			TEXTMETRIC tm;
 			GetTextMetrics(hDC, &tm);
-
 			SIZE sz;
 			GetTextExtentPoint32(hDC, lines[curLine], curidx, &sz);
 			ReleaseDC(hWnd, hDC);
@@ -827,21 +770,16 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 			SetCaretPos(cursorX, cursorY);
 			InvalidateRect(hWnd, NULL, TRUE);
 		}
+
 		if (wParam == VK_F1)
 		{
-			
-			if (uppermode == true)
-			{
-				uppermode = false;
-			}
-			else if (uppermode == false)
-			{
-
-			uppermode = true;
-			}
+			// 대문자 모드 토글
+			uppermode = !uppermode;
 		}
+
 		if (wParam == VK_F2)
 		{
+			// 숫자 앞에 **** 삽입
 			const int STAR_CNT = 4;
 
 			for (int i = 0; i < totalLines; i++)
@@ -849,12 +787,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 				int j = 0;
 				while (j < lineLens[i])
 				{
-					// 숫자이고, 바로 앞 문자가 '*'가 아니면 삽입
 					if (_istdigit(lines[i][j]) && (j == 0 || lines[i][j - 1] != L'*'))
 					{
-						
-
-						// 오른쪽으로 STAR_CNT칸 밀기 (널문자 포함)
+						// 오른쪽으로 4칸 밀기
 						for (int k = lineLens[i]; k >= j; --k)
 							lines[i][k + STAR_CNT] = lines[i][k];
 
@@ -863,7 +798,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 							lines[i][j + s] = L'*';
 
 						lineLens[i] += STAR_CNT;
-						j += STAR_CNT + 1; // **** + 원래 숫자 건너뜀
+						j += STAR_CNT + 1;
 					}
 					else
 					{
@@ -876,8 +811,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 			InvalidateRect(hWnd, NULL, TRUE);
 			return 0;
 		}
+
 		if (wParam == VK_F3)
 		{
+			// 공백마다 괄호 삽입: '('와 ')' 번갈아
 			const int STAR_CNT = 1;
 			for (int i = 0; i < totalLines; i++)
 			{
@@ -886,25 +823,22 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 				{
 					if (lines[i][j] == L' ')
 					{
-						
-						// 오른쪽으로 STAR_CNT칸 밀기 (널문자 포함)
 						for (int k = lineLens[i]; k >= j; --k)
 						{
 							lines[i][k + STAR_CNT] = lines[i][k];
-
 						}
 						if (gongback == false)
 						{
 							lines[i][j] = L'(';
 							gongback = true;
 						}
-						else if (gongback == true)
+						else
 						{
 							lines[i][j] = L')';
 							gongback = false;
 						}
 						lineLens[i] += STAR_CNT;
-						j += STAR_CNT + 1; // **** + 원래 숫자 건너뜀
+						j += STAR_CNT + 1;
 					}
 					else
 					{
@@ -916,9 +850,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 			InvalidateRect(hWnd, NULL, TRUE);
 			return 0;
 		}
+
 		if (wParam == VK_F4)
 		{
-			
+			// 1) 공백 제거
 			for (int i = 0; i < totalLines; i++)
 			{
 				int j = 0;
@@ -926,23 +861,20 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 				{
 					if (lines[i][j] == L' ')
 					{
-						// j 위치(공백) 삭제: 뒤를 한 칸씩 앞으로
 						for (int k = j; k < lineLens[i]; ++k)
-							lines[i][k] = lines[i][k + 1]; // '\0'까지 같이 당김
+							lines[i][k] = lines[i][k + 1];
 						lineLens[i]--;
-						// j는 증가하지 않음: 당겨진 새 문자 다시 검사
 					}
 					else
 					{
 						j++;
 					}
 				}
-				
-				
 			}
+
+			// 2) 대문자 -> 소문자
 			for (int i = 0; i < totalLines; i++)
 			{
-				
 				for (int j = 0; j < lineLens[i]; j++)
 				{
 					if ((isupper(lines[i][j])))
@@ -951,24 +883,25 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 					}
 				}
 			}
-			// 캐럿 경계 보정
-			if (curidx > lineLens[curLine]) curidx = lineLens[curLine];
 
+			if (curidx > lineLens[curLine]) curidx = lineLens[curLine];
 			UpdateCaret(hWnd);
 			InvalidateRect(hWnd, NULL, TRUE);
 			return 0;
 		}
+
 		if (wParam == VK_F5)
 		{
+			// 마스킹 토글
 			if (!f5Masked)
 			{
-				BackupAllLines();          // 원본 저장
-				MaskMostFrequentPerLine(); // @ 치환
+				BackupAllLines();
+				MaskMostFrequentPerLine();
 				f5Masked = true;
 			}
 			else
 			{
-				RestoreAllLines();         // 원복
+				RestoreAllLines();
 				f5Masked = false;
 			}
 
@@ -977,32 +910,29 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 			InvalidateRect(hWnd, NULL, TRUE);
 			return 0;
 		}
+
 		if (wParam == VK_F6)
 		{
+			// 줄 순환: 첫 줄을 맨 아래로
 			if (totalLines > 1)
 			{
-				// 1) 첫 줄 백업
 				TCHAR first[31];
 				int firstLen = lineLens[0];
 				lstrcpy(first, lines[0]);
 
-				// 2) [1]~[totalLines-1] 을 한 칸씩 앞으로
 				for (int i = 0; i < totalLines - 1; ++i)
 				{
 					lstrcpy(lines[i], lines[i + 1]);
 					lineLens[i] = lineLens[i + 1];
 				}
 
-				// 3) 백업한 첫 줄을 마지막에
 				lstrcpy(lines[totalLines - 1], first);
 				lineLens[totalLines - 1] = firstLen;
 
-				// 4) 캐럿도 같은 방식으로 줄 번호 이동
-				//    0번 줄에 있었으면 마지막으로, 아니면 한 줄 위로
+				// 커서 줄도 함께 회전
 				if (curLine == 0) curLine = totalLines - 1;
 				else curLine--;
 
-				// 현재 줄 길이보다 curidx가 크면 보정
 				if (curidx > lineLens[curLine]) curidx = lineLens[curLine];
 
 				UpdateCaret(hWnd);
@@ -1010,17 +940,18 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 			}
 			return 0;
 		}
+
 		if (wParam == VK_F7)
 		{
+			// 숫자 0~8을 +1
 			for (int i = 0; i < totalLines; ++i)
 			{
 				for (int j = 0; j < lineLens[i]; ++j)
 				{
 					if (lines[i][j] >= L'0' && lines[i][j] <= L'8')
 					{
-						lines[i][j] = lines[i][j] + 1; // '1'->'2' ...
+						lines[i][j] = lines[i][j] + 1;
 					}
-				
 				}
 			}
 
@@ -1028,20 +959,21 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 			InvalidateRect(hWnd, NULL, TRUE);
 			return 0;
 		}
+
 		if (wParam == VK_F8)
 		{
+			// 숫자 1~9를 -1
 			for (int i = 0; i < totalLines; ++i)
 			{
 				for (int j = 0; j < lineLens[i]; ++j)
 				{
 					if (lines[i][j] >= L'1' && lines[i][j] <= L'9')
 					{
-						lines[i][j] = lines[i][j] - 1; // '1'->'2' ...
+						lines[i][j] = lines[i][j] - 1;
 					}
 					else if (lines[i][j] == L'0')
 					{
-						// 문��� 조건에 9 처리 언급이 없으니 그대로 둠
-						// 필요하면 '9'->'0' 또는 '9'->'10' 정책 추가 가능
+						// 0 처리 정책 없음(현재는 그대로)
 					}
 				}
 			}
@@ -1058,12 +990,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 		hDC = BeginPaint(hWnd, &ps);
 		SetBkMode(hDC, TRANSPARENT);
 
-		// 글자 높이 측정
+		// 줄 높이 구해 줄 간격으로 사용
 		TEXTMETRIC tm;
 		GetTextMetrics(hDC, &tm);
 		int charH = tm.tmHeight;
 
-		// 모든 줄 출력
+		// 전체 줄 출력
 		for (int i = 0; i < totalLines; i++)
 		{
 			TextOut(hDC, 10, 10 + i * charH, lines[i], lineLens[i]);
