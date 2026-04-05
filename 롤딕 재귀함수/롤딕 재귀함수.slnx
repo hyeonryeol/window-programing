@@ -3,5 +3,5 @@
     <Platform Name="x64" />
     <Platform Name="x86" />
   </Configurations>
-  <Project Path="롤딕 재귀함수.vcxproj" />
+  <Project Path="롤딕 재귀함수.vcxproj" Id="8c2af426-3cd7-41f5-970a-bbf5f9046c6e" />
 </Solution>

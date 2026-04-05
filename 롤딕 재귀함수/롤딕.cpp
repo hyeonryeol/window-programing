@@ -12,9 +12,133 @@ struct legueoflegends
 	int speed;
 	int range;
 	string position;
-
+	bool alive;   // 추가
 };
+void PrintAll(legueoflegends LOL[], int i, int count)
+{
+	if (i == count) return;
 
+	if (LOL[i].alive) {
+		cout << LOL[i].name << " "
+			<< LOL[i].hp << " "
+			<< LOL[i].mp << " "
+			<< LOL[i].speed << " "
+			<< LOL[i].range << " "
+			<< LOL[i].position << endl;
+	}
+	PrintAll(LOL, i + 1, count);
+}
+int Search(legueoflegends LOL[], int i, int count, const string& champ)
+{
+	if (i == count) return -1;
+	if (LOL[i].alive && LOL[i].name == champ) return i;
+	return Search(LOL, i + 1, count, champ);
+}
+int FindFirstAlive(legueoflegends LOL[], int i, int count)
+{
+	if (i == count) return -1;
+	if (LOL[i].alive) return i;
+	return FindFirstAlive(LOL, i + 1, count);
+}
+
+int FindMaxHpAlive(legueoflegends LOL[], int i, int count, int maxhp)
+{
+	if (i == count) return maxhp;
+	if (LOL[i].alive && LOL[i].hp > maxhp) maxhp = LOL[i].hp;
+	return FindMaxHpAlive(LOL, i + 1, count, maxhp);
+}
+void PrintAllWithHp(legueoflegends LOL[], int i, int count, int targetHp)
+{
+	if (i == count) return;
+	if (LOL[i].alive && LOL[i].hp == targetHp)
+	{
+		cout << LOL[i].name << " "
+			<< LOL[i].hp << " "
+			<< LOL[i].mp << " "
+			<< LOL[i].speed << " "
+			<< LOL[i].range << " "
+			<< LOL[i].position << '\n';
+	}
+	PrintAllWithHp(LOL, i + 1, count, targetHp);
+}
+bool DeleteOneByName(legueoflegends LOL[], int i, int count, const string& champ)
+{
+	if (i == count) return false;
+
+	if (LOL[i].alive && LOL[i].name == champ)
+	{
+		LOL[i].alive = false; // 삭제 표시만
+		return true;
+	}
+	return DeleteOneByName(LOL, i + 1, count, champ);
+}
+int DeleteAllByPosition(legueoflegends LOL[], int i, int count, const string& pos)
+{
+	if (i == count) return 0;
+
+	int erased = 0;
+	if (LOL[i].alive && LOL[i].position == pos)
+	{
+		LOL[i].alive = false; // 삭제 표시만
+		erased = 1;
+	}
+	return erased + DeleteAllByPosition(LOL, i + 1, count, pos);
+}
+void ReadChampionRec(legueoflegends& c, int step)
+{
+	if (step == 0) {
+		cout << "새로운 챔피언의 이름을 입력하세요." << endl;
+		getline(cin, c.name);
+		ReadChampionRec(c, 1);
+	}
+	else if (step == 1) {
+		cout << "hp를 입력하세요." << endl;
+		cin >> c.hp;
+		ReadChampionRec(c, 2);
+	}
+	else if (step == 2) {
+		cout << "mp를 입력하세요." << endl;
+		cin >> c.mp;
+		ReadChampionRec(c, 3);
+	}
+	else if (step == 3) {
+		cout << "speed를 입력하세요." << endl;
+		cin >> c.speed;
+		ReadChampionRec(c, 4);
+	}
+	else if (step == 4) {
+		cout << "range를 입력하세요." << endl;
+		cin >> c.range;
+		ReadChampionRec(c, 5);
+	}
+	else if (step == 5) {
+		cout << "position를 입력하세요." << endl;
+		cin >> c.position;
+	}
+}
+int FindMaxIndexFrom(legueoflegends LOL[], int j, int count, int best)
+{
+	if (j == count) return best;
+
+	// best가 죽어있고 j가 살아있으면 j 채택
+	if (!LOL[best].alive && LOL[j].alive) best = j;
+	// 둘 다 살아있으면 hp 비교
+	else if (LOL[best].alive && LOL[j].alive && LOL[j].hp > LOL[best].hp) best = j;
+
+	return FindMaxIndexFrom(LOL, j + 1, count, best);
+}
+void SortByHpRec(legueoflegends LOL[], int i, int count)
+{
+	if (i >= count - 1) return;
+
+	int best = FindMaxIndexFrom(LOL, i + 1, count, i);
+	if (best != i) {
+		legueoflegends temp = LOL[i];
+		LOL[i] = LOL[best];
+		LOL[best] = temp;
+	}
+	SortByHpRec(LOL, i + 1, count);
+}
 int main()
 {
 	legueoflegends LOL[172];
@@ -66,6 +190,7 @@ int main()
 		LOL[count].speed = stoi(words[i++]);
 		LOL[count].range = stoi(words[i++]);
 		LOL[count].position = words[i];
+		LOL[count].alive = true;
 		count++;
 
 	}
@@ -87,7 +212,16 @@ int main()
 		cin.ignore();
 		if (command == "PrintAll")
 		{
-			for (int i = 0; i < count; i++)
+			PrintAll(LOL, 0, count);
+		}
+		else if (command == "Search")
+		{
+
+			string champ;
+			getline(cin, champ);
+			int i = Search(LOL, 0, count, champ);
+			if (i == -1) cout << "찾지못함" << endl;
+			else
 			{
 				cout << LOL[i].name << " ";
 				cout << LOL[i].hp << " ";
@@ -95,133 +229,48 @@ int main()
 				cout << LOL[i].speed << " ";
 				cout << LOL[i].range << " ";
 				cout << LOL[i].position << endl;
-
-			}
-		}
-		else if (command == "Search")
-		{
-			bool found = false;
-			string champ;
-			getline(cin, champ);
-			for (int i = 0; i < count; i++)
-			{
-				if (LOL[i].name == champ)
-				{
-					cout << LOL[i].name << " ";
-					cout << LOL[i].hp << " ";
-					cout << LOL[i].mp << " ";
-					cout << LOL[i].speed << " ";
-					cout << LOL[i].range << " ";
-					cout << LOL[i].position << endl;
-					found = true;
-				}
-
-			}
-			if (!found)
-			{
-				cout << "찾지 못했습니다." << endl;
 			}
 		}
 		else if (command == "Insert")
 		{
-			cout << "새로운 챔피언의 이름을 입력하세요." << endl;
-			getline(cin, LOL[count].name);
-			cout << "hp를 입력하세요." << endl;
-			cin >> LOL[count].hp;
-			cout << "mp를 입력하세요." << endl;
-			cin >> LOL[count].mp;
-			cout << "speed를 입력하세요." << endl;
-			cin >> LOL[count].speed;
-			cout << "range를 입력하세요." << endl;
-			cin >> LOL[count].range;
-			cout << "position를 입력하세요." << endl;
-			cin >> LOL[count].position;
+			if (count >= 172) {
+				cout << "배열이 가득 찼습니다." << endl;
+				continue;
+			}
+			ReadChampionRec(LOL[count], 0);
+			LOL[count].alive = true;
 			count++;
+			cin.ignore(); // 다음 명령 입력 꼬임 방지
 		}
 		else if (command == "Delete")
 		{
 			string champ;
 			getline(cin, champ);
-			int index = -1;
-			for (int i = 0; i < count; ++i)
-			{
-				if (champ == LOL[i].name)
-				{
-					index = i;
-					cout << "삭제되었습니다." << endl;
 
-					for (int j = index; j < count - 1; ++j)
-					{
-						LOL[j] = LOL[j + 1];
-					}
-					count--;
-				}
-
-			}
-			if (index == -1)
-			{
-				cout << "그런챔피언은 없습니다." << endl;
-			}
-
+			bool ok = DeleteOneByName(LOL, 0, count, champ);
+			if (!ok) cout << "그런챔피언은 없습니다." << endl;
+			else     cout << "삭제되었습니다." << endl;
 		}
 		else if (command == "DeleteAll")
 		{
 			string pos;
 			cin >> pos;
 
-			for (int i = 0; i < count; ++i)
-			{
-				if (LOL[i].position == pos)
-				{
-
-					cout << "삭제되었습니다." << endl;
-
-					for (int j = i; j < count - 1; ++j)
-					{
-						LOL[j] = LOL[j + 1];
-					}
-					count--;
-					i--;
-				}
-			}
+			int erased = DeleteAllByPosition(LOL, 0, count, pos);
+			cout << erased << "명 삭제되었습니다." << endl;
 		}
 		else if (command == "FindMaxHp")
 		{
-			int maxhp = LOL[0].hp;
-			for (int i = 0; i < count; ++i)
-			{
-				if (LOL[i].hp > maxhp)
-				{
-					maxhp = LOL[i].hp;
-				}
-			}
-			for (int i = 0; i < count; ++i)
-			{
-				if (LOL[i].hp == maxhp)
-				{
-					cout << LOL[i].name << " ";
-					cout << LOL[i].hp << " ";
-					cout << LOL[i].mp << " ";
-					cout << LOL[i].speed << " ";
-					cout << LOL[i].range << " ";
-					cout << LOL[i].position << endl;
-				}
-			}
+			int first = FindFirstAlive(LOL, 0, count);
+			if (first == -1) { cout << "데이터없음" << endl; continue; }
+
+			int maxhp = FindMaxHpAlive(LOL, first + 1, count, LOL[first].hp);
+			PrintAllWithHp(LOL, 0, count, maxhp);
 		}
 		else if (command == "SortByHp")
 		{
-			for (int i = 0; i < count - 1; ++i)
-			{
-				for (int j = i + 1; j < count; ++j)
-				{
-					if (LOL[i].hp < LOL[j].hp)
-					{
-						legueoflegends temp = LOL[i];
-						LOL[i] = LOL[j];
-						LOL[j] = temp;
-					}
-				}
-			}
+			SortByHpRec(LOL, 0, count);
+			cout << "정렬완료" << endl;
 		}
 	}
 }
