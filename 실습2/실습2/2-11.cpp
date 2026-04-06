@@ -9,86 +9,47 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 const wchar_t CLASS_NAME[] = L"MyWindowClass";
 const wchar_t WINDOW_TITLE[] = L"Win32 Basic Template";
 
+enum ShapeType { SHAPE_C, SHAPE_S, SHAPE_P, SHAPE_E, SHAPE_s, SHAPE_a };
+ShapeType slotShape[4] = { SHAPE_S, SHAPE_P, SHAPE_C, SHAPE_E }; // 위,오,아,왼
+
+bool cHeld = false;
+bool sHeld = false;
+bool pHeld = false;
+bool eHeld = false;
+bool cMoved = false;   // C를 눌러 안쪽으로 옮겼는지
+bool sMoved = false;
+bool pMoved = false;
+bool eMoved = false;
 // 도형별 브러시(색 채우기용)
 HBRUSH triBrush;
-HBRUSH rectBrush;
+HBRUSH pentaBrush;
 HBRUSH wonBrush;
+HBRUSH pieBrush;
 
-// -------------------- 삼각형 데이터 --------------------
-int triangle = 0;       // 현재 그릴 삼각형 개수(1~3)
-POINT g_tri[5][3];      // 최대 5개 삼각형, 각 삼각형은 꼭짓점 3개
+COLORREF piecolor;
+COLORREF pentacolor;
+COLORREF tricolor;
+COLORREF woncolor;
+COLORREF tempColor;     // 누를 때 임시 색
 
-void maketriangle()
-{
-	triangle = rand() % 3 + 1; // 1~3개 생성
-	for (int i = 0; i < triangle; ++i)
-	{
-		int triW = 30; // 삼각형 폭
-		int triH = 40; // 삼각형 높이
+POINT point[10] = { {350,20}, {400,20}, {375,70}, {400, 120}, {350, 120}, {375,70}, {350,20} };
+POINT Spoint[10] = { {325,225},{325,275},{375,250},{425,275},{425,225},{375,250},{325,225} };
 
-		// 왼쪽 영역(대략 x<250)에서 랜덤 위치 생성
-		int left = 0 + rand() % 100 - triW + 40;
-		int top = 0 + rand() % 400 - triH + 50;
+POINT p[10] = { {600,200}, {640,230}, {620,280}, {570, 280}, {550, 230} };
+POINT sp[5] = { {340,200}, {380,220}, {365,265}, {315,265}, {300,220} };
 
-		// 정삼각형에 가까운 3점 저장
-		g_tri[i][0] = { left,            top + triH }; // 좌하
-		g_tri[i][1] = { left + triW / 2, top };        // 상단
-		g_tri[i][2] = { left + triW,     top + triH }; // 우하
-	}
+void RotateCCW(ShapeType a[4]) { // 반시계
+	ShapeType t = a[0];
+	a[0] = a[1]; a[1] = a[2]; a[2] = a[3]; a[3] = t;
 }
-
-// -------------------- 사각형 데이터 --------------------
-int rectangle = 0;      // 현재 그릴 사각형 개수(1~3)
-int g_rect[5][4];       // [i][0..3] = left,top,right,bottom
-
-void makerectangle()
-{
-	rectangle = rand() % 3 + 1; // 1~3개 생성
-	for (int i = 0; i < rectangle; ++i)
-	{
-		int w = 40, h = 30; // 사각형 크기
-
-		// 가운데 영역(251~500 사이)에 들어오도록 좌표 생성
-		int left = 251 + rand() % (500 - 251 - w + 1); // 251~460
-		int top = 0 + rand() % (550 - h + 1);          // 0~520
-
-		int right = left + w;
-		int bottom = top + h;
-
-		// 좌표 저장
-		g_rect[i][0] = { left };
-		g_rect[i][1] = { top };
-		g_rect[i][2] = { right };
-		g_rect[i][3] = { bottom };
-	}
+void RotateCW(ShapeType a[4]) { //  시계
+	ShapeType t = a[3];
+	a[3] = a[2]; a[2] = a[1]; a[1] = a[0]; a[0] = t;
 }
-
-// -------------------- 원 데이터 --------------------
-int won = 0;            // 현재 그릴 원 개수(1~3)
-int g_won[5][4];        // [i][0..3] = left,top,right,bottom (Ellipse 경계 사각형)
-
-void makewon()
-{
-	won = 1; // 1~3개 생성
-	for (int i = 0; i < won; ++i)
-	{
-		int w = 40, h = 30; // 원의 경계 사각형 크기
-
-		// 오른쪽 영역(대략 500~700) 안에서 생성
-		int left = 500 + rand() % (700 - 501 - w + 1);
-		int top = 0 + rand() % (550 - h + 1);
-
-		int right = left + w;
-		int bottom = top + h;
-
-		// 좌표 저장
-		g_won[i][0] = { left };
-		g_won[i][1] = { top };
-		g_won[i][2] = { right };
-		g_won[i][3] = { bottom };
-	}
+void SwapUD(ShapeType a[4]) {   //  위아래 교환
+	ShapeType t = a[0];
+	a[0] = a[2]; a[2] = t;
 }
-
 int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR, int nCmdShow)
 {
 	// 1) 윈도우 클래스 등록
@@ -140,71 +101,237 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		srand((unsigned)time(NULL)); // 난수 시드 초기화
 
 		// 도형별 랜덤 색 브러시 생성
-		triBrush = CreateSolidBrush(RGB(rand() % 256, rand() % 256, rand() % 256));
-		rectBrush = CreateSolidBrush(RGB(rand() % 256, rand() % 256, rand() % 256));
-		wonBrush = CreateSolidBrush(RGB(rand() % 256, rand() % 256, rand() % 256));
+		tricolor = RGB(rand() % 256, rand() % 256, rand() % 256);
+		triBrush = CreateSolidBrush(tricolor); //모래시계
 
-		// 초기 도형 데이터 생성
-		maketriangle();
-		makerectangle();
-		makewon();
+		pentacolor = RGB(rand() % 256, rand() % 256, rand() % 256);
+		pentaBrush = CreateSolidBrush(pentacolor);
+		
+		woncolor = RGB(rand() % 256, rand() % 256, rand() % 256);
+		wonBrush = CreateSolidBrush(woncolor);
+
+		piecolor = RGB(rand() % 256, rand() % 256, rand() % 256);
+		pieBrush = CreateSolidBrush(piecolor);
+		
 		return 0;
 
 	case WM_KEYDOWN:
 		// 키 입력 처리
-		if (wParam == VK_RETURN)
+		if (wParam == 'C' && !cHeld)
 		{
-			// Enter: 모든 도형의 색/위치/개수 재랜덤
-			DeleteObject(triBrush);
-			DeleteObject(rectBrush);
+			cHeld = true;
+			cMoved = true;
+			
+			sMoved = false;
+			pMoved = false;
+			eMoved = false;
+			tempColor = RGB(rand() % 256, rand() % 256, rand() % 256);
 			DeleteObject(wonBrush);
+			wonBrush = CreateSolidBrush(tempColor);
 
-			triBrush = CreateSolidBrush(RGB(rand() % 256, rand() % 256, rand() % 256));
-			rectBrush = CreateSolidBrush(RGB(rand() % 256, rand() % 256, rand() % 256));
-			wonBrush = CreateSolidBrush(RGB(rand() % 256, rand() % 256, rand() % 256));
-
-			maketriangle();
-			makerectangle();
-			makewon();
+			
 
 			InvalidateRect(hWnd, NULL, TRUE); // 다시 그리기 요청
 		}
+		if (wParam == 'S' && !sHeld)
+		{
+			sHeld = true;
+			sMoved = true;
+			cMoved = false;
+			
+			pMoved = false;
+			eMoved = false;
+			tempColor = RGB(rand() % 256, rand() % 256, rand() % 256);
+			DeleteObject(triBrush);
+			triBrush = CreateSolidBrush(tempColor);
 
+			InvalidateRect(hWnd, NULL, TRUE); // 다시 그리기 요청
+		}
+		if (wParam == 'P' && !pHeld)
+		{
+			pHeld = true;
+			pMoved = true;
+
+			cMoved = false;
+			sMoved = false;
+			
+			eMoved = false;
+			tempColor = RGB(rand() % 256, rand() % 256, rand() % 256);
+			DeleteObject(pentaBrush);
+			pentaBrush = CreateSolidBrush(tempColor);
+
+			InvalidateRect(hWnd, NULL, TRUE); // 다시 그리기 요청
+		}
+		if (wParam == 'E' && !eHeld)
+		{
+			eHeld = true;
+			eMoved = true;
+
+			cMoved = false;
+			sMoved = false;
+			pMoved = false;
+			
+			tempColor = RGB(rand() % 256, rand() % 256, rand() % 256);
+			DeleteObject(pieBrush);
+			pieBrush = CreateSolidBrush(tempColor);
+
+			InvalidateRect(hWnd, NULL, TRUE); // 다시 그리기 요청
+		}
+		if (wParam == 'Q')
+		{
+			PostQuitMessage(0);
+		}
+		if (wParam == VK_RIGHT) { RotateCCW(slotShape); InvalidateRect(hWnd, NULL, TRUE); }
+		if (wParam == VK_LEFT) { RotateCW(slotShape);  InvalidateRect(hWnd, NULL, TRUE); }
+		if (wParam == VK_UP) { SwapUD(slotShape);    InvalidateRect(hWnd, NULL, TRUE); }
+		return 0;
+	case WM_KEYUP:
+		if (wParam == 'C')
+		{
+			cHeld = false;
+
+			DeleteObject(wonBrush);
+			wonBrush = CreateSolidBrush(woncolor);
+
+			InvalidateRect(hWnd, NULL, TRUE); // 다시 그리기 요청
+		}
+		if (wParam == 'S')
+		{
+			sHeld = false;
+
+			DeleteObject(triBrush);
+			triBrush = CreateSolidBrush(tricolor);
+
+			InvalidateRect(hWnd, NULL, TRUE); // 다시 그리기 요청
+		}
+		if (wParam == 'P')
+		{
+			pHeld = false;
+
+			DeleteObject(pentaBrush);
+			pentaBrush = CreateSolidBrush(pentacolor);
+
+			InvalidateRect(hWnd, NULL, TRUE); // 다시 그리기 요청
+		}
+		if (wParam == 'E')
+		{
+			eHeld = false;
+
+			DeleteObject(pieBrush);
+			pieBrush = CreateSolidBrush(piecolor);
+
+			InvalidateRect(hWnd, NULL, TRUE); // 다시 그리기 요청
+		}
 		
 		return 0;
-
 	case WM_CHAR:
 		// 문자 입력 메시지 (현재 사용 안 함)
 		return 0;
-
 	case WM_PAINT:
 	{
 		PAINTSTRUCT ps;
 		HDC hdc = BeginPaint(hWnd, &ps);
 
-		// 영역 구분선(3칸) 그리기
-		
 		Rectangle(hdc, 250, 150, 500, 350);  // 가운데
-	
-		// --- 원 그리기 ---
-		HBRUSH oldBrush = (HBRUSH)SelectObject(hdc, wonBrush);
-		oldBrush = (HBRUSH)SelectObject(hdc, wonBrush);
-		for (int i = 0; i < won; ++i)
-		{
-			Ellipse(hdc,50, 200, 200, 300);
+
+		// 외곽 슬롯(위,오,아,왼)
+		RECT slotR[4] = {
+			{325,  20, 425, 120}, // 위
+			{550, 200, 650, 300}, // 오
+			{340, 440, 460, 560}, // 아
+			{100, 200, 200, 300}  // 왼
+		};
+
+		auto DrawShapeInRect = [&](ShapeType st, const RECT& r)
+			{
+				HBRUSH brush = wonBrush;
+				switch (st) {
+				case SHAPE_C: brush = wonBrush;   break;
+				case SHAPE_S: brush = triBrush;   break;
+				case SHAPE_P: brush = pentaBrush; break;
+				case SHAPE_s: brush = triBrush;   break;
+				case SHAPE_E: brush = pieBrush;   break;
+				case SHAPE_a: brush = pieBrush;   break;
+				}
+
+				HBRUSH oldBrush = (HBRUSH)SelectObject(hdc, brush);
+
+				int l = r.left, t = r.top, rr = r.right, bb = r.bottom;
+				int cx = (l + rr) / 2;
+				int cy = (t + bb) / 2;
+				int w = rr - l;
+				int h = bb - t;
+
+				switch (st)
+				{
+				case SHAPE_C:
+					Ellipse(hdc, l, t, rr, bb);
+					break;
+
+				case SHAPE_S:
+				{
+					POINT hourglass[7] = {
+						{l, t}, {rr, t}, {cx, cy}, {rr, bb}, {l, bb}, {cx, cy}, {l, t}
+					};
+					Polygon(hdc, hourglass, 7);
+					break;
+				}
+				case SHAPE_s:
+				{
+					Polygon(hdc, Spoint, 7);
+					break;
+				}
+
+				case SHAPE_P:
+				{
+					POINT pent[5] = {
+						{cx, t},
+						{rr - w / 8, t + h / 3},
+						{rr - w / 4, bb},
+						{l + w / 4, bb},
+						{l + w / 8, t + h / 3}
+					};
+					Polygon(hdc, pent, 5);
+					break;
+				}
+				case SHAPE_a:
+				{
+					Pie(hdc, 320, 180, 430, 290, 430, 235, 375, 180);
+					break;
+				}
+				case SHAPE_E:
+				
+					Pie(hdc, l, t, rr, bb, cx, t, rr, cy);
+					break;
+				}
+
+
+				SelectObject(hdc, oldBrush);
+			};
+
+		// 회전 결과 반영해서 외곽 4개 그리기
+		for (int i = 0; i < 4; ++i) {
+			DrawShapeInRect(slotShape[i], slotR[i]);
 		}
-		SelectObject(hdc, oldBrush);
-		
+
+		// ===== 기존 커맨드 spec 유지: 중앙 이동 표시 =====
+		RECT centerR = { 320, 180, 430, 290 };
+		if (cMoved) DrawShapeInRect(SHAPE_C, centerR);
+		if (sMoved) DrawShapeInRect(SHAPE_s, centerR);
+		if (pMoved) DrawShapeInRect(SHAPE_P, centerR);
+		if (eMoved) DrawShapeInRect(SHAPE_a, centerR);
 
 		EndPaint(hWnd, &ps);
 		return 0;
 	}
+	
 
 	case WM_DESTROY:
 		// GDI 리소스 해제 후 종료
 		DeleteObject(triBrush);
-		DeleteObject(rectBrush);
+		DeleteObject(pentaBrush);
 		DeleteObject(wonBrush);
+		DeleteObject(pieBrush);
 		PostQuitMessage(0);
 		return 0;
 	}
