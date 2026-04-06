@@ -23,6 +23,9 @@ bool insertmode = false;    // 삽입 모드 여부
 bool uppermode = false;     // 대문자 입력 모드(F1)
 bool gongback = false;      // F3에서 괄호 번갈아 넣기용 상태
 
+bool F2 = false;
+bool F3 = false;
+bool F4 = false;
 // F5 토글(마스킹)용 백업 버퍼
 bool f5Masked = false;
 TCHAR backupLines[10][31];
@@ -781,30 +784,44 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 		{
 			// 숫자 앞에 **** 삽입
 			const int STAR_CNT = 4;
-
-			for (int i = 0; i < totalLines; i++)
+			if (F2 == false)
 			{
-				int j = 0;
-				while (j < lineLens[i])
+				BackupAllLines();
+				for (int i = 0; i < totalLines; i++)
 				{
-					if (_istdigit(lines[i][j]) && (j == 0 || lines[i][j - 1] != L'*'))
+					int j = 0;
+					while (j < lineLens[i])
 					{
-						// 오른쪽으로 4칸 밀기
-						for (int k = lineLens[i]; k >= j; --k)
-							lines[i][k + STAR_CNT] = lines[i][k];
 
-						// **** 삽입
-						for (int s = 0; s < STAR_CNT; ++s)
-							lines[i][j + s] = L'*';
 
-						lineLens[i] += STAR_CNT;
-						j += STAR_CNT + 1;
+						if (_istdigit(lines[i][j]) && (j == 0 || lines[i][j - 1] != L'*'))
+						{
+							// 오른쪽으로 4칸 밀기
+							for (int k = lineLens[i]; k >= j; --k)
+								lines[i][k + STAR_CNT] = lines[i][k];
+
+							// **** 삽입
+							for (int s = 0; s < STAR_CNT; ++s)
+								lines[i][j + s] = L'*';
+
+							lineLens[i] += STAR_CNT;
+							j += STAR_CNT + 1;
+						}
+
+						else
+						{
+							j++;
+						}
 					}
-					else
-					{
-						j++;
-					}
+			
+					F2 = true;
 				}
+			}
+			else if (F2 == true)
+			{
+					RestoreAllLines();
+					F2 = false;
+
 			}
 
 			UpdateCaret(hWnd);
@@ -814,38 +831,49 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 
 		if (wParam == VK_F3)
 		{
-			// 공백마다 괄호 삽입: '('와 ')' 번갈아
-			const int STAR_CNT = 1;
-			for (int i = 0; i < totalLines; i++)
+			if (F3 == false)
 			{
-				int j = 0;
-				while (j < lineLens[i])
+				BackupAllLines();
+				// 공백마다 괄호 삽입: '('와 ')' 번갈아
+				const int STAR_CNT = 1;
+				for (int i = 0; i < totalLines; i++)
 				{
-					if (lines[i][j] == L' ')
+					int j = 0;
+					while (j < lineLens[i])
 					{
-						for (int k = lineLens[i]; k >= j; --k)
+						if (lines[i][j] == L' ' )
 						{
-							lines[i][k + STAR_CNT] = lines[i][k];
-						}
-						if (gongback == false)
-						{
-							lines[i][j] = L'(';
-							gongback = true;
+							for (int k = lineLens[i]; k >= j; --k)
+							{
+								lines[i][k + STAR_CNT] = lines[i][k];
+							}
+							if (gongback == false)
+							{
+								lines[i][j] = L'(';
+								gongback = true;
+							}
+							else
+							{
+								lines[i][j] = L')';
+								gongback = false;
+							}
+							lineLens[i] += STAR_CNT;
+							j += STAR_CNT + 1;
 						}
 						else
 						{
-							lines[i][j] = L')';
-							gongback = false;
+							j++;
 						}
-						lineLens[i] += STAR_CNT;
-						j += STAR_CNT + 1;
-					}
-					else
-					{
-						j++;
 					}
 				}
+				F3 = true;
 			}
+			else if (F3 == true)
+			{
+				RestoreAllLines();
+				F3 = false;
+			}
+			
 			UpdateCaret(hWnd);
 			InvalidateRect(hWnd, NULL, TRUE);
 			return 0;
@@ -853,36 +881,47 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 
 		if (wParam == VK_F4)
 		{
-			// 1) 공백 제거
-			for (int i = 0; i < totalLines; i++)
+			if (F4 == false)
 			{
-				int j = 0;
-				while (j < lineLens[i])
+				BackupAllLines();
+				// 1) 공백 제거
+				for (int i = 0; i < totalLines; i++)
 				{
-					if (lines[i][j] == L' ')
+					int j = 0;
+					while (j < lineLens[i])
 					{
-						for (int k = j; k < lineLens[i]; ++k)
-							lines[i][k] = lines[i][k + 1];
-						lineLens[i]--;
-					}
-					else
-					{
-						j++;
+						if (lines[i][j] == L' ')
+						{
+							for (int k = j; k < lineLens[i]; ++k)
+								lines[i][k] = lines[i][k + 1];
+							lineLens[i]--;
+						}
+						else
+						{
+							j++;
+						}
 					}
 				}
-			}
 
-			// 2) 대문자 -> 소문자
-			for (int i = 0; i < totalLines; i++)
-			{
-				for (int j = 0; j < lineLens[i]; j++)
+				// 2) 대문자 -> 소문자
+				for (int i = 0; i < totalLines; i++)
 				{
-					if ((isupper(lines[i][j])))
+					for (int j = 0; j < lineLens[i]; j++)
 					{
-						lines[i][j] = _tolower(lines[i][j]);
+						if ((isupper(lines[i][j])))
+						{
+							lines[i][j] = _tolower(lines[i][j]);
+						}
 					}
 				}
+				F4 = true;
 			}
+			else if(F4 == true)
+			{
+				RestoreAllLines();
+				F4 = false;
+			}
+			
 
 			if (curidx > lineLens[curLine]) curidx = lineLens[curLine];
 			UpdateCaret(hWnd);
