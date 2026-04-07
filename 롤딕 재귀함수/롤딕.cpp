@@ -155,66 +155,58 @@ int DeleteAll(legueoflegends LOL[], int i, int count, const string& pos)
 
 	return erased + DeleteAll(LOL, i + 1, count, pos);
 }
-
-int FirstAlive(legueoflegends LOL[], int i, int count) //초기값잡기
+int MaxHpValue(legueoflegends LOL[], int i, int count)
 {
 	if (i == count) return -1;
-	if (LOL[i].alive) return i;
-	return FirstAlive(LOL, i + 1, count);
+	int rest = MaxHpValue(LOL, i + 1, count);
+
+	if (!LOL[i].alive) return rest;
+	if (rest == -1)return LOL[i].hp;
+	return (LOL[i].hp > rest) ? LOL[i].hp : rest;
 }
-int FindMaxHP(legueoflegends LOL[], int i, int count, int maxhp) //비교
+void Printmaxhp(legueoflegends LOL[], int i, int count, int hp)
 {
-	if (i == count) return maxhp;
-	if (LOL[i].alive && LOL[i].hp > maxhp) maxhp = LOL[i].hp;
-	return FindMaxHP(LOL, i + 1, count, maxhp);
-}
-void PrintMaxHp(legueoflegends LOL[], int i, int count, int maxhp) //비교 프린트
-{
-	if (i == count)return;
-	if (LOL[i].alive && LOL[i].hp == maxhp)
+	if (i == count) return;
+	if (LOL[i].alive && LOL[i].hp == hp)
 	{
-		cout << LOL[i].name << " "
-			<< LOL[i].hp << " "
-			<< LOL[i].mp << " "
-			<< LOL[i].speed << " "
-			<< LOL[i].range << " "
-			<< LOL[i].position << endl;
+		cout << LOL[i].name << " ";
+		cout << LOL[i].hp << " ";
+		cout << LOL[i].mp << " ";
+		cout << LOL[i].speed << " ";
+		cout << LOL[i].range << " ";
+		cout << LOL[i].position << endl;
 	}
-	PrintMaxHp(LOL, i + 1, count, maxhp);
-
+	Printmaxhp(LOL, i + 1, count, hp);
 }
-int FindSortHP(legueoflegends LOL[], int j, int count, int best)
+int Findsort(legueoflegends LOL[], int j, int count, int best)
 {
-	if (j == count) return best;
-
-	// 둘 다 살아있을 때만 hp 비교
-	if (LOL[best].alive && LOL[j].alive && LOL[j].hp > LOL[best].hp)
+	if (count == j) return best;
+	if (LOL[j].alive && LOL[best].alive && LOL[j].hp > LOL[best].hp)
 	{
 		best = j;
 	}
+	return Findsort(LOL, j + 1, count, best);
 
-	return FindSortHP(LOL, j + 1, count, best);
 }
-void SortByHp(legueoflegends LOL[], int i, int count)
+void Sortbyhp(legueoflegends LOL[], int i, int count)
 {
 	if (i >= count - 1) return;
-
-	// 시작점이 죽어있으면 이 자리는 건너뜀
-	if (!LOL[i].alive) {
-		SortByHp(LOL, i + 1, count);
+	if (LOL[i].alive == false)
+	{
+		Sortbyhp(LOL, i + 1, count);
 		return;
 	}
-
-	int best = FindSortHP(LOL, i + 1, count, i);
+	int best = Findsort(LOL, i + 1, count, i);
 	if (best != i)
 	{
 		legueoflegends temp = LOL[i];
 		LOL[i] = LOL[best];
 		LOL[best] = temp;
 	}
+	return Sortbyhp(LOL, i + 1, count);
 
-	SortByHp(LOL, i + 1, count);
 }
+	
 int main()
 {
 	legueoflegends LOL[172];
@@ -347,20 +339,13 @@ int main()
 		}
 		else if (command == "FindMaxHp")
 		{
-			int first = FirstAlive(LOL, 0, count);
-			if (first == -1) {
-				cout << "데이터없음" << endl;
-			}
-			else
-			{
-				int maxhp = FindMaxHP(LOL, first + 1, count, LOL[first].hp);
-				PrintMaxHp(LOL, 0, count, maxhp);
-
-			}
+			int maxhp = MaxHpValue(LOL, 0, count);
+			if (maxhp == -1) cout << "노데이터\n";
+			else Printmaxhp(LOL, 0, count, maxhp);
 		}
 		else if (command == "SortByHp")
 		{
-			SortByHp(LOL, 0, count);
+			Sortbyhp(LOL, 0, count);
 			cout << "정렬완료" << endl;
 		}
 		else
