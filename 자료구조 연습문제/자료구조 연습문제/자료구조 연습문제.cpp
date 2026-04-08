@@ -103,25 +103,18 @@ int DeleteAll(legueoflegends LOL[], int i, int count, const string& pos)
 }
 int MaxHpValue(legueoflegends LOL[], int i, int count)
 {
-	if (count == i)return -1;
+	if (count == i) return -1;
 	int rest = MaxHpValue(LOL, i + 1, count);
+
 	if (!LOL[i].alive) return rest;
-	if (rest == -1) return LOL[i].hp;
+	if (rest == -1)return LOL[i].hp;
 	return (LOL[i].hp > rest) ? LOL[i].hp : rest;
+
 }
 void PrintMaxHp(legueoflegends LOL[], int i, int count, int hp)
 {
-	if (count == i)return;
-	if (LOL[i].alive && LOL[i].hp == hp)
-	{
-		cout << LOL[i].name << " ";
-		cout << LOL[i].hp << " ";
-		cout << LOL[i].mp << " ";
-		cout << LOL[i].speed << " ";
-		cout << LOL[i].range << " ";
-		cout << LOL[i].position << endl;
-	}
-	return PrintMaxHp(LOL, i + 1, count, hp);
+	if (count == i) return;
+
 }
 int Findsort(legueoflegends LOL[], int j, int count, int best)
 {
