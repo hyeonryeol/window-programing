@@ -344,10 +344,10 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
             else if (wParam == 'D') TryMoveCurrentPlayer(+1, 0);
         }
         else {
-            if (wParam == VK_UP) TryMoveCurrentPlayer(0, -1);
-            else if (wParam == VK_DOWN) TryMoveCurrentPlayer(0, +1);
-            else if (wParam == VK_LEFT) TryMoveCurrentPlayer(-1, 0);
-            else if (wParam == VK_RIGHT) TryMoveCurrentPlayer(+1, 0);
+            if (wParam == 'I') TryMoveCurrentPlayer(0, -1);
+            else if (wParam == 'K') TryMoveCurrentPlayer(0, +1);
+            else if (wParam == 'J') TryMoveCurrentPlayer(-1, 0);
+            else if (wParam == 'L') TryMoveCurrentPlayer(+1, 0);
         }
 
         InvalidateRect(hwnd, nullptr, TRUE);
