@@ -6,41 +6,30 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 const wchar_t CLASS_NAME[] = L"MyWindowClass";
 const wchar_t WINDOW_TITLE[] = L"Win32 Basic Template";
 
-HBRUSH boardBrush;
+int g_rect[900][3];
 
-int rectangle = 900;
-int g_rect[900][4];       // [i][0..3] = left,top,right,bottom
-
-void makerectangle()
+void rectangle()
 {
-	int w = 30, h = 30;
-
-	for (int j = 0; j < 30; ++j)
+	int w = 30;
+	int h = 30;
+	for (int i = 0; i < 30; ++i)
 	{
-
-		for (int i = 0; i < 30; ++i)
+		for (int j = 30; j < 30; ++j)
 		{
-			int idx = j * 30 + i;
+			int count = 0;
 
-			int left = i * 30;
-			int top = j * h;
-			int right = left + w;
-			int bottom = top + h;
-
-			g_rect[idx][0] = { left };
-			g_rect[idx][1] = { top };
-			g_rect[idx][2] = { right };
-			g_rect[idx][3] = { bottom };
-
+			int left =j * 30;
+			int top = i * 30;
+			int right = w + left;
+			int bottom = h + top;
+			count++;
+			g_rect[count][0] = left;
+			g_rect[count][1] = top;
+			g_rect[count][2] = right;
+			g_rect[count][3] = bottom;
 		}
-
 	}
-
-
-
 }
-
-
 
 int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR, int nCmdShow)
 {
@@ -64,7 +53,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR, int nCmdShow)
 		CLASS_NAME,
 		WINDOW_TITLE,
 		WS_OVERLAPPEDWINDOW,
-		CW_USEDEFAULT, CW_USEDEFAULT, 950, 950,
+		CW_USEDEFAULT, CW_USEDEFAULT, 1000, 1000,
 		nullptr, nullptr, hInstance, nullptr
 	);
 
@@ -92,10 +81,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	{
 	case WM_CHAR:
 	{
-		if (wParam == 'q' || 'Q')
+		if (wParam == 'q' || wParam == 'Q')
 		{
 			PostQuitMessage(0);
 		}
+		return 0;
 	}
 	case WM_KEYDOWN:
 	{
@@ -104,8 +94,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	}
 	case WM_CREATE:
 	{
-		boardBrush = CreateSolidBrush(RGB(255, 255, 255));
-		makerectangle();
+		
 
 		return 0;
 	}
@@ -113,24 +102,18 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	{
 		PAINTSTRUCT ps;
 		HDC hdc = BeginPaint(hWnd, &ps);
-
-
-
-
 		for (int i = 0; i < 900; ++i)
 		{
 			Rectangle(hdc, g_rect[i][0], g_rect[i][1], g_rect[i][2], g_rect[i][3]);
+
 		}
-
-
-
 
 		EndPaint(hWnd, &ps);
 		return 0;
 	}
 
 	case WM_DESTROY:
-		DeleteObject(boardBrush);
+	
 		PostQuitMessage(0);
 		return 0;
 	}
