@@ -35,6 +35,10 @@ double angle2 = 0.0; // 현재 각도 (라디안)
 double angle3 = 0.0; // 현재 각도 (라디안)
 double angle4 = 0.0; // 현재 각도 (라디안)
 int orbitR = 100;   // 궤도 반지름
+int rectmovex = -100;
+int rectmovey = -100;
+
+
 // 프로그램 시작점
 int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR, int nCmdShow)
 {
@@ -98,6 +102,26 @@ void CALLBACK TimerProc1(HWND hWnd, UINT iMsg, UINT idEvent, DWORD dwTime) //---
 	{
 		if (cpress1 == 1)
 		{
+			RECT clientRect;
+			GetClientRect(hWnd, &clientRect);
+			int x = clientRect.right / 4;
+			int y = clientRect.bottom / 4;
+			if (-100 <= rectmovex && rectmovex<= 100 && rectmovey == -100) //위
+			{
+				rectmovex += 10;
+			}
+			if (-100 <= rectmovex && rectmovex<= 100 && rectmovey == 100) // 아래
+			{
+				rectmovex-= 10;
+			}
+			if (rectmovex == -100 && -100 <= rectmovey && rectmovey <= 100)
+			{
+				rectmovey-= 10;
+			}
+			if (rectmovex == 100 && -100 <= rectmovey && rectmovey <= 100) // 오른쪽
+			{
+				rectmovey+=10;
+			}
 			
 		}
 		if (cpress1 == 0)
@@ -308,6 +332,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		SelectObject(hdc, oldbrush);
 
 		int gr = 10;
+		if (won == true)
+		{
+
 		int ox1 = (int)(orbitR * cos(angle1)); // x 오프셋
 		int oy1 = (int)(orbitR * sin(angle1)); // y 오프셋
 
@@ -321,6 +348,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		int oy4 = (int)(orbitR * sin(angle4)); // y 오프셋
 		oldbrush = (HBRUSH)SelectObject(hdc, gongjeon1);
 		Ellipse(hdc, x - gr + ox1, y - gr + oy1, x + gr + ox1, y + gr + oy1);
+	
 		SelectObject(hdc, oldbrush);
 		oldbrush = (HBRUSH)SelectObject(hdc, gongjeon2);
 		Ellipse(hdc, x - gr + ox2, 3 * y - gr + oy2, x + gr + ox2, 3 * y + gr + oy2);
@@ -331,7 +359,15 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		oldbrush = (HBRUSH)SelectObject(hdc, gongjeon4);
 		Ellipse(hdc, 3 * x - gr + ox4, 3 * y - gr + oy4, 3 * x + gr + ox4, 3 * y + gr + oy4);
 		SelectObject(hdc, oldbrush);
+		}
+		if (rect == true)
+		{
+		oldbrush = (HBRUSH)SelectObject(hdc, gongjeon1);
+		Ellipse(hdc, x - gr + rectmovex , y - gr + rectmovey , x + gr + rectmovex , y + gr + rectmovey);
+
 		SelectObject(hdc, oldbrush);
+
+		}
 		if (won == true)
 		{
 
