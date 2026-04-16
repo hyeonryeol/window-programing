@@ -8,8 +8,15 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 // 클래스 이름 / 창 제목
 const wchar_t CLASS_NAME[] = L"MyWindowClass";
 const wchar_t WINDOW_TITLE[] = L"Win32 Basic Template";
-HBRUSH wonbrush;
-HPEN wonpen;
+HBRUSH wonbrush1;
+HBRUSH wonbrush2;
+HBRUSH wonbrush3;
+HBRUSH wonbrush4;
+
+HPEN wonpen1;
+HPEN wonpen2;
+HPEN wonpen3;
+HPEN wonpen4;
 HPEN selectpen;
 HBRUSH gongjeon1;
 HBRUSH gongjeon2;
@@ -45,6 +52,8 @@ bool rbpress2 = false;
 bool rbpress3 = false;
 bool rbpress4 = false;
 
+bool gongjeonwon = true;
+
 int cpress1 = 1;
 int cpress2 = 1;
 int cpress3 = 1;
@@ -65,14 +74,14 @@ int rectmovey3 = -100;
 int rectmovex4 = -100;
 int rectmovey4 = -100;
 
-int trimovex1 = 5;
+int trimovex1 = 4;
 int trimovey1 = -100;
-int trimovex2 = 5;
+int trimovex2 = 4;
 int trimovey2 = -100;
-int trimovex3 = 5;
+int trimovex3 = 4;
 int trimovey3 = -100;
-int trimovex4 = 5;
-int trimovey4 =-100;
+int trimovex4 = 4;
+int trimovey4 = -100;
 
 int timerspeed1 = 500;
 int timerspeed2 = 500;
@@ -84,7 +93,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR, int nCmdShow)
 	// 1) 윈도우 클래스 등록
 	WNDCLASSEXW wc = {};
 	wc.cbSize = sizeof(wc);
-	wc.style = CS_HREDRAW | CS_VREDRAW;
+	wc.style = CS_HREDRAW | CS_VREDRAW | CS_DBLCLKS;
 	wc.lpfnWndProc = WndProc;
 	wc.hInstance = hInstance;
 	wc.hIcon = LoadIcon(nullptr, IDI_APPLICATION);
@@ -92,7 +101,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR, int nCmdShow)
 	wc.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
 	wc.lpszClassName = CLASS_NAME;
 	wc.hIconSm = LoadIcon(nullptr, IDI_APPLICATION);
-
+	
 	RegisterClassExW(&wc);
 
 	// 2) 윈도우 생성
@@ -124,12 +133,16 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR, int nCmdShow)
 void CALLBACK TimerProc1(HWND hWnd, UINT iMsg, UINT idEvent, DWORD dwTime) //--- 1번 아이디 타이머 함수
 {
 	HDC hdc;
+	RECT clientRect;
+	GetClientRect(hWnd, &clientRect);
+	int x = clientRect.right / 4;
+	int y = clientRect.bottom / 4;
 	if (leftclick1 == true)
 	{
 		timerspeed1 += 50;
 		KillTimer(hWnd, 1);                              // 기존 타이머 삭제
 		SetTimer(hWnd, 1, timerspeed1, (TIMERPROC)TimerProc1);
-		
+
 		if (timerspeed1 > 500)
 		{
 			leftclick1 = false;
@@ -150,10 +163,7 @@ void CALLBACK TimerProc1(HWND hWnd, UINT iMsg, UINT idEvent, DWORD dwTime) //---
 	}
 	if (rect == true)
 	{
-		RECT clientRect;
-		GetClientRect(hWnd, &clientRect);
-		int x = clientRect.right / 4;
-		int y = clientRect.bottom / 4;
+		
 		if (cpress1 == 1)
 		{
 			if (-100 <= rectmovex1 && rectmovex1 <= 100 && rectmovey1 == -100) //위
@@ -194,11 +204,59 @@ void CALLBACK TimerProc1(HWND hWnd, UINT iMsg, UINT idEvent, DWORD dwTime) //---
 			}
 		}
 	}
+	if (tri == true)
+	{
+		if (cpress1 == 1)
+		{
+			// 오른쪽 빗변: (0,-100) → (100,100), x+1 당 y+2
+			if (0 <= trimovex1 && trimovex1 < 100 && trimovey1 < 100)
+			{
+				trimovex1 += 10;
+				trimovey1 += 20;
+			}
+			// 아래 변
+			if (trimovey1 == 100 && trimovex1 > -100)
+			{
+				trimovex1 -= 10;
+			}
+			// 왼쪽 빗변 - trimovex1 == -100일 때만 시작
+			if (trimovex1 == -100 && trimovey1 > -100)
+			{
+				trimovex1 += 10;
+				trimovey1 -= 20;
+			}
+		}
+		if (cpress1 == 0)
+		{
+			// 왼쪽 빗변 반대
+			if (-100 < trimovex1 && trimovex1 <= 0 && trimovey1 < 100)
+			{
+				trimovex1 -= 10;
+				trimovey1 += 20;
+			}
+			// 아래 변 반대
+			if (trimovey1 >= 100 && trimovex1 < 100)
+			{
+				trimovey1 = 100;
+				trimovex1 += 10;
+			}
+			// 오른쪽 빗변 반대
+			if (0 < trimovex1 && trimovex1 <= 100 && trimovey1 > -100)
+			{
+				trimovex1 -= 10;
+				trimovey1 -= 20;
+			}
+		}
+	}
 	InvalidateRect(hWnd, NULL, TRUE);
 }
 void CALLBACK TimerProc2(HWND hWnd, UINT iMsg, UINT idEvent, DWORD dwTime) //--- 2번 아이디 타이머 함수
 {
 	HDC hdc;
+	RECT clientRect;
+	GetClientRect(hWnd, &clientRect);
+	int x = clientRect.right / 4;
+	int y = clientRect.bottom / 4;
 	if (leftclick2 == true)
 	{
 		timerspeed2 += 50;
@@ -225,10 +283,7 @@ void CALLBACK TimerProc2(HWND hWnd, UINT iMsg, UINT idEvent, DWORD dwTime) //---
 	}
 	if (rect == true)
 	{
-		RECT clientRect;
-		GetClientRect(hWnd, &clientRect);
-		int x = clientRect.right / 4;
-		int y = clientRect.bottom / 4;
+		
 		if (cpress2 == 1)
 		{
 			if (-100 <= rectmovex2 && rectmovex2 <= 100 && rectmovey2 == -100) //위
@@ -269,11 +324,60 @@ void CALLBACK TimerProc2(HWND hWnd, UINT iMsg, UINT idEvent, DWORD dwTime) //---
 			}
 		}
 	}
+	if (tri == true)
+	{
+		if (cpress2 == 1)
+		{
+			// 오른쪽 빗변: (0,-100) → (100,100), x+1 당 y+2
+			if (0 <= trimovex2 && trimovex2 < 100 && trimovey2 < 100)
+			{
+				trimovex2 += 5;
+				trimovey2 += 10;
+			}
+			// 아래 변: (100,100) → (-100,100), x만 감소
+			if (trimovey2 == 100 && trimovex2 > -100)
+			{
+				trimovey2 = 100; // 고정
+				trimovex2 -= 10;
+			}
+			// 왼쪽 빗변: (-100,100) → (0,-100), x+1 당 y-2
+			if (-100 == trimovex2 && trimovex2 < 0 && trimovey2 > -100)
+			{
+				trimovex2 += 5;
+				trimovey2 -= 10;
+			}
+		}
+		if (cpress2 == 0)
+		{
+			// 왼쪽 빗변 반대
+			if (-100 < trimovex2 && trimovex2 <= 0 && trimovey2 < 100)
+			{
+				trimovex2 -= 5;
+				trimovey2 += 10;
+			}
+			// 아래 변 반대
+			if (trimovey2 >= 100 && trimovex2 < 100)
+			{
+				trimovey2 = 100;
+				trimovex2 += 5;
+			}
+			// 오른쪽 빗변 반대
+			if (0 < trimovex2 && trimovex2 <= 100 && trimovey2 > -100)
+			{
+				trimovex2 -= 5;
+				trimovey2 -= 10;
+			}
+		}
+	}
 	InvalidateRect(hWnd, NULL, TRUE);
 }
 void CALLBACK TimerProc3(HWND hWnd, UINT iMsg, UINT idEvent, DWORD dwTime) //--- 3번 아이디 타이머 함수
 {
 	HDC hdc;
+	RECT clientRect;
+	GetClientRect(hWnd, &clientRect);
+	int x = clientRect.right / 4;
+	int y = clientRect.bottom / 4;
 	if (leftclick3 == true)
 	{
 		timerspeed3 += 50;
@@ -300,10 +404,7 @@ void CALLBACK TimerProc3(HWND hWnd, UINT iMsg, UINT idEvent, DWORD dwTime) //---
 	}
 	if (rect == true)
 	{
-		RECT clientRect;
-		GetClientRect(hWnd, &clientRect);
-		int x = clientRect.right / 4;
-		int y = clientRect.bottom / 4;
+		
 		if (cpress3 == 1)
 		{
 			if (-100 <= rectmovex3 && rectmovex3 <= 100 && rectmovey3 == -100) //위
@@ -344,11 +445,60 @@ void CALLBACK TimerProc3(HWND hWnd, UINT iMsg, UINT idEvent, DWORD dwTime) //---
 			}
 		}
 	}
+	if (tri == true)
+	{
+		if (cpress3 == 1)
+		{
+			// 오른쪽 빗변: (0,-100) → (100,100), x+1 당 y+2
+			if (0 <= trimovex3 && trimovex3 < 100 && trimovey3 < 100)
+			{
+				trimovex3 += 10;
+				trimovey3 += 20;
+			}
+			// 아래 변: (100,100) → (-100,100), x만 감소
+			if (trimovey3 == 100 && trimovex3 > -100)
+			{
+				trimovey3 = 100; // 고정
+				trimovex3 -= 10;
+			}
+			// 왼쪽 빗변: (-100,100) → (0,-100), x+1 당 y-2
+			if (-100 == trimovex3 && trimovex3 < 0 && trimovey3 > -100)
+			{
+				trimovex3 += 10;
+				trimovey3 -= 20;
+			}
+		}
+		if (cpress3 == 0)
+		{
+			// 왼쪽 빗변 반대
+			if (-100 < trimovex3 && trimovex3 <= 0 && trimovey3 < 100)
+			{
+				trimovex3 -= 10;
+				trimovey3 += 20;
+			}
+			// 아래 변 반대
+			if (trimovey3 == 100 && trimovex3 < 100)
+			{
+				trimovey3 = 100;
+				trimovex3 += 10;
+			}
+			// 오른쪽 빗변 반대
+			if (0 < trimovex3 && trimovex3 == 100 && trimovey3 > -100)
+			{
+				trimovex3 -= 10;
+				trimovey3 -= 20;
+			}
+		}
+	}
 	InvalidateRect(hWnd, NULL, TRUE);
 }
 void CALLBACK TimerProc4(HWND hWnd, UINT iMsg, UINT idEvent, DWORD dwTime) //--- 4번 아이디 타이머 함수
 {
 	HDC hdc;
+	RECT clientRect;
+	GetClientRect(hWnd, &clientRect);
+	int x = clientRect.right / 4;
+	int y = clientRect.bottom / 4;
 	if (leftclick4 == true)
 	{
 		timerspeed4 += 50;
@@ -375,10 +525,7 @@ void CALLBACK TimerProc4(HWND hWnd, UINT iMsg, UINT idEvent, DWORD dwTime) //---
 	}
 	if (rect == true)
 	{
-		RECT clientRect;
-		GetClientRect(hWnd, &clientRect);
-		int x = clientRect.right / 4;
-		int y = clientRect.bottom / 4;
+		
 		if (cpress4 == 1)
 		{
 			if (-100 <= rectmovex4 && rectmovex4 <= 100 && rectmovey4 == -100) //위
@@ -419,6 +566,51 @@ void CALLBACK TimerProc4(HWND hWnd, UINT iMsg, UINT idEvent, DWORD dwTime) //---
 			}
 		}
 	}
+	if (tri == true)
+	{
+		if (cpress4 == 1)
+		{
+			// 오른쪽 빗변: (0,-100) → (100,100), x+1 당 y+2
+			if (0 <= trimovex4 && trimovex4 < 100 && trimovey4 < 100)
+			{
+				trimovex4 += 10;
+				trimovey4 += 20;
+			}
+			// 아래 변: (100,100) → (-100,100), x만 감소
+			if (trimovey4 == 100 && trimovex4 > -100)
+			{
+				trimovey4 = 100; // 고정
+				trimovex4 -= 10;
+			}
+			// 왼쪽 빗변: (-100,100) → (0,-100), x+1 당 y-2
+			if (-100 == trimovex4 && trimovex4 < 0 && trimovey4 > -100)
+			{
+				trimovex4 += 10;
+				trimovey4 -= 20;
+			}
+		}
+		if (cpress4 == 0)
+		{
+			// 왼쪽 빗변 반대
+			if (-100 < trimovex4 && trimovex4 <= 0 && trimovey4 < 100)
+			{
+				trimovex4 -= 10;
+				trimovey4 += 20;
+			}
+			// 아래 변 반대
+			if (trimovey4 == 100 && trimovex4 < 100)
+			{
+				trimovey4 = 100;
+				trimovex4 += 10;
+			}
+			// 오른쪽 빗변 반대
+			if (0 < trimovex4 && trimovex4 == 100 && trimovey4 > -100)
+			{
+				trimovex4 -= 10;
+				trimovey4 -= 20;
+			}
+		}
+	}
 	InvalidateRect(hWnd, NULL, TRUE);
 }
 // 윈도우 메시지 처리 함수
@@ -441,14 +633,14 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		my = HIWORD(lParam);
 		//--- 마우스 좌표값 저장: (mx, my)
 		Selection = TRUE;
-		
+
 		if (select1 == true)
 		{
 			if (rbpress1 == false)
 			{
-			rbx1 = mx - 200;
-			rby1 = my - 150;
-			rbpress1 = true;
+				rbx1 = mx - 200;
+				rby1 = my - 150;
+				rbpress1 = true;
 			}
 			else if (rbpress1 == true)
 			{
@@ -510,15 +702,15 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 		if (select1 == true)
 		{
-			
+
 			if (timerspeed1 == 500)
-			{	
+			{
 				leftclick1 = true;
 				timerspeed1 -= 400;
 				KillTimer(hWnd, 1);                              // 기존 타이머 삭제
 				SetTimer(hWnd, 1, timerspeed1, (TIMERPROC)TimerProc1); // 새 속도로 재생성
 			}
-			
+
 		}
 		if (select2 == true)
 		{
@@ -559,13 +751,57 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		InvalidateRect(hWnd, NULL, TRUE);
 		return 0;
 	}
+	case WM_RBUTTONDBLCLK:
+	{
+		if (select1 == true)
+		{
+			DeleteObject(gongjeon1);
+			gongjeon1 = CreateSolidBrush(RGB(255, 55, 0));
+			DeleteObject(wonpen1);
+			wonpen1 = CreatePen(PS_SOLID, 3, RGB(255, 55, 0));
+			DeleteObject(wonbrush1);
+			wonbrush1 = CreateSolidBrush(RGB(255 - r, 255 - g, 255 - b));
+		}
+		if (select2 == true)
+		{
+			DeleteObject(gongjeon2);
+			gongjeon2 = CreateSolidBrush(RGB(255, 55, 0));
+			DeleteObject(wonpen2);
+			wonpen2 = CreatePen(PS_SOLID, 3, RGB(255, 55, 0));
+			DeleteObject(wonbrush2);
+			wonbrush2 = CreateSolidBrush(RGB(255 - r, 255 - g, 255 - b));
+		}
+		if (select3 == true)
+		{
+			DeleteObject(gongjeon3);
+			gongjeon3 = CreateSolidBrush(RGB(255, 55, 0));
+			DeleteObject(wonpen3);
+			wonpen3 = CreatePen(PS_SOLID, 3, RGB(255, 55, 0));
+			DeleteObject(wonbrush3);
+			wonbrush3 = CreateSolidBrush(RGB(255 - r, 255 - g, 255 - b));
+		}
+		if (select4 == true)
+		{
+			DeleteObject(gongjeon4);
+			gongjeon4 = CreateSolidBrush(RGB(255, 55, 0));
+			DeleteObject(wonpen4);
+			wonpen4 = CreatePen(PS_SOLID, 3, RGB(255, 55, 0));
+			DeleteObject(wonbrush4);
+			wonbrush4 = CreateSolidBrush(RGB(255 - r, 255 - g, 255 - b));
+		}
+		InvalidateRect(hWnd, NULL, TRUE);
+		return 0;
+	}
 	case WM_KEYDOWN:
 	{
 		if (wParam == 'R')
 		{
+
 			rect = true;
 			won = false;
 			tri = false;
+
+
 			InvalidateRect(hWnd, NULL, TRUE);
 		}
 		if (wParam == 'T')
@@ -661,12 +897,31 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				}
 			}
 		}
+		if (wParam == 'M')
+		{
+			if (gongjeonwon == true)
+			{
+				gongjeonwon = false;
+			}
+			else
+			{
+				gongjeonwon = true;
+			}
+			InvalidateRect(hWnd, NULL, TRUE);
+		}
+		
 		return 0;
 	}
 	case WM_CREATE:
 	{
-		wonpen = CreatePen(PS_SOLID, 3, RGB(0, 200, 255));
-		wonbrush = CreateSolidBrush(RGB(r, g, b));
+		wonpen1 = CreatePen(PS_SOLID, 3, RGB(0, 200, 255));
+		wonpen2 = CreatePen(PS_SOLID, 3, RGB(0, 200, 255));
+		wonpen3 = CreatePen(PS_SOLID, 3, RGB(0, 200, 255));
+		wonpen4 = CreatePen(PS_SOLID, 3, RGB(0, 200, 255));
+		wonbrush1 = CreateSolidBrush(RGB(r, g, b));
+		wonbrush2 = CreateSolidBrush(RGB(r, g, b));
+		wonbrush3 = CreateSolidBrush(RGB(r, g, b));
+		wonbrush4 = CreateSolidBrush(RGB(r, g, b));
 		selectpen = CreatePen(PS_SOLID, 3, RGB(0, 0, 255));
 		gongjeon1 = CreateSolidBrush(RGB(0, 200, 255));
 		gongjeon2 = CreateSolidBrush(RGB(0, 0, 255));
@@ -683,17 +938,26 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	{
 		PAINTSTRUCT ps;
 		HDC hdc = BeginPaint(hWnd, &ps);
-		HBRUSH oldbrush = (HBRUSH)SelectObject(hdc, wonbrush);
+		HBRUSH oldbrush = (HBRUSH)SelectObject(hdc, wonbrush1);
 
 		int r = 5;
-		Ellipse(hdc, x - r +rbx1, y - r+rby1, x + r+rbx1, y + r+rby1);
-		Ellipse(hdc, x - r + rbx2, 3 * y - r+rby2, x + r+rbx2, 3 * y + r+rby2);
-		Ellipse(hdc, 3 * x - r+rbx3, y - r+rby3, 3 * x + r+rbx3, y + r+rby3);
-		Ellipse(hdc, 3 * x - r+rbx4, 3 * y - r+rby4, 3 * x + r+rbx4, 3 * y + r+rby4);
+		Ellipse(hdc, x - r + rbx1, y - r + rby1, x + r + rbx1, y + r + rby1);
+		SelectObject(hdc, oldbrush);
+
+		oldbrush = (HBRUSH)SelectObject(hdc, wonbrush2);
+		Ellipse(hdc, x - r + rbx2, 3 * y - r + rby2, x + r + rbx2, 3 * y + r + rby2);
+		SelectObject(hdc, oldbrush);
+		
+		oldbrush = (HBRUSH)SelectObject(hdc, wonbrush3);
+		Ellipse(hdc, 3 * x - r + rbx3, y - r + rby3, 3 * x + r + rbx3, y + r + rby3);
+		SelectObject(hdc, oldbrush);
+
+		oldbrush = (HBRUSH)SelectObject(hdc, wonbrush4);
+		Ellipse(hdc, 3 * x - r + rbx4, 3 * y - r + rby4, 3 * x + r + rbx4, 3 * y + r + rby4);
 		SelectObject(hdc, oldbrush);
 
 		int gr = 10;
-		if (won == true) // 배경도형 원일때 공전원
+		if (won == true && gongjeonwon == true) // 배경도형 원일때 공전원
 		{
 
 			int ox1 = (int)(orbitR * cos(angle1)); // x 오프셋
@@ -708,34 +972,85 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			int ox4 = (int)(orbitR * cos(angle4)); // x 오프셋
 			int oy4 = (int)(orbitR * sin(angle4)); // y 오프셋
 			oldbrush = (HBRUSH)SelectObject(hdc, gongjeon1);
-			Ellipse(hdc, x - gr + ox1 + rbx1, y - gr + oy1+ rby1, x + gr + ox1+rbx1, y + gr + oy1+rby1);
+			Ellipse(hdc, x - gr + ox1 + rbx1, y - gr + oy1 + rby1, x + gr + ox1 + rbx1, y + gr + oy1 + rby1);
 			SelectObject(hdc, oldbrush);
 			oldbrush = (HBRUSH)SelectObject(hdc, gongjeon2);
-			Ellipse(hdc, x - gr + ox2+rbx2, 3 * y - gr + oy2+ rby2, x + gr + ox2+rbx2, 3 * y + gr + oy2+rby2);
+			Ellipse(hdc, x - gr + ox2 + rbx2, 3 * y - gr + oy2 + rby2, x + gr + ox2 + rbx2, 3 * y + gr + oy2 + rby2);
 			SelectObject(hdc, oldbrush);
 			oldbrush = (HBRUSH)SelectObject(hdc, gongjeon3);
-			Ellipse(hdc, 3 * x - gr + ox3 + rbx3, y - gr + oy3+rby3, 3 * x + gr + ox3+rbx3, y + gr + oy3+rby3);
+			Ellipse(hdc, 3 * x - gr + ox3 + rbx3, y - gr + oy3 + rby3, 3 * x + gr + ox3 + rbx3, y + gr + oy3 + rby3);
 			SelectObject(hdc, oldbrush);
 			oldbrush = (HBRUSH)SelectObject(hdc, gongjeon4);
-			Ellipse(hdc, 3 * x - gr + ox4 + rbx4, 3 * y - gr + oy4+rby4, 3 * x + gr + ox4+rbx4, 3 * y + gr + oy4+rby4);
+			Ellipse(hdc, 3 * x - gr + ox4 + rbx4, 3 * y - gr + oy4 + rby4, 3 * x + gr + ox4 + rbx4, 3 * y + gr + oy4 + rby4);
 			SelectObject(hdc, oldbrush);
 		}
-		if (rect == true) //배경도형 사각형일때 공전원
+		if (won == true && gongjeonwon == false)
 		{
+			int ox1 = (int)(orbitR * cos(angle1)); // x 오프셋
+			int oy1 = (int)(orbitR * sin(angle1)); // y 오프셋
+
+			int ox2 = (int)(orbitR * cos(angle2)); // x 오프셋
+			int oy2 = (int)(orbitR * sin(angle2)); // y 오프셋
+
+			int ox3 = (int)(orbitR * cos(angle3)); // x 오프셋
+			int oy3 = (int)(orbitR * sin(angle3)); // y 오프셋
+
+			int ox4 = (int)(orbitR * cos(angle4)); // x 오프셋
+			int oy4 = (int)(orbitR * sin(angle4)); // y 오프셋
 			oldbrush = (HBRUSH)SelectObject(hdc, gongjeon1);
-			Ellipse(hdc, x - gr + trimovex1 + rbx1, y - gr + rectmovey1+rby1, x + gr + trimovex1+rbx1, y + gr + rectmovey1+rby1);
+			Rectangle(hdc, x - gr + ox1 + rbx1, y - gr + oy1 + rby1, x + gr + ox1 + rbx1, y + gr + oy1 + rby1);
 			SelectObject(hdc, oldbrush);
 			oldbrush = (HBRUSH)SelectObject(hdc, gongjeon2);
-			Ellipse(hdc, x - gr + rectmovex2+rbx2, 3 * y - gr + rectmovey2+rby2, x + gr + rectmovex2+rbx2, 3 * y + gr + rectmovey2+rby2);
+			Rectangle(hdc, x - gr + ox2 + rbx2, 3 * y - gr + oy2 + rby2, x + gr + ox2 + rbx2, 3 * y + gr + oy2 + rby2);
 			SelectObject(hdc, oldbrush);
 			oldbrush = (HBRUSH)SelectObject(hdc, gongjeon3);
-			Ellipse(hdc, 3 * x - gr + rectmovex3+rbx3, y - gr + rectmovey3+rby3, 3 * x + gr + rectmovex3+rbx3, y + gr + rectmovey3+rby3);
+			Rectangle(hdc, 3 * x - gr + ox3 + rbx3, y - gr + oy3 + rby3, 3 * x + gr + ox3 + rbx3, y + gr + oy3 + rby3);
 			SelectObject(hdc, oldbrush);
 			oldbrush = (HBRUSH)SelectObject(hdc, gongjeon4);
-			Ellipse(hdc, 3 * x - gr + rectmovex4+rbx4, 3 * y - gr + rectmovey4+rby4, 3 * x + gr + rectmovex4+rbx4, 3 * y + gr + rectmovey4+rby4);
+			Rectangle(hdc, 3 * x - gr + ox4 + rbx4, 3 * y - gr + oy4 + rby4, 3 * x + gr + ox4 + rbx4, 3 * y + gr + oy4 + rby4);
 			SelectObject(hdc, oldbrush);
 		}
-		if (tri == true) //배경도형 삼각형일 때 공전하는 원
+		if (rect == true&& gongjeonwon == true) //배경도형 사각형일때 공전원
+		{
+
+			oldbrush = (HBRUSH)SelectObject(hdc, gongjeon1);
+			Ellipse(hdc, x - gr + rectmovex1 + rbx1, y - gr + rectmovey1 + rby1, x + gr + rectmovex1 + rbx1, y + gr + rectmovey1 + rby1);
+			SelectObject(hdc, oldbrush);
+
+			oldbrush = (HBRUSH)SelectObject(hdc, gongjeon2);
+			Ellipse(hdc, x - gr + rectmovex2 + rbx2, 3 * y - gr + rectmovey2 + rby2, x + gr + rectmovex2 + rbx2, 3 * y + gr + rectmovey2 + rby2);
+			SelectObject(hdc, oldbrush);
+
+			oldbrush = (HBRUSH)SelectObject(hdc, gongjeon3);
+			Ellipse(hdc, 3 * x - gr + rectmovex3 + rbx3, y - gr + rectmovey3 + rby3, 3 * x + gr + rectmovex3 + rbx3, y + gr + rectmovey3 + rby3);
+			SelectObject(hdc, oldbrush);
+
+			oldbrush = (HBRUSH)SelectObject(hdc, gongjeon4);
+			Ellipse(hdc, 3 * x - gr + rectmovex4 + rbx4, 3 * y - gr + rectmovey4 + rby4, 3 * x + gr + rectmovex4 + rbx4, 3 * y + gr + rectmovey4 + rby4);
+			SelectObject(hdc, oldbrush);
+
+		}
+		if (rect == true && gongjeonwon == false) //배경도형 사각형일때 공전사각형
+		{
+
+			oldbrush = (HBRUSH)SelectObject(hdc, gongjeon1);
+			Rectangle(hdc, x - gr + rectmovex1 + rbx1, y - gr + rectmovey1 + rby1, x + gr + rectmovex1 + rbx1, y + gr + rectmovey1 + rby1);
+			SelectObject(hdc, oldbrush);
+
+			oldbrush = (HBRUSH)SelectObject(hdc, gongjeon2);
+			Rectangle(hdc, x - gr + rectmovex2 + rbx2, 3 * y - gr + rectmovey2 + rby2, x + gr + rectmovex2 + rbx2, 3 * y + gr + rectmovey2 + rby2);
+			SelectObject(hdc, oldbrush);
+
+			oldbrush = (HBRUSH)SelectObject(hdc, gongjeon3);
+			Rectangle(hdc, 3 * x - gr + rectmovex3 + rbx3, y - gr + rectmovey3 + rby3, 3 * x + gr + rectmovex3 + rbx3, y + gr + rectmovey3 + rby3);
+			SelectObject(hdc, oldbrush);
+
+			oldbrush = (HBRUSH)SelectObject(hdc, gongjeon4);
+			Rectangle(hdc, 3 * x - gr + rectmovex4 + rbx4, 3 * y - gr + rectmovey4 + rby4, 3 * x + gr + rectmovex4 + rbx4, 3 * y + gr + rectmovey4 + rby4);
+			SelectObject(hdc, oldbrush);
+
+		}
+		if (tri == true && gongjeonwon == true) //배경도형 삼각형일 때 공전하는 원
 		{
 			oldbrush = (HBRUSH)SelectObject(hdc, gongjeon1);
 			Ellipse(hdc, x - gr + trimovex1 + rbx1, y - gr + trimovey1 + rby1, x + gr + trimovex1 + rbx1, y + gr + trimovey1 + rby1);
@@ -750,44 +1065,78 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			Ellipse(hdc, 3 * x - gr + trimovex4 + rbx4, 3 * y - gr + trimovey4 + rby4, 3 * x + gr + trimovex4 + rbx4, 3 * y + gr + trimovey4 + rby4);
 			SelectObject(hdc, oldbrush);
 		}
+		if (tri == true && gongjeonwon == false) //배경도형 삼각형일 때 공전하는 원
+		{
+			oldbrush = (HBRUSH)SelectObject(hdc, gongjeon1);
+			Rectangle(hdc, x - gr + trimovex1 + rbx1, y - gr + trimovey1 + rby1, x + gr + trimovex1 + rbx1, y + gr + trimovey1 + rby1);
+			SelectObject(hdc, oldbrush);
+			oldbrush = (HBRUSH)SelectObject(hdc, gongjeon2);
+			Rectangle(hdc, x - gr + trimovex2 + rbx2, 3 * y - gr + trimovey2 + rby2, x + gr + trimovex2 + rbx2, 3 * y + gr + trimovey2 + rby2);
+			SelectObject(hdc, oldbrush);
+			oldbrush = (HBRUSH)SelectObject(hdc, gongjeon3);
+			Rectangle(hdc, 3 * x - gr + trimovex3 + rbx3, y - gr + trimovey3 + rby3, 3 * x + gr + trimovex3 + rbx3, y + gr + trimovey3 + rby3);
+			SelectObject(hdc, oldbrush);
+			oldbrush = (HBRUSH)SelectObject(hdc, gongjeon4);
+			Rectangle(hdc, 3 * x - gr + trimovex4 + rbx4, 3 * y - gr + trimovey4 + rby4, 3 * x + gr + trimovex4 + rbx4, 3 * y + gr + trimovey4 + rby4);
+			SelectObject(hdc, oldbrush);
+		}
 		if (won == true) //배경도형
 		{
 
 			HBRUSH nullbrush = (HBRUSH)GetStockObject(NULL_BRUSH); //채우기 없는 브러쉬
 			SelectObject(hdc, nullbrush);
-			HPEN oldpen = (HPEN)SelectObject(hdc, wonpen);
+			HPEN oldpen = (HPEN)SelectObject(hdc, wonpen1);
 			int r1 = 100;
-			Ellipse(hdc, x - r1+rbx1, y - r1+rby1, x + r1+rbx1, y + r1+rby1);
-			Ellipse(hdc, x - r1+rbx2, 3 * y - r1+rby2, x + r1+rbx2, 3 * y + r1+rby2);
-			Ellipse(hdc, 3 * x - r1+rbx3, y - r1+rby3, 3 * x + r1+rbx3, y + r1+rby3);
-			Ellipse(hdc, 3 * x - r1+rbx4, 3 * y - r1+rby4, 3 * x + r1+rbx4, 3 * y + r1+rby4);
+			Ellipse(hdc, x - r1 + rbx1, y - r1 + rby1, x + r1 + rbx1, y + r1 + rby1);
+			SelectObject(hdc, oldpen);
+			oldpen = (HPEN)SelectObject(hdc, wonpen2);
+			Ellipse(hdc, x - r1 + rbx2, 3 * y - r1 + rby2, x + r1 + rbx2, 3 * y + r1 + rby2);
+			SelectObject(hdc, oldpen);
+			oldpen = (HPEN)SelectObject(hdc, wonpen3);
+			Ellipse(hdc, 3 * x - r1 + rbx3, y - r1 + rby3, 3 * x + r1 + rbx3, y + r1 + rby3);
+			SelectObject(hdc, oldpen);
+			oldpen = (HPEN)SelectObject(hdc, wonpen4);
+			Ellipse(hdc, 3 * x - r1 + rbx4, 3 * y - r1 + rby4, 3 * x + r1 + rbx4, 3 * y + r1 + rby4);
+
 			SelectObject(hdc, oldpen);
 		}
 		if (rect == true) //배경도형
 		{
 			HBRUSH nullbrush = (HBRUSH)GetStockObject(NULL_BRUSH); //채우기 없는 브러쉬
 			SelectObject(hdc, nullbrush);
-			HPEN oldpen = (HPEN)SelectObject(hdc, wonpen);
+			HPEN oldpen = (HPEN)SelectObject(hdc, wonpen1);
 			int r1 = 100;
-			Rectangle(hdc, x - r1+rbx1, y - r1+rby1, x + r1+rbx1, y + r1+rby1);
-			Rectangle(hdc, x - r1+rbx2, 3 * y - r1+rby2, x + r1+rbx2, 3 * y + r1+rby2);
-			Rectangle(hdc, 3 * x - r1+rbx3, y - r1+rby3, 3 * x + r1+rbx3, y + r1+rby3);
-			Rectangle(hdc, 3 * x - r1+rbx4, 3 * y - r1+rby4, 3 * x + r1+rbx4, 3 * y + r1+rby4);
+			Rectangle(hdc, x - r1 + rbx1, y - r1 + rby1, x + r1 + rbx1, y + r1 + rby1);
+			SelectObject(hdc, oldpen);
+			oldpen = (HPEN)SelectObject(hdc, wonpen2);
+			Rectangle(hdc, x - r1 + rbx2, 3 * y - r1 + rby2, x + r1 + rbx2, 3 * y + r1 + rby2);
+			SelectObject(hdc, oldpen);
+			oldpen = (HPEN)SelectObject(hdc, wonpen3);
+			Rectangle(hdc, 3 * x - r1 + rbx3, y - r1 + rby3, 3 * x + r1 + rbx3, y + r1 + rby3);
+			SelectObject(hdc, oldpen);
+			oldpen = (HPEN)SelectObject(hdc, wonpen4);
+			Rectangle(hdc, 3 * x - r1 + rbx4, 3 * y - r1 + rby4, 3 * x + r1 + rbx4, 3 * y + r1 + rby4);
 			SelectObject(hdc, oldpen);
 		}
 		if (tri == true) //배경도형
 		{
 			HBRUSH nullbrush = (HBRUSH)GetStockObject(NULL_BRUSH); //채우기 없는 브러쉬
 			SelectObject(hdc, nullbrush);
-			HPEN oldpen = (HPEN)SelectObject(hdc, wonpen);
+			HPEN oldpen = (HPEN)SelectObject(hdc, wonpen1);
 			int r1 = 100;
-			POINT p1[3] = { { r1 + r1, y - r1 }, {x - r1 , y + r1}, {x + r1,  y + r1} };
+			POINT p1[3] = { { r1 + r1 + rbx1, y - r1 + rby1 }, {x - r1 + rbx1 , y + r1 + rby1}, {x + r1 + rbx1,  y + r1 + rby1} };
 			Polygon(hdc, p1, 3);
-			POINT p2[3] = { { r1 + r1, 3 * y - r1 }, {x - r1 , 3 * y + r1}, {x + r1, 3 * y + r1} };
+			SelectObject(hdc, oldpen);
+			oldpen = (HPEN)SelectObject(hdc, wonpen2);
+			POINT p2[3] = { { r1 + r1 + rbx2, 3 * y - r1 + rby2 }, {x - r1 + rbx2 , 3 * y + r1 + rby2}, {x + r1 + rbx2, 3 * y + r1 + rby2} };
 			Polygon(hdc, p2, 3);
-			POINT p3[3] = { { 3 * (r1 + r1) - 10, y - r1 }, {3 * x - r1 , y + r1}, {3 * x + r1, y + r1} };
+			SelectObject(hdc, oldpen);
+			oldpen = (HPEN)SelectObject(hdc, wonpen3);
+			POINT p3[3] = { { 3 * (r1 + r1) - 10 + rbx3, y - r1 + rby3 }, {3 * x - r1 + rbx3, y + r1 + rby3}, {3 * x + r1 + rbx3, y + r1 + rby3} };
 			Polygon(hdc, p3, 3);
-			POINT p4[4] = { { 3 * (r1 + r1) - 10,3 * y - r1 }, {3 * x - r1 , 3 * y + r1}, {3 * x + r1, 3 * y + r1} };
+			SelectObject(hdc, oldpen);
+			oldpen = (HPEN)SelectObject(hdc, wonpen4);
+			POINT p4[4] = { { 3 * (r1 + r1) - 10 + rbx4,3 * y - r1 + rby4}, {3 * x - r1 + rbx4, 3 * y + r1 + rby4}, {3 * x + r1 + rbx4, 3 * y + r1 + rby4} };
 			Polygon(hdc, p4, 3);
 
 			SelectObject(hdc, oldpen);
@@ -798,22 +1147,22 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		int r1 = 120;
 		if (select1 == true) //선택표시
 		{
-			Rectangle(hdc, x - r1 + rbx1, y - r1+rby1, x + r1+rbx1, y + r1+rby1);
+			Rectangle(hdc, x - r1 + rbx1, y - r1 + rby1, x + r1 + rbx1, y + r1 + rby1);
 			SelectObject(hdc, oldpen);
 		}
 		if (select2 == true)
 		{
-			Rectangle(hdc, x - r1 + rbx2, 3 * y - r1+rby2, x + r1+rbx2, 3 * y + r1+rby2);
+			Rectangle(hdc, x - r1 + rbx2, 3 * y - r1 + rby2, x + r1 + rbx2, 3 * y + r1 + rby2);
 			SelectObject(hdc, oldpen);
 		}
 		if (select3 == true)
 		{
-			Rectangle(hdc, 3 * x - r1+rbx3, y - r1+rby3, 3 * x + r1+rbx3, y + r1+rby3);
+			Rectangle(hdc, 3 * x - r1 + rbx3, y - r1 + rby3, 3 * x + r1 + rbx3, y + r1 + rby3);
 			SelectObject(hdc, oldpen);
 		}
 		if (select4 == true)
 		{
-			Rectangle(hdc, 3 * x - r1+rbx4, 3 * y - r1+rby4, 3 * x + r1+rbx4, 3 * y + r1+rby4);
+			Rectangle(hdc, 3 * x - r1 + rbx4, 3 * y - r1 + rby4, 3 * x + r1 + rbx4, 3 * y + r1 + rby4);
 			SelectObject(hdc, oldpen);
 		}
 
@@ -822,8 +1171,14 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	}
 
 	case WM_DESTROY:
-		DeleteObject(wonbrush);
-		DeleteObject(wonpen);
+		DeleteObject(wonbrush1);
+		DeleteObject(wonbrush2);
+		DeleteObject(wonbrush3);
+		DeleteObject(wonbrush4);
+		DeleteObject(wonpen1);
+		DeleteObject(wonpen2);
+		DeleteObject(wonpen3);
+		DeleteObject(wonpen4);
 		DeleteObject(selectpen);
 		DeleteObject(gongjeon1);
 		DeleteObject(gongjeon2);
