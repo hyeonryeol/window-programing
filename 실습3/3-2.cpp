@@ -65,6 +65,15 @@ int rectmovey3 = -100;
 int rectmovex4 = -100;
 int rectmovey4 = -100;
 
+int trimovex1 = 5;
+int trimovey1 = -100;
+int trimovex2 = 5;
+int trimovey2 = -100;
+int trimovex3 = 5;
+int trimovey3 = -100;
+int trimovex4 = 5;
+int trimovey4 =-100;
+
 int timerspeed1 = 500;
 int timerspeed2 = 500;
 int timerspeed3 = 500;
@@ -714,7 +723,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		if (rect == true) //배경도형 사각형일때 공전원
 		{
 			oldbrush = (HBRUSH)SelectObject(hdc, gongjeon1);
-			Ellipse(hdc, x - gr + rectmovex1 + rbx1, y - gr + rectmovey1+rby1, x + gr + rectmovex1+rbx1, y + gr + rectmovey1+rby1);
+			Ellipse(hdc, x - gr + trimovex1 + rbx1, y - gr + rectmovey1+rby1, x + gr + trimovex1+rbx1, y + gr + rectmovey1+rby1);
 			SelectObject(hdc, oldbrush);
 			oldbrush = (HBRUSH)SelectObject(hdc, gongjeon2);
 			Ellipse(hdc, x - gr + rectmovex2+rbx2, 3 * y - gr + rectmovey2+rby2, x + gr + rectmovex2+rbx2, 3 * y + gr + rectmovey2+rby2);
@@ -724,6 +733,21 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			SelectObject(hdc, oldbrush);
 			oldbrush = (HBRUSH)SelectObject(hdc, gongjeon4);
 			Ellipse(hdc, 3 * x - gr + rectmovex4+rbx4, 3 * y - gr + rectmovey4+rby4, 3 * x + gr + rectmovex4+rbx4, 3 * y + gr + rectmovey4+rby4);
+			SelectObject(hdc, oldbrush);
+		}
+		if (tri == true) //배경도형 삼각형일 때 공전하는 원
+		{
+			oldbrush = (HBRUSH)SelectObject(hdc, gongjeon1);
+			Ellipse(hdc, x - gr + trimovex1 + rbx1, y - gr + trimovey1 + rby1, x + gr + trimovex1 + rbx1, y + gr + trimovey1 + rby1);
+			SelectObject(hdc, oldbrush);
+			oldbrush = (HBRUSH)SelectObject(hdc, gongjeon2);
+			Ellipse(hdc, x - gr + trimovex2 + rbx2, 3 * y - gr + trimovey2 + rby2, x + gr + trimovex2 + rbx2, 3 * y + gr + trimovey2 + rby2);
+			SelectObject(hdc, oldbrush);
+			oldbrush = (HBRUSH)SelectObject(hdc, gongjeon3);
+			Ellipse(hdc, 3 * x - gr + trimovex3 + rbx3, y - gr + trimovey3 + rby3, 3 * x + gr + trimovex3 + rbx3, y + gr + trimovey3 + rby3);
+			SelectObject(hdc, oldbrush);
+			oldbrush = (HBRUSH)SelectObject(hdc, gongjeon4);
+			Ellipse(hdc, 3 * x - gr + trimovex4 + rbx4, 3 * y - gr + trimovey4 + rby4, 3 * x + gr + trimovex4 + rbx4, 3 * y + gr + trimovey4 + rby4);
 			SelectObject(hdc, oldbrush);
 		}
 		if (won == true) //배경도형
