@@ -1,0 +1,7 @@
+<Solution>
+  <Configurations>
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Project Path="클로드 테스트/클로드 테스트.vcxproj" Id="7070c537-5ba1-499e-bed4-e2f32db83032" />
+</Solution>
