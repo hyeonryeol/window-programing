@@ -765,7 +765,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		if (select2 == true)
 		{
 			DeleteObject(gongjeon2);
-			gongjeon2 = CreateSolidBrush(RGB(255, 55, 0));
+			gongjeon2 = CreateSolidBrush(RGB(255, 255, 0));
 			DeleteObject(wonpen2);
 			wonpen2 = CreatePen(PS_SOLID, 3, RGB(255, 55, 0));
 			DeleteObject(wonbrush2);
@@ -774,7 +774,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		if (select3 == true)
 		{
 			DeleteObject(gongjeon3);
-			gongjeon3 = CreateSolidBrush(RGB(255, 55, 0));
+			gongjeon3 = CreateSolidBrush(RGB(0, 55, 0));
 			DeleteObject(wonpen3);
 			wonpen3 = CreatePen(PS_SOLID, 3, RGB(255, 55, 0));
 			DeleteObject(wonbrush3);
@@ -783,7 +783,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		if (select4 == true)
 		{
 			DeleteObject(gongjeon4);
-			gongjeon4 = CreateSolidBrush(RGB(255, 55, 0));
+			gongjeon4 = CreateSolidBrush(RGB(255, 55, 235));
 			DeleteObject(wonpen4);
 			wonpen4 = CreatePen(PS_SOLID, 3, RGB(255, 55, 0));
 			DeleteObject(wonbrush4);
@@ -1184,6 +1184,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		DeleteObject(gongjeon2);
 		DeleteObject(gongjeon3);
 		DeleteObject(gongjeon4);
+		KillTimer(hWnd, 1);
+		KillTimer(hWnd, 2);
+		KillTimer(hWnd, 3);
+		KillTimer(hWnd, 4);
 		PostQuitMessage(0);
 		return 0;
 	}
