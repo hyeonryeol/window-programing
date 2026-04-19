@@ -77,7 +77,7 @@ void printmulti()
 					{
 						cout << "흰 돌 " << i << "번째 가로줄 ";
 						for (int k = 0; k < globalmax; ++k)
-							cout << "(" << i << "," << wstart + k << ") ";
+							cout << "(" << wstart + k << "," << i << ") ";
 						cout << endl;
 					}
 				}
@@ -97,7 +97,28 @@ void printmulti()
 			}
 		}
 	}
+	for (int i = 0; i < 19; ++i)
+	{
+		int wmulti = 0, wmax = 0;
+		int bmulti = 0, bmax = 0;
 
+		for (int j = 0; j < 19; ++j)
+		{
+			if (board[i][j] == '0') { wmulti++; bmulti = 0; }
+			else if (board[i][j] == 'X') { bmulti++; wmulti = 0; }
+			else { wmulti = 0; bmulti = 0; }
+
+			if (wmulti > wmax) wmax = wmulti;
+			if (bmulti > bmax) bmax = bmulti;
+		}
+
+		
+			cout << i << "번째 가로줄: ";
+			if (wmax == 0 && bmax == 0) cout << "없음" << endl;
+			else if (wmax >= bmax) cout << "흰 돌 " << wmax << "개" << endl;
+			else cout << "검은 돌 " << bmax << "개" << endl;
+		
+	}
 
 	for (int i = 0; i < 19; ++i)
 	{
@@ -122,13 +143,12 @@ void printmulti()
 }
 void crossline()
 {
-	// ↘ 방향 대각선
+	// 맨 위 행에서 시작하는 우하향 대각선
 	for (int start = 0; start < 19; ++start)
 	{
 		int wmulti = 0, wmax = 0;
 		int bmulti = 0, bmax = 0;
 
-		// 맨 위 행에서 시작 (시작점: [0][start])
 		for (int k = 0; start + k < 19 && k < 19; ++k)
 		{
 			if (board[k][start + k] == '0') { wmulti++; bmulti = 0; }
@@ -138,13 +158,13 @@ void crossline()
 			if (wmulti > wmax) wmax = wmulti;
 			if (bmulti > bmax) bmax = bmulti;
 		}
-		cout << start << "번째 대각선: ";
+		cout << "우하향 시작(" << start << ",0): ";
 		if (wmax == 0 && bmax == 0) cout << "없음" << endl;
 		else if (wmax >= bmax) cout << "흰 돌 " << wmax << "개" << endl;
 		else cout << "검은 돌 " << bmax << "개" << endl;
 	}
 
-	// 맨 왼쪽 열에서 시작 (시작점: [start][0]), start=0 제외(중복)
+	// 맨 왼쪽 열에서 시작하는 우하향 대각선 (start=0 제외)
 	for (int start = 1; start < 19; ++start)
 	{
 		int wmulti = 0, wmax = 0;
@@ -159,18 +179,18 @@ void crossline()
 			if (wmulti > wmax) wmax = wmulti;
 			if (bmulti > bmax) bmax = bmulti;
 		}
-		cout << start << "번째 대각선: ";
+		cout << "우하향 시작(0," << start << "): ";
 		if (wmax == 0 && bmax == 0) cout << "없음" << endl;
 		else if (wmax >= bmax) cout << "흰 돌 " << wmax << "개" << endl;
 		else cout << "검은 돌 " << bmax << "개" << endl;
 	}
-	// ↗ 방향 대각선 (맨 아래 행에서 시작)
+
+	// 맨 아래 행에서 시작하는 우상향 대각선
 	for (int start = 0; start < 19; ++start)
 	{
 		int wmulti = 0, wmax = 0;
 		int bmulti = 0, bmax = 0;
 
-		// 시작점: [18][start], k번째 칸 → board[18-k][start+k]
 		for (int k = 0; 18 - k >= 0 && start + k < 19; ++k)
 		{
 			if (board[18 - k][start + k] == '0') { wmulti++; bmulti = 0; }
@@ -180,19 +200,18 @@ void crossline()
 			if (wmulti > wmax) wmax = wmulti;
 			if (bmulti > bmax) bmax = bmulti;
 		}
-		cout << start << "번째 ↗대각선: ";
+		cout << "우상향 시작(" << start << ",18): ";
 		if (wmax == 0 && bmax == 0) cout << "없음" << endl;
 		else if (wmax >= bmax) cout << "흰 돌 " << wmax << "개" << endl;
 		else cout << "검은 돌 " << bmax << "개" << endl;
 	}
 
-	// 맨 왼쪽 열에서 시작 (시작점: [start][0]), start=18 제외(중복)
+	// 맨 왼쪽 열에서 시작하는 우상향 대각선 (start=18 제외)
 	for (int start = 17; start >= 0; --start)
 	{
 		int wmulti = 0, wmax = 0;
 		int bmulti = 0, bmax = 0;
 
-		// 시작점: [start][0], k번째 칸 → board[start-k][k]
 		for (int k = 0; start - k >= 0 && k < 19; ++k)
 		{
 			if (board[start - k][k] == '0') { wmulti++; bmulti = 0; }
@@ -202,7 +221,7 @@ void crossline()
 			if (wmulti > wmax) wmax = wmulti;
 			if (bmulti > bmax) bmax = bmulti;
 		}
-		cout << start << "번째 ↗대각선(왼쪽열): ";
+		cout << "우상향 시작(0," << start << "): ";
 		if (wmax == 0 && bmax == 0) cout << "없음" << endl;
 		else if (wmax >= bmax) cout << "흰 돌 " << wmax << "개" << endl;
 		else cout << "검은 돌 " << bmax << "개" << endl;
