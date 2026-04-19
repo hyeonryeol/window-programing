@@ -325,6 +325,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		}
 		if (wParam == 'R')
 		{
+			crash = -1;
 			obcount = 60;
 			for (int i = 0; i < 60; ++i)
 			{
