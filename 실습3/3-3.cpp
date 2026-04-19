@@ -469,6 +469,20 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				break;
 			}
 		}
+	
+		if (abs(MX - playerCenterX) > abs(MY - playerCenterY))
+		{
+			// 좌우 방향이 더 큰 경우
+			pdx = (MX > playerCenterX) ? 1 : -1;
+			pdy = 0;
+		}
+		else
+		{
+			// 상하 방향이 더 큰 경우
+			pdx = 0;
+			pdy = (MY > playerCenterY) ? 1 : -1;
+		}
+		InvalidateRect(hWnd, nullptr, TRUE);
 		return 0;
 	}
 	case WM_RBUTTONDOWN:
@@ -524,7 +538,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		}
 		if (wParam == VK_OEM_PLUS)
 		{
-			if (speed1 < 100)
+			if (speed1 > 100)
 			{
 			speed1 -= 100;
 			}
