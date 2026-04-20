@@ -25,17 +25,19 @@ int px = 0;
 int py = 0;
 int obx[100] = {};
 int oby[100] = {};
+int enterpress = 1;
+
 void makeboard()
 {
-	int w = 30;
-	int h = 30;
+	int w = 20;
+	int h = 20;
 	for (int i = 0; i < 30; ++i)
 	{
 		for (int j = 0; j < 30; ++j)
 		{
 			int count = i * 30 + j;
-			g_rect[count][0] = i * w + 30;
-			g_rect[count][1] = j * h + 30;
+			g_rect[count][0] = i * w + 20;
+			g_rect[count][1] = j * h + 20;
 			g_rect[count][2] = g_rect[count][0] + w;
 			g_rect[count][3] = g_rect[count][1] + h;
 
@@ -44,15 +46,15 @@ void makeboard()
 }
 void player()
 {
-	int w = 30;
-	int h = 30;
+	int w = 20;
+	int h = 20;
 	for (int i = 0; i < 30; ++i)
 	{
 		for (int j = 0; j < 30; ++j)
 		{
 			int count = i * 30 + j;
-			g_player[count][0] = i * w + 30;
-			g_player[count][1] = j * h + 30;
+			g_player[count][0] = i * w + 20;
+			g_player[count][1] = j * h + 20;
 			g_player[count][2] = g_player[count][0] + w;
 			g_player[count][3] = g_player[count][1] + h;
 
@@ -61,15 +63,15 @@ void player()
 }
 void ob()
 {
-	int w = 30;
-	int h = 30;
+	int w = 20;
+	int h = 20;
 	for (int i = 0; i < 28; ++i)
 	{
 		for (int j = 0; j < 25; ++j)
 		{
 			int count = i * 30 + j;
-			g_ob[count][0] = i * w + 90;
-			g_ob[count][1] = j * h + 90;
+			g_ob[count][0] = i * w + 60;
+			g_ob[count][1] = j * h + 60;
 			g_ob[count][2] = g_ob[count][0] + w;
 			g_ob[count][3] = g_ob[count][1] + h;
 
@@ -87,17 +89,17 @@ void CALLBACK PlayerTimerProc(HWND hWnd, UINT iMsg, UINT idEvent, DWORD dwTime)
 			if (g_ob[obposition[i]][3] + oby[i] == g_player[450][1] + py && g_player[450][0] + px == g_ob[obposition[i]][0] + obx[i])
 			{
 				crash = i;
-				oby[crash] += 30;
+				oby[crash] += 20;
 			}
 		}
 	}
 	else
 	{
-		oby[crash] += 30;
+		oby[crash] += 20;
 	}
 
-	py += 30;
-	if (g_player[450][3] + py > 930)
+	py += 20;
+	if (g_player[450][3] + py > 620)
 	{
 		py = 0;
 		crash = -1;
@@ -106,7 +108,7 @@ void CALLBACK PlayerTimerProc(HWND hWnd, UINT iMsg, UINT idEvent, DWORD dwTime)
 	int lastrow[60] = {};
 	for (int i = 0; i < 60; ++i)
 	{
-		if (g_ob[obposition[i]][3] + oby[i] +my[i] == 930)
+		if (g_ob[obposition[i]][3] + oby[i] +my[i] == 620)
 		{
 			lastrow[erasecount] = i;
 			erasecount++;
@@ -138,7 +140,7 @@ void CALLBACK PlayerTimerProc(HWND hWnd, UINT iMsg, UINT idEvent, DWORD dwTime)
 	int lastrow2[100] = {};
 	for (int i = 60; i < obcount; ++i)
 	{
-		if (my[i] + 30 == 930)
+		if (my[i] + 30 == 620)
 		{
 			lastrow2[erasecount] = i;
 			erasecount++;
@@ -255,9 +257,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	}
 	case WM_LBUTTONDOWN:
 	{
-		mx[obcount] = (LOWORD(lParam) / 30) * 30;
-		my[obcount] = (HIWORD(lParam) / 30) * 30;
-		if (mx[obcount] >= 30 && mx[obcount] < 930 && my[obcount] >= 30 && my[obcount] < 930)
+		mx[obcount] = (LOWORD(lParam) / 20) * 20;
+		my[obcount] = (HIWORD(lParam) / 20) * 20;
+		if (mx[obcount] >= 20 && mx[obcount] < 620 && my[obcount] >= 20 && my[obcount] < 620)
 		{
 			randcolor[obcount] = RGB(255, 0, 0);
 			obcount++;
@@ -283,8 +285,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		// 클릭 장애물 (60~)
 		for (int i = 60; i < obcount; ++i)
 		{
-			if (clickX >= mx[i] && clickX <= mx[i] + 30
-				&& clickY >= my[i] && clickY <= my[i] + 30)
+			if (clickX >= mx[i] && clickX <= mx[i] + 20
+				&& clickY >= my[i] && clickY <= my[i] + 20)
 			{
 				my[i] = -9999;
 			}
@@ -298,25 +300,52 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		if (wParam == VK_LEFT)
 		{
 			
-			px -= 30;
+			px -= 20;
 			for (int i = 0; i < 60; ++i)
 			{
 				if (g_player[450][2] + px == g_ob[obposition[i]][0] + obx[i] && g_ob[obposition[i]][3] + oby[i] == g_player[450][1] + py)
 				{
-					obx[i] -= 30;
+					obx[i] -= 20;
 				}
 
 			}
 		}
 		if (wParam == VK_RIGHT)
 		{
-			px += 30;
+			px += 20;
 			for (int i = 0; i < 60; ++i)
 			{
 				if (g_player[450][0] + px == g_ob[obposition[i]][2] + obx[i] && g_ob[obposition[i]][3] + oby[i] == g_player[450][1] + py)
 				{
-					obx[i] += 30;
+					obx[i] += 20;
 				}
+			}
+		}
+		if (wParam == VK_RETURN)
+		{
+			if (enterpress == 1)
+			{
+			obx[crash] += 20;
+			oby[crash] += 20;
+			enterpress++;
+			}
+			else if (enterpress == 2)
+			{
+				obx[crash] -= 20;
+				oby[crash] += 20;
+				enterpress++;
+			}
+			else if (enterpress == 3)
+			{
+				obx[crash] -= 20;
+				oby[crash] -= 20;
+				enterpress++;
+			}
+			else if (enterpress == 4)
+			{
+				obx[crash] += 20;
+				oby[crash] -= 20;
+				enterpress =1;
 			}
 		}
 		if (wParam == 'Q')
@@ -382,9 +411,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		}
 		for (int i = 60; i < obcount; ++i)
 		{
-			obbrush = (HBRUSH)CreateSolidBrush(RGB(255, 0, 0));
+			obbrush = (HBRUSH)CreateSolidBrush(randcolor[i]);
 			oldbrush = (HBRUSH)SelectObject(hdc, obbrush);
-			Rectangle(hdc, mx[i], my[i], mx[i] + 30, my[i] + 30);
+			Rectangle(hdc, mx[i], my[i], mx[i] + 20, my[i] + 20);
 			SelectObject(hdc, oldbrush);
 		}
 		EndPaint(hWnd, &ps);
