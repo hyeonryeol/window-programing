@@ -1,4 +1,4 @@
-﻿#include <iostream>
+#include <iostream>
 
 using namespace std;
 
@@ -37,65 +37,7 @@ void position(int garo, int sero, char stone)
 {
 	board[garo][sero] = stone;
 }
-void printmulti()
-{
-	cout << "2번 구현" << endl;
 
-	// 1단계: 최대값 먼저 찾기
-	int globalmax = 0;
-	for (int i = 0; i < 19; ++i)
-	{
-		int wmulti = 0, bmulti = 0;
-		for (int j = 0; j < 19; ++j)
-		{
-			if (board[i][j] == '0') { wmulti++; bmulti = 0; }
-			else if (board[i][j] == 'X') { bmulti++; wmulti = 0; }
-			else { wmulti = 0; bmulti = 0; }
-			if (wmulti > globalmax) globalmax = wmulti;
-			if (bmulti > globalmax) globalmax = bmulti;
-		}
-	}
-
-	// 2단계: 최대값과 같은 연속 구간 모두 출력
-	cout << "가로 최대 연속 (" << globalmax << "개) 위치:" << endl;
-	if (globalmax == 0) { cout << "없음" << endl; }
-	else
-	{
-		for (int i = 0; i < 19; ++i)
-		{
-			int wmulti = 0, bmulti = 0;
-			int wstart = 0, bstart = 0;
-			for (int j = 0; j < 19; ++j)
-			{
-				if (board[i][j] == '0')
-				{
-					if (wmulti == 0) wstart = j;
-					wmulti++; bmulti = 0;
-					if (wmulti == globalmax)
-					{
-						cout << "흰 돌 " << i << "번째 가로줄 ";
-						for (int k = 0; k < globalmax; ++k)
-							cout << "(" << wstart + k << "," << i << ") ";
-						cout << endl;
-					}
-				}
-				else if (board[i][j] == 'X')
-				{
-					if (bmulti == 0) bstart = j;
-					bmulti++; wmulti = 0;
-					if (bmulti == globalmax)
-					{
-						cout << "검은 돌 " << i << "번째 가로줄 ";
-						for (int k = 0; k < globalmax; ++k)
-							cout << "(" << bstart + k << "," << i << ") ";
-						cout << endl;
-					}
-				}
-				else { wmulti = 0; bmulti = 0; }
-			}
-		}
-	}
-}
 int main()
 {
 	inboard();
@@ -167,7 +109,6 @@ int main()
 						{
 							cout << i << "번째 세로줄 흰 돌:" << serowboard[i] << endl;
 						}
-						printmulti();
 						turn = true;
 					}
 				}
@@ -245,7 +186,6 @@ int main()
 						{
 							cout << i << "번째 세로줄 검은 돌:" << serobboard[i] << endl;
 						}
-						printmulti();
 						turn = false;
 					}
 				}
