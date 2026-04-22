@@ -43,11 +43,10 @@ void printmulti()
 	int globalmax = 0;
 	for (int i = 0; i < 19; ++i)
 	{
-		int wmulti = 0;
-		int bmulti = 0;
+		int wmulti = 0, bmulti = 0;
 		for (int j = 0; j < 19; ++j)
 		{
-			if (board[i][j] == '0') {	wmulti++; bmulti = 0;}
+			if (board[i][j] == '0') { wmulti++; bmulti = 0; }
 			else if (board[i][j] == 'X') { bmulti++; wmulti = 0; }
 			else { wmulti = 0; bmulti = 0; }
 			if (wmulti > globalmax) { globalmax = wmulti; }
@@ -55,7 +54,7 @@ void printmulti()
 
 		}
 	}
-	cout << "가로최대연속(" << globalmax << "개) 위치:" << endl;
+	cout << "가로 최대 연속(" << globalmax << "개) 위치:" << endl;
 	if (globalmax == 0) { cout << "없음" << endl; }
 	else
 	{
@@ -65,15 +64,15 @@ void printmulti()
 			int bmulti = 0, bstart = 0;
 			for (int j = 0; j < 19; ++j)
 			{
-				if (board[i][j] == '0') 
+				if (board[i][j] == '0')
 				{
-					if (wmulti == 0) wstart = j;
+					if(wmulti == 0) wstart = j;
 					wmulti++; bmulti = 0;
 					if (wmulti == globalmax)
 					{
 						cout << "흰 돌" << i << "번째 가로 줄";
 						for (int k = 0; k < globalmax; ++k)
-							cout << wstart + k << "," << i << endl;
+							cout << "(" << wstart + k << "," << i << ")";
 						cout << endl;
 					}
 				}
@@ -85,12 +84,18 @@ void printmulti()
 					{
 						cout << "검은 돌" << i << "번째 가로 줄";
 						for (int k = 0; k < globalmax; ++k)
-							cout << bstart + k << "," << i << endl;
+							cout << "(" << bstart + k << "," << i << ")";
 						cout << endl;
 					}
 				}
-				else { wmulti = 0; bmulti = 0; }
+				else
+				{
+					wmulti = 0; bmulti = 0;
+				}
+				
+
 			}
+
 		}
 	}
 	for (int i = 0; i < 19; ++i)
@@ -105,10 +110,10 @@ void printmulti()
 			if (wmulti > wmax) { wmax = wmulti; }
 			if (bmulti > bmax) { bmax = bmulti; }
 		}
-		cout << i << "번째 가로 줄";
+		cout << i << "번째 가로줄";
 		if (wmax == 0 && bmax == 0) { cout << "없다" << endl; }
-		else if (wmax >= bmax) { cout << "흰 돌:" << wmax << "개" << endl; }
-		else cout << "검은 돌:" << bmax << "개" << endl;
+		else if (wmax >= bmax) { cout << "흰 돌" << wmax << "개" << endl; }
+		else { cout << "검은 돌" << bmax << "개" << endl; }
 	}
 	for (int i = 0; i < 19; ++i)
 	{
@@ -122,10 +127,10 @@ void printmulti()
 			if (wmulti > wmax) { wmax = wmulti; }
 			if (bmulti > bmax) { bmax = bmulti; }
 		}
-		cout << i << "번째 세로 줄";
+		cout << i << "번째 세로줄";
 		if (wmax == 0 && bmax == 0) { cout << "없다" << endl; }
-		else if (wmax >= bmax) { cout << "흰 돌:" << wmax << "개" << endl; }
-		else cout << "검은 돌:" << bmax << "개" << endl;
+		else if (wmax >= bmax) { cout << "흰 돌" << wmax << "개" << endl; }
+		else { cout << "검은 돌" << bmax << "개" << endl; }
 	}
 }
 void crossline()
@@ -142,10 +147,10 @@ void crossline()
 			if (wmulti > wmax) { wmax = wmulti; }
 			if (bmulti > bmax) { bmax = bmulti; }
 		}
-		cout << "우하향 시작(" << start << ",0)";
+		cout  << "우하향 시작(" << start << ",0)";
 		if (wmax == 0 && bmax == 0) { cout << "없다" << endl; }
-		else if (wmax >= bmax) { cout << "흰 돌:" << wmax << "개" << endl; }
-		else cout << "검은 돌:" << bmax << "개" << endl;
+		else if (wmax >= bmax) { cout << "흰 돌" << wmax << "개" << endl; }
+		else { cout << "검은 돌" << bmax << "개" << endl; }
 	}
 	for (int start = 1; start < 19; ++start)
 	{
@@ -154,21 +159,21 @@ void crossline()
 		for (int k = 0; k < 19 && start + k < 19; ++k)
 		{
 			if (board[start + k][k] == '0') { wmulti++; bmulti = 0; }
-			else if (board[start + k][ k] == 'X') { bmulti++; wmulti = 0; }
+			else if (board[start + k][k] == 'X') { bmulti++; wmulti = 0; }
 			else { wmulti = 0; bmulti = 0; }
 			if (wmulti > wmax) { wmax = wmulti; }
 			if (bmulti > bmax) { bmax = bmulti; }
 		}
 		cout << "우하향 시작(0," << start << ")";
 		if (wmax == 0 && bmax == 0) { cout << "없다" << endl; }
-		else if (wmax >= bmax) { cout << "흰 돌:" << wmax << "개" << endl; }
-		else cout << "검은 돌:" << bmax << "개" << endl;
+		else if (wmax >= bmax) { cout << "흰 돌" << wmax << "개" << endl; }
+		else { cout << "검은 돌" << bmax << "개" << endl; }
 	}
 	for (int start = 0; start < 19; ++start)
 	{
 		int wmulti = 0, wmax = 0;
 		int bmulti = 0, bmax = 0;
-		for (int k = 0; 18 - k >=0 && start + k < 19; ++k)
+		for (int k = 0; 18-k >= 0 && start + k < 19; ++k)
 		{
 			if (board[18-k][start + k] == '0') { wmulti++; bmulti = 0; }
 			else if (board[18-k][start + k] == 'X') { bmulti++; wmulti = 0; }
@@ -178,8 +183,8 @@ void crossline()
 		}
 		cout << "우상향 시작(" << start << ",18)";
 		if (wmax == 0 && bmax == 0) { cout << "없다" << endl; }
-		else if (wmax >= bmax) { cout << "흰 돌:" << wmax << "개" << endl; }
-		else cout << "검은 돌:" << bmax << "개" << endl;
+		else if (wmax >= bmax) { cout << "흰 돌" << wmax << "개" << endl; }
+		else { cout << "검은 돌" << bmax << "개" << endl; }
 	}
 	for (int start = 17; start >= 0; --start)
 	{
@@ -193,10 +198,10 @@ void crossline()
 			if (wmulti > wmax) { wmax = wmulti; }
 			if (bmulti > bmax) { bmax = bmulti; }
 		}
-		cout << "우상향 시작(0," << start << ")";
+		cout << "우상향 시작(" << start << ",0)";
 		if (wmax == 0 && bmax == 0) { cout << "없다" << endl; }
-		else if (wmax >= bmax) { cout << "흰 돌:" << wmax << "개" << endl; }
-		else cout << "검은 돌:" << bmax << "개" << endl;
+		else if (wmax >= bmax) { cout << "흰 돌" << wmax << "개" << endl; }
+		else { cout << "검은 돌" << bmax << "개" << endl; }
 	}
 }
 int main()
@@ -247,9 +252,6 @@ int main()
 									garowboard[i]++;
 								}
 							}
-						}
-						for (int i = 0; i < 19; ++i)
-						{
 							cout << i << "번째 가로줄" << garowboard[i] << endl;
 						}
 						for (int i = 0; i < 19; ++i)
@@ -260,17 +262,15 @@ int main()
 						{
 							for (int j = 0; j < 19; ++j)
 							{
-								if (board[j][i] == '0')
+								if (board[i][j] == '0')
 								{
 									serowboard[i]++;
 								}
 							}
-						}
-						for (int i = 0; i < 19; ++i)
-						{
 							cout << i << "번째 세로줄" << serowboard[i] << endl;
 						}
 						printmulti();
+						crossline();
 						turn = true;
 					}
 				}
@@ -325,9 +325,6 @@ int main()
 									garobboard[i]++;
 								}
 							}
-						}
-						for (int i = 0; i < 19; ++i)
-						{
 							cout << i << "번째 가로줄" << garobboard[i] << endl;
 						}
 						for (int i = 0; i < 19; ++i)
@@ -338,17 +335,15 @@ int main()
 						{
 							for (int j = 0; j < 19; ++j)
 							{
-								if (board[j][i] == 'X')
+								if (board[i][j] == 'X')
 								{
 									serobboard[i]++;
 								}
 							}
-						}
-						for (int i = 0; i < 19; ++i)
-						{
 							cout << i << "번째 세로줄" << serobboard[i] << endl;
 						}
 						printmulti();
+						crossline();
 						turn = false;
 					}
 				}
