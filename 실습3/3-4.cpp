@@ -139,7 +139,7 @@ void CALLBACK PlayerTimerProc(HWND hWnd, UINT iMsg, UINT idEvent, DWORD dwTime)
 		}
 	}
 
-	InvalidateRect(hWnd, NULL, TRUE);
+	InvalidateRect(hWnd, NULL, false);
 }
 
 int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR, int nCmdShow)
@@ -176,6 +176,11 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR, int nCmdShow)
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
+	HDC hdc, mDC;
+	HBITMAP hBitmap;
+	RECT rt ;
+	
+	GetClientRect(hWnd, &rt);
 	static BOOL Selection;
 	switch (msg)
 	{
@@ -208,7 +213,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		{
 			randcolor[obcount] = RGB(255, 0, 0);
 			obcount++;
-			InvalidateRect(hWnd, nullptr, TRUE);
+			InvalidateRect(hWnd, nullptr, false);
 		}
 		return 0;
 	}
@@ -235,7 +240,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				my[i] = -9999;
 			}
 		}
-		InvalidateRect(hWnd, nullptr, TRUE);
+		InvalidateRect(hWnd, nullptr, false);
 		return 0;
 	}
 	case WM_KEYDOWN:
@@ -291,7 +296,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				if (randcolor[i] == 4) randcolor[i] = RGB(0, 255, 255);
 			}
 		}
-		InvalidateRect(hWnd, nullptr, TRUE);
+		InvalidateRect(hWnd, nullptr, false);
 		return 0;
 	}
 	case WM_PAINT:
@@ -299,35 +304,43 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		PAINTSTRUCT ps;
 		HDC hdc = BeginPaint(hWnd, &ps);
 
-		HBRUSH oldbrush = (HBRUSH)SelectObject(hdc, boardbrush);
-		for (int i = 0; i < 900; ++i)
-			Rectangle(hdc, g_rect[i][0], g_rect[i][1], g_rect[i][2], g_rect[i][3]);
-		SelectObject(hdc, oldbrush);
+		mDC = CreateCompatibleDC(hdc); //--- 메모리 DC 만들기
+		hBitmap = CreateCompatibleBitmap(hdc, rt.right, rt.bottom); //--- 메모리 DC와 연결할 비트맵 만들기
+		SelectObject(mDC, (HBITMAP)hBitmap); //--- 메모리 DC와 비트맵 연결하기
+		FillRect(mDC, &rt, (HBRUSH)GetStockObject(WHITE_BRUSH)); // 배경 흰색
 
-		oldbrush = (HBRUSH)SelectObject(hdc, playerbrush);
-		Ellipse(hdc,
+		HBRUSH oldbrush = (HBRUSH)SelectObject(mDC, boardbrush);
+		for (int i = 0; i < 900; ++i)
+			Rectangle(mDC, g_rect[i][0], g_rect[i][1], g_rect[i][2], g_rect[i][3]);
+		SelectObject(mDC, oldbrush);
+
+		oldbrush = (HBRUSH)SelectObject(mDC, playerbrush);
+		Ellipse(mDC,
 			g_player[450][0] + px, g_player[450][1] + py,
 			g_player[450][2] + px, g_player[450][3] + py);
-		SelectObject(hdc, oldbrush);
+		SelectObject(mDC, oldbrush);
 
 		for (int i = 0; i < 60; ++i)
 		{
 			obbrush = (HBRUSH)CreateSolidBrush(randcolor[i]);
-			oldbrush = (HBRUSH)SelectObject(hdc, obbrush);
-			Rectangle(hdc,
+			oldbrush = (HBRUSH)SelectObject(mDC, obbrush);
+			Rectangle(mDC,
 				g_ob[obposition[i]][0] + obx[i], g_ob[obposition[i]][1] + oby[i],
 				g_ob[obposition[i]][2] + obx[i], g_ob[obposition[i]][3] + oby[i]);
-			SelectObject(hdc, oldbrush);
+			SelectObject(mDC, oldbrush);
 			DeleteObject(obbrush);
 		}
 		for (int i = 60; i < obcount; ++i)
 		{
 			obbrush = (HBRUSH)CreateSolidBrush(randcolor[i]);
-			oldbrush = (HBRUSH)SelectObject(hdc, obbrush);
-			Rectangle(hdc, mx[i], my[i], mx[i] + 20, my[i] + 20);
-			SelectObject(hdc, oldbrush);
+			oldbrush = (HBRUSH)SelectObject(mDC, obbrush);
+			Rectangle(mDC, mx[i], my[i], mx[i] + 20, my[i] + 20);
+			SelectObject(mDC, oldbrush);
 			DeleteObject(obbrush);
 		}
+		BitBlt(hdc, 0, 0, rt.right, rt.bottom, mDC, 0, 0, SRCCOPY);
+		DeleteDC(mDC); //--- 생성한 메모리 DC 삭제
+		DeleteObject(hBitmap); //--- 생성한 비트맵 삭제
 		EndPaint(hWnd, &ps);
 		return 0;
 	}
