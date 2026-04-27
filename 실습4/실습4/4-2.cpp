@@ -17,8 +17,13 @@ bool redlight = false;
 bool yellowlight = false;
 bool bluelight = true;
 
+bool redlight2 = true;
+bool yellowlight2 = false;
+bool bluelight2 = false;
+
 bool stopped[10] = {};  // 1, 2
 int  stoppedY[10] = {};  // 각 차가 멈춘 y 위치
+int stoppedX[10] = {}; //x위치
 
 // ── 차 그리기 (랩어라운드 처리) ──────────────────────────────
 void DrawCarV(HDC hdc, int left, int right, int top, int screenH)
@@ -44,20 +49,36 @@ void DrawCarV(HDC hdc, int left, int right, int top, int screenH)
 		Rectangle(hdc, left, top, right, bottom);
 	}
 }
+void DrawCarV1(HDC hdc, int screenW, int right, int top, int bottom)
+{
+	int left = right - 100;
+
+	if (right <= 0)
+	{
+		return; // 차 전체가 화면 왼쪽 밖 → 그리지 않음
+	}
+	else if (left <= 0)
+	{
+		// 왼쪽 경계에 걸쳐 있을 때 → 두 조각으로 분할
+		Rectangle(hdc, 0, top, right, bottom);               // 왼쪽 조각
+		Rectangle(hdc, screenW + left, top, screenW, bottom); // 오른쪽에서 나오는 조각
+	}
+	else
+	{
+		Rectangle(hdc, left, top, right, bottom); // 화면 안 정상 그리기
+	}
+}
 void CALLBACK TimerProc2(HWND hWnd, UINT, UINT, DWORD)
 {
 
 	if (redlight == true)
 	{
 
-		
-		
 
 			redlight = false;
 			yellowlight = false;
 			bluelight = true;
 	
-
 	}
 	else if (bluelight == true)
 	{
@@ -82,16 +103,23 @@ void CALLBACK TimerProc1(HWND hWnd, UINT, UINT, DWORD)
 	RECT rc;
 	GetClientRect(hWnd, &rc);
 	int H = rc.bottom;
-	int T = rc.top;
+	int L = rc.right;
 	// 1) 이동
 	if (bluelight)
 	{
 		cary[1] -= 10;
 		cary[2] -= 10;
-		cary[3] += 10;
+		cary[3] += 5;
 		cary[4] += 10;
 	}
+	if (bluelight2)
+	{
+		carx[6] -= 10;
+		carx[7] -= 10;
+		carx[8] += 10;
+		carx[9] += 10;
 
+	}
 	if (redlight)
 	{
 		if (2 * 266 + 40 + cary[5] > 266 && stopped[1] && stopped[2] && stopped[3] && stopped[4] && cross == true)
@@ -145,7 +173,7 @@ void CALLBACK TimerProc1(HWND hWnd, UINT, UINT, DWORD)
 		if (!stopped[3])
 		{
 
-			int myStop1 = (stopped[4] && stoppedY[4] == 250) ? 140 : 250;
+			int myStop1 = (stopped[4] && stoppedY[4] == 250) ? 130 : 250;
 			int bottom1 = 450 + cary[3];
 
 			if (bottom1 <= myStop1 && bottom1 + 10 >= myStop1)
@@ -164,7 +192,7 @@ void CALLBACK TimerProc1(HWND hWnd, UINT, UINT, DWORD)
 
 		if (!stopped[4])
 		{
-			int myStop2 = (stopped[3] && stoppedY[3] == 250) ? 140 : 250;
+			int myStop2 = (stopped[3] && stoppedY[3] == 250) ? 130 : 250;
 			int bottom2 = 650 + cary[4];
 
 			if (bottom2 <= myStop2 && bottom2 + 10 >= myStop2)
@@ -180,12 +208,83 @@ void CALLBACK TimerProc1(HWND hWnd, UINT, UINT, DWORD)
 		}
 		
 	}
+	///////////////////////////////////////////////////////////////
+	if (redlight2)
+	{
+		if (!stopped[6])
+		{
+			int myStop = (stopped[7] && stoppedX[2] == 630) ? 740 : 630;
+			int right6 = 150 + carx[6];
 
+			if (right6 <= myStop && right6 + 10 >= myStop)
+			{
+				carx[6] = myStop - 150; 
+				stopped[6] = true;        
+				stoppedX[1] = myStop;
+			}
+			else
+			{
+				carx[6] -= 10;
+			}
+		}
+		if (!stopped[7])
+		{
+			int myStop = (stopped[6] && stoppedX[1] == 630) ? 740 : 630;
+			int right7 = 650 + carx[7];
+
+			if (right7 <= myStop && right7 + 10 >= myStop)
+			{
+				carx[7] = myStop - 650;
+				stopped[7] = true;
+				stoppedX[2] = myStop;
+			}
+			else
+			{
+				carx[7] -= 10;
+			}
+		}
+		////////////////////////////////////////////////////////////////////////
+		if (!stopped[8])
+		{
+			int myStop = (stopped[9] && stoppedX[4] == 630) ? 740 : 630;
+			int right6 = 150 + carx[6];
+
+			if (right6 <= myStop && right6 + 10 >= myStop)
+			{
+				carx[6] = myStop - 150;
+				stopped[6] = true;
+				stoppedX[1] = myStop;
+			}
+			else
+			{
+				carx[8] -= 10;
+			}
+		}
+		if (!stopped[9])
+		{
+			int myStop = (stopped[8] && stoppedX[3] == 630) ? 740 : 630;
+			int right7 = 650 + carx[7];
+
+			if (right7 <= myStop && right7 + 10 >= myStop)
+			{
+				carx[7] = myStop - 650;
+				stopped[7] = true;
+				stoppedX[2] = myStop;
+			}
+			else
+			{
+				carx[9] -= 10;
+			}
+		}
+	}
 	// 2) 랩어라운드: 이동 후에 체크
 	if (150 + cary[1] < 0) { cary[1] += H;  stopped[1] = false; stoppedY[1] = 0; }
 	if (350 + cary[2] < 0) { cary[2] += H; stopped[2] = false; stoppedY[2] = 0; }
 	if (350 + cary[3] > H) { cary[3] -= H;  stopped[3] = false; stoppedY[3] = 0; }
 	if (550 + cary[4] > H) { cary[4] -= H; stopped[4] = false; stoppedY[4] = 0; }
+	if (150 + carx[6] < 0) { carx[6] += L; stopped[6] = false; stoppedX[1] = 0; }
+	if (650 + carx[7] < 0) { carx[7] += L; stopped[7] = false; stoppedX[2] = 0; }
+		
 	InvalidateRect(hWnd, NULL, TRUE);
 }
 
@@ -281,8 +380,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		if (155 < mx && mx < 195 && 5 < my && my < 45)
 		{
 			redlight = false; yellowlight = false; bluelight = true;cross = true;
-			stopped[1] = stopped[2] = stopped[3] = stopped[4] = false;
-			stoppedY[1] = stoppedY[2] = stoppedY[3] = stopped[4] = 0;
+			stopped[1] = stopped[2] = stopped[3] = stopped[4] = stopped[6] =stopped[7] = false;
+			stoppedY[1] = stoppedY[2] = stoppedY[3] = stopped[4] = stopped[6] = stopped[7] = 0;
 		}
 
 		return 0;
@@ -357,8 +456,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		HBRUSH oldbrush = (HBRUSH)SelectObject(hdc, signalred);
 		if (redlight == true)
 		{
-
 			Ellipse(hdc, 55, 5, 95, 45);
+		}
+		if (redlight2 == true)
+		{
 			Ellipse(hdc, 555, 555, 595, 595);
 			SelectObject(hdc, oldbrush);
 		}
@@ -366,14 +467,20 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		{
 			oldbrush = (HBRUSH)SelectObject(hdc, signalyellow);
 			Ellipse(hdc, 105, 5, 145, 45);
+		}
+		if (yellowlight2 == true)
+		{
+
 			Ellipse(hdc, 605, 555, 645, 595);
 			SelectObject(hdc, oldbrush);
 		}
 		if (bluelight == true)
 		{
-
 			oldbrush = (HBRUSH)SelectObject(hdc, signalblue);
 			Ellipse(hdc, 155, 5, 195, 45);
+		}
+		if (bluelight2 == true)
+		{
 			Ellipse(hdc, 655, 555, 695, 595);
 			SelectObject(hdc, oldbrush);
 		}
@@ -381,12 +488,16 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		// 자동차 (랩어라운드)
 		{
 			int H = clientRect.bottom;
-
+			int R = clientRect.right;
 			oldbrush = (HBRUSH)SelectObject(hdc, carbrush);
 			DrawCarV(hdc, 405 + carx[1], 460 + carx[1], 50 + cary[1], H);
 			DrawCarV(hdc, 405 + carx[2], 460 + carx[2], 250 + cary[2], H);
 			DrawCarV(hdc, 320 + carx[3], 375 + carx[3], 350 + cary[3], H);
 			DrawCarV(hdc, 320 + carx[4], 375 + carx[4], 550 + cary[4], H);
+			DrawCarV1(hdc, R, 150 + carx[6], 290 + cary[6], 350 + cary[6]);
+			DrawCarV1(hdc, R, 650 + carx[7], 290 + cary[7], 350 + cary[7]);
+			DrawCarV1(hdc, R, 150 + carx[8], 290 + cary[8], 350 + cary[8]);
+			DrawCarV1(hdc, R, 650 + carx[9], 290 + cary[9], 350 + cary[9]);
 			SelectObject(hdc, oldbrush);
 		}
 		oldbrush = (HBRUSH)SelectObject(hdc, peoplebrush);
