@@ -1,444 +1,428 @@
 #include <iostream>
-#include <fstream>
+#include <fstream>   // 파일 입출력
 #include <string>
+
 
 using namespace std;
 
-// ===================== 구조체 정의 =====================
+// ─────────────────────────────────────────
+// 챔피언 데이터 구조체
+// ─────────────────────────────────────────
 struct legueoflegends
 {
-    string name;
-    int hp;
-    int mp;
-    int speed;
-    int range;
-    string position;
+	string name;
+	int hp;
+	int mp;
+	int speed;
+	int range;
+	string position;
 };
 
-// 단일 환형 연결리스트 노드
+// ─────────────────────────────────────────
+// 원형 단일 연결 리스트 노드
+// ─────────────────────────────────────────
 struct Node
 {
-    legueoflegends data;
-    Node* next;
+	legueoflegends data;
+	Node* next;       // 다음 노드 포인터 (마지막 노드는 head를 가리킴)
 };
 
-// ===================== 전역변수 =====================
-Node* head = nullptr;  // 리스트의 시작 노드
-int listcount = 0;
+Node* head = nullptr; // 리스트의 첫 번째 노드
+int listcount = 0;    // 현재 노드 개수
 
-// ===================== 출력 헬퍼 =====================
+// ─────────────────────────────────────────
+// 챔피언 1명 출력
+// ─────────────────────────────────────────
 void printChamp(Node* node)
 {
-    cout << node->data.name << " "
-        << node->data.hp << " "
-        << node->data.mp << " "
-        << node->data.speed << " "
-        << node->data.range << " "
-        << node->data.position << endl;
+	cout << node->data.name << " "
+		<< node->data.hp << " "
+		<< node->data.mp << " "
+		<< node->data.speed << " "
+		<< node->data.range << " "
+		<< node->data.position << endl;
 }
 
-
-// 배열에 저장된 데이터를 단일 환형 연결리스트로 변환
+// ─────────────────────────────────────────
+// 배열 → 원형 단일 연결 리스트 변환
+// ─────────────────────────────────────────
 void Array2SLinkedList(legueoflegends LOL[], int n)
 {
-    head = nullptr;
-    listcount = 0;
+	head = nullptr;
+	listcount = 0;
 
-    for (int i = 0; i < n; i++)
-    {
-        Node* newNode = new Node();
-        newNode->data = LOL[i];
-        newNode->next = nullptr;
+	for (int i = 0; i < n; ++i)
+	{
+		Node* newNode = new Node();
+		newNode->data = LOL[i];
+		newNode->next = nullptr;
 
-        if (head == nullptr)
-        {
-            head = newNode;
-            head->next = head;  // 자기 자신을 가리킴 (환형)
-        }
-        else
-        {
-            // 마지막 노드 찾기
-            Node* last = head;
-            while (last->next != head)
-                last = last->next;
+		if (head == nullptr)
+		{
+			// 첫 노드: 자기 자신을 가리킴 (원형)
+			head = newNode;
+			head->next = head;
+		}
+		else
+		{
+			// 마지막 노드를 찾아서 새 노드를 뒤에 연결
+			Node* last = head;
+			while (last->next != head)
+				last = last->next;
 
-            last->next = newNode;
-            newNode->next = head;  // 마지막 노드 -> head (환형 유지)
-        }
-        listcount++;
-    }
+			last->next = newNode;
+			newNode->next = head; // 원형 유지: 마지막 → head
+		}
+		listcount++;
+	}
 }
 
-// ===================== PrintAll_SL =====================
+// ─────────────────────────────────────────
+// 전체 출력 (원형이라 do-while 사용)
+// ─────────────────────────────────────────
 void PrintAll_SL()
 {
-    if (head == nullptr) { cout << "리스트가 비어있습니다." << endl; return; }
-
-    Node* cur = head;
-    do
-    {
-        printChamp(cur);
-        cur = cur->next;
-    } while (cur != head);  // head로 돌아오면 종료
+	if (head == nullptr) { cout << "리스트가 비었음" << endl; return; }
+	Node* cur = head;
+	do
+	{
+		printChamp(cur);
+		cur = cur->next;
+	} while (cur != head); // head로 돌아오면 종료
 }
 
-// ===================== Search_SL =====================
+// ─────────────────────────────────────────
+// 이름으로 검색
+// ─────────────────────────────────────────
 void Search_SL(string champ)
 {
-    if (head == nullptr) { cout << "찾지 못했습니다." << endl; return; }
+	if (head == nullptr) { cout << "찾지 못함" << endl; return; }
 
-    bool found = false;
-    Node* cur = head;
-    do
-    {
-        if (cur->data.name == champ)
-        {
-            printChamp(cur);
-            found = true;
-        }
-        cur = cur->next;
-    } while (cur != head);
+	bool found = false;
+	Node* cur = head;
+	do
+	{
+		if (cur->data.name == champ)
+		{
+			printChamp(cur);
+			found = true;
+		}
+		cur = cur->next;
+	} while (cur != head);
 
-    if (!found) cout << "찾지 못했습니다." << endl;
+	if (!found) cout << "찾지 못함" << endl;
 }
 
-// ===================== Insert_SL =====================
-// HP 내림차순 정렬 순서를 유지하면서 삽입
+// ─────────────────────────────────────────
+// HP 내림차순 정렬 상태 유지하며 삽입
+// ─────────────────────────────────────────
 void Insert_SL(legueoflegends champ)
 {
-    Node* newNode = new Node();
-    newNode->data = champ;
-    newNode->next = nullptr;
+	Node* newNode = new Node();
+	newNode->data = champ;
+	newNode->next = nullptr;
 
-    // 리스트가 비어있는 경우
-    if (head == nullptr)
-    {
-        head = newNode;
-        newNode->next = head;
-        listcount++;
-        return;
-    }
+	// 빈 리스트
+	if (head == nullptr)
+	{
+		head = newNode;
+		newNode->next = head;
+		listcount++;
+		return;
+	}
 
-    // 새 노드가 head보다 hp가 크거나 같으면 → 맨 앞(새 head)에 삽입
-    if (champ.hp >= head->data.hp)
-    {
-        Node* last = head;
-        while (last->next != head)
-            last = last->next;
+	// 새 노드 HP가 head보다 크거나 같으면 → head 앞에 삽입
+	if (champ.hp >= head->data.hp)
+	{
+		Node* last = head;
+		while (last->next != head)
+			last = last->next;
 
-        newNode->next = head;
-        head = newNode;
-        last->next = head;  // 마지막 노드 → 새 head
-        listcount++;
-        return;
-    }
+		newNode->next = head;
+		head = newNode;
+		last->next = head; // 원형 유지
+		listcount++;
+		return;
+	}
 
-    // 삽입 위치 탐색 (HP 내림차순 기준)
-    Node* cur = head;
-    while (cur->next != head && cur->next->data.hp > champ.hp)
-        cur = cur->next;
+	// 적절한 위치 탐색 후 삽입
+	Node* cur = head;
+	while (cur->next != head && cur->next->data.hp > champ.hp)
+		cur = cur->next;
 
-    newNode->next = cur->next;
-    cur->next = newNode;
-    listcount++;
+	newNode->next = cur->next;
+	cur->next = newNode;
+	listcount++;
 }
 
-// ===================== Delete_SL =====================
+// ─────────────────────────────────────────
+// 이름으로 삭제 (같은 이름 전부 삭제)
+// ─────────────────────────────────────────
 void Delete_SL(string champ)
 {
-    if (head == nullptr) { cout << "그런 챔피언은 없습니다." << endl; return; }
+	if (head == nullptr) { cout << "그런챔피언은 없음" << endl; return; }
 
-    bool found = false;
+	bool found = false;
 
-    // head 노드가 삭제 대상인 경우 반복 처리
-    while (head != nullptr && head->data.name == champ)
-    {
-        found = true;
-        if (head->next == head)  // 노드가 1개인 경우
-        {
-            delete head;
-            head = nullptr;
-            listcount--;
-            cout << "삭제되었습니다." << endl;
-            return;
-        }
-        Node* last = head;
-        while (last->next != head) last = last->next;
+	// head가 삭제 대상인 경우 반복 처리
+	while (head != nullptr && head->data.name == champ)
+	{
+		found = true;
+		if (head->next == head) // 노드가 1개만 남은 경우
+		{
+			delete head;
+			head = nullptr;
+			listcount--;
+			cout << "삭제" << endl;
+			return;
+		}
+		// 마지막 노드 찾아서 head 교체
+		Node* last = head;
+		while (last->next != head) last = last->next;
 
-        Node* toDelete = head;
-        head = head->next;
-        last->next = head;
-        delete toDelete;
-        listcount--;
-        cout << "삭제되었습니다." << endl;
-    }
+		Node* toDelete = head;
+		head = head->next;
+		last->next = head; // 원형 유지
+		delete toDelete;
+		listcount--;
+		cout << "삭제" << endl;
+	}
 
-    if (head == nullptr) return;
+	if (head == nullptr) return;
 
-    // 나머지 노드 탐색
-    Node* prev = head;
-    Node* cur = head->next;
-    while (cur != head)
-    {
-        if (cur->data.name == champ)
-        {
-            found = true;
-            prev->next = cur->next;
-            delete cur;
-            cur = prev->next;
-            listcount--;
-            cout << "삭제되었습니다." << endl;
-        }
-        else
-        {
-            prev = cur;
-            cur = cur->next;
-        }
-    }
+	// head 이후 노드 탐색하며 삭제
+	Node* prev = head;
+	Node* cur = head->next;
+	while (cur != head)
+	{
+		if (cur->data.name == champ)
+		{
+			found = true;
+			prev->next = cur->next; // 연결 끊기
+			delete cur;
+			cur = prev->next;
+			listcount--;
+			cout << "삭제" << endl;
+		}
+		else
+		{
+			prev = cur;
+			cur = cur->next;
+		}
+	}
 
-    if (!found) cout << "그런 챔피언은 없습니다." << endl;
+	if (!found) cout << "그런챔피언은 없스빈다." << endl;
 }
 
-// ===================== DeleteAll_SL =====================
+// ─────────────────────────────────────────
+// 최대 HP 챔피언 출력
+// ─────────────────────────────────────────
+void FindMaxHP_SL()
+{
+	if (head == nullptr) return;
+
+	// 1단계: 최대 HP 값 탐색
+	int maxhp = head->data.hp;
+	Node* cur = head->next;
+	while (cur != head)
+	{
+		if (cur->data.hp > maxhp) maxhp = cur->data.hp;
+		cur = cur->next;
+	}
+
+	// 2단계: 최대 HP인 노드 출력
+	cur = head;
+	do
+	{
+		if (cur->data.hp == maxhp) printChamp(cur);
+		cur = cur->next;
+	} while (cur != head);
+}
+
+// ─────────────────────────────────────────
+// 포지션으로 전체 삭제
+// ─────────────────────────────────────────
 void DeleteAll_SL(string pos)
 {
-    if (head == nullptr) return;
+	if (head == nullptr) { cout << "그런챔피언은 없음" << endl; return; }
 
-    // head 노드가 삭제 대상인 경우 반복 처리
-    while (head != nullptr && head->data.position == pos)
-    {
-        if (head->next == head)
-        {
-            delete head;
-            head = nullptr;
-            listcount--;
-            cout << "삭제되었습니다." << endl;
-            return;
-        }
-        Node* last = head;
-        while (last->next != head) last = last->next;
+	// head가 삭제 대상인 경우 반복 처리
+	while (head != nullptr && head->data.position == pos)
+	{
+		if (head->next == head) // 노드 1개
+		{
+			delete head;
+			head = nullptr;
+			listcount--;
+			cout << "삭제" << endl;
+			return;
+		}
+		Node* last = head;
+		while (last->next != head) last = last->next;
 
-        Node* toDelete = head;
-        head = head->next;
-        last->next = head;
-        delete toDelete;
-        listcount--;
-        cout << "삭제되었습니다." << endl;
-    }
+		Node* toDelete = head;
+		head = head->next;
+		last->next = head;
+		delete toDelete;
+		listcount--;
+		cout << "삭제" << endl;
+	}
 
-    if (head == nullptr) return;
+	if (head == nullptr) return;
 
-    Node* prev = head;
-    Node* cur = head->next;
-    while (cur != head)
-    {
-        if (cur->data.position == pos)
-        {
-            prev->next = cur->next;
-            delete cur;
-            cur = prev->next;
-            listcount--;
-            cout << "삭제되었습니다." << endl;
-        }
-        else
-        {
-            prev = cur;
-            cur = cur->next;
-        }
-    }
+	// head 이후 노드 탐색하며 삭제
+	Node* prev = head;
+	Node* cur = head->next;
+	while (cur != head)
+	{
+		if (cur->data.position == pos)
+		{
+			prev->next = cur->next;
+			delete cur;
+			cur = prev->next;
+			listcount--;
+			cout << "삭제" << endl;
+		}
+		else
+		{
+			prev = cur;
+			cur = cur->next;
+		}
+	}
 }
 
-// ===================== FindMaxHp_SL =====================
-void FindMaxHp_SL()
-{
-    if (head == nullptr) return;
-
-    // 최대 hp 탐색
-    int maxhp = head->data.hp;
-    Node* cur = head->next;
-    while (cur != head)
-    {
-        if (cur->data.hp > maxhp) maxhp = cur->data.hp;
-        cur = cur->next;
-    }
-
-    // 최대 hp 챔피언 출력
-    cur = head;
-    do
-    {
-        if (cur->data.hp == maxhp) printChamp(cur);
-        cur = cur->next;
-    } while (cur != head);
-}
-
-// ===================== SortByHp_SL =====================
-// 노드 자체를 이동시켜 HP 내림차순 정렬 (선택 정렬)
+// ─────────────────────────────────────────
+// HP 내림차순 정렬 (선택 정렬 방식)
+// ─────────────────────────────────────────
 void SortByHp_SL()
 {
-    if (head == nullptr || head->next == head) return;
+	if (head == nullptr || head->next == head) return;
 
-    // 환형 → 일반 연결리스트로 임시 변환 (마지막 next를 nullptr)
-    Node* last = head;
-    while (last->next != head) last = last->next;
-    last->next = nullptr;
+	// 원형 끊기 (일반 단일 연결 리스트로 변환)
+	Node* last = head;
+	while (last->next != head) last = last->next;
+	last->next = nullptr;
 
-    Node* sortedHead = nullptr;
-    Node* sortedTail = nullptr;
+	Node* sortedhead = nullptr;
+	Node* sortedtail = nullptr;
 
-    // 선택 정렬: 매번 남은 노드 중 최대 hp 노드를 찾아 정렬된 리스트에 추가
-    while (head != nullptr)
-    {
-        Node* maxPrev = nullptr;
-        Node* maxNode = head;
-        Node* prev = nullptr;
-        Node* cur = head;
+	// 매 반복마다 남은 노드 중 최대 HP를 찾아 정렬 리스트에 추가
+	while (head != nullptr)
+	{
+		Node* maxprev = nullptr;
+		Node* maxNode = head; // ★ nullptr 아닌 head로 초기화해야 비교 가능
+		Node* prev = nullptr;
+		Node* cur = head;
 
-        while (cur != nullptr)
-        {
-            if (cur->data.hp > maxNode->data.hp)
-            {
-                maxNode = cur;
-                maxPrev = prev;
-            }
-            prev = cur;
-            cur = cur->next;
-        }
+		while (cur != nullptr)
+		{
+			if (cur->data.hp > maxNode->data.hp)
+			{
+				maxNode = cur;
+				maxprev = prev;
+			}
+			prev = cur;
+			cur = cur->next;
+		}
 
-        // 최대 노드 분리
-        if (maxPrev == nullptr)
-            head = maxNode->next;
-        else
-            maxPrev->next = maxNode->next;
+		// 최대 노드를 원래 리스트에서 분리
+		if (maxprev == nullptr)
+			head = maxNode->next;
+		else
+			maxprev->next = maxNode->next;
 
-        maxNode->next = nullptr;
+		maxNode->next = nullptr;
 
-        // 정렬된 리스트에 추가
-        if (sortedHead == nullptr)
-        {
-            sortedHead = sortedTail = maxNode;
-        }
-        else
-        {
-            sortedTail->next = maxNode;
-            sortedTail = maxNode;
-        }
-    }
+		// 정렬 리스트 뒤에 붙이기
+		if (sortedhead == nullptr)
+			sortedhead = sortedtail = maxNode;
+		else
+		{
+			sortedtail->next = maxNode;
+			sortedtail = maxNode;
+		}
+	}
 
-    // 다시 환형으로 복원
-    head = sortedHead;
-    sortedTail->next = head;
+	// 원형 복원
+	head = sortedhead;
+	sortedtail->next = head;
 }
 
-// ===================== main =====================
+// ─────────────────────────────────────────
+// main
+// ─────────────────────────────────────────
 int main()
 {
-    // --- 파일 읽기 (기존 배열 방식) ---
-    legueoflegends LOL[172];
-    int fileCount = 0;
+	legueoflegends LOL[172];
+	int filecount = 0;
 
-    ifstream file("testdata.txt");
-    if (!file)
-    {
-        cout << "파일오류" << endl;
-        return 1;
-    }
+	// 파일 열기
+	ifstream file("testdata.txt");
+	if (!file)
+	{
+		cout << "파일 오류" << endl;
+		return 1;
+	}
 
-    string line;
-    while (getline(file, line))
-    {
-        if (line.empty()) continue;
-        string words[100];
-        int wordCount = 0;
-        string cur = "";
-        for (int i = 0; i <= (int)line.size(); ++i)
-        {
-            if (i == (int)line.size() || line[i] == ' ' || line[i] == '\t')
-            {
-                if (!cur.empty()) { words[wordCount++] = cur; cur = ""; }
-            }
-            else cur += line[i];
-        }
+	// 파일에서 직접 읽기 (공백/줄바꿈 기준으로 자동 파싱)
+	while (file >> LOL[filecount].name
+		>> LOL[filecount].hp
+		>> LOL[filecount].mp
+		>> LOL[filecount].speed
+		>> LOL[filecount].range
+		>> LOL[filecount].position)
+	{
+		filecount++;
+	}
 
-        LOL[fileCount].name = "";
-        int i = 0;
-        while (i < wordCount && !isdigit(words[i][0]))
-        {
-            if (i > 0) LOL[fileCount].name += " ";
-            LOL[fileCount].name += words[i];
-            i++;
-        }
-        LOL[fileCount].hp = stoi(words[i++]);
-        LOL[fileCount].mp = stoi(words[i++]);
-        LOL[fileCount].speed = stoi(words[i++]);
-        LOL[fileCount].range = stoi(words[i++]);
-        LOL[fileCount].position = words[i];
-        fileCount++;
-    }
-    file.close();
+	file.close();
 
-    // --- 배열 → 단일 환형 연결리스트 변환 ---
-    Array2SLinkedList(LOL, fileCount);
+	// 배열 → 원형 연결 리스트 변환
+	Array2SLinkedList(LOL, filecount);
 
-    // --- 메인 루프 ---
-    while (1)
-    {
-        cout << "\n=== LOL Dictionary (Circular Linked List) ===" << endl;
-        cout << "Search       : 챔피언 이름으로 검색" << endl;
-        cout << "Insert       : 새 챔피언 삽입 (HP 정렬 유지)" << endl;
-        cout << "Delete       : 챔피언 삭제" << endl;
-        cout << "DeleteAll    : 포지션의 모든 챔피언 삭제" << endl;
-        cout << "PrintAll     : 전체 출력" << endl;
-        cout << "FindMaxHp    : 최대 HP 챔피언 출력" << endl;
-        cout << "SortByHp     : HP 내림차순 정렬 (노드 이동)" << endl;
-        cout << "명령어를 입력하세요: ";
+	// 명령어 처리 루프
+	while (1)
+	{
+		cout << "명령어를 입력하세요.";
+		string command;
+		cin >> command;
+		cin.ignore(); // 입력 버퍼 개행 제거
 
-        string command;
-        cin >> command;
-        cin.ignore();
-
-        if (command == "PrintAll")
-        {
-            PrintAll_SL();
-        }
-        else if (command == "Search")
-        {
-            string champ;
-            getline(cin, champ);
-            Search_SL(champ);
-        }
-        else if (command == "Insert")
-        {
-            legueoflegends newChamp;
-            cout << "이름: ";    getline(cin, newChamp.name);
-            cout << "hp: ";     cin >> newChamp.hp;
-            cout << "mp: ";     cin >> newChamp.mp;
-            cout << "speed: ";  cin >> newChamp.speed;
-            cout << "range: ";  cin >> newChamp.range;
-            cout << "position: "; cin >> newChamp.position;
-            cin.ignore();
-            Insert_SL(newChamp);
-        }
-        else if (command == "Delete")
-        {
-            string champ;
-            getline(cin, champ);
-            Delete_SL(champ);
-        }
-        else if (command == "DeleteAll")
-        {
-            string pos;
-            cin >> pos;
-            cin.ignore();
-            DeleteAll_SL(pos);
-        }
-        else if (command == "FindMaxHp")
-        {
-            FindMaxHp_SL();
-        }
-        else if (command == "SortByHp")
-        {
-            SortByHp_SL();
-            cout << "정렬 완료." << endl;
-        }
-    }
+		if (command == "PrintAll")
+			PrintAll_SL();
+		else if (command == "Search")
+		{
+			string champ; cin >> champ;
+			Search_SL(champ);
+		}
+		else if (command == "Insert")
+		{
+			legueoflegends newChamp;
+			cout << "이름"; cin >> newChamp.name;
+			cout << "hp"; cin >> newChamp.hp;
+			cout << "mp"; cin >> newChamp.mp;
+			cout << "speed"; cin >> newChamp.speed;
+			cout << "range"; cin >> newChamp.range;
+			cout << "position"; cin >> newChamp.position;
+			cin.ignore();
+			Insert_SL(newChamp);
+		}
+		else if (command == "Delete")
+		{
+			string champ; cin >> champ; cin.ignore();
+			Delete_SL(champ);
+		}
+		else if (command == "DeleteAll")
+		{
+			string pos; cin >> pos; cin.ignore();
+			DeleteAll_SL(pos);
+		}
+		else if (command == "FindMaxHp")
+			FindMaxHP_SL();
+		else if (command == "SortByHp")
+		{
+			SortByHp_SL();
+			cout << "정렬완료" << endl;
+		}
+	}
 }
