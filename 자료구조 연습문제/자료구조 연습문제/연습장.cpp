@@ -18,9 +18,9 @@ struct Node
 	legueoflegends data;
 	Node* next;
 };
-
 Node* head = nullptr;
 int listcount = 0;
+
 void printchamp(Node* node)
 {
 	cout << node->data.name << " "
@@ -29,7 +29,6 @@ void printchamp(Node* node)
 		<< node->data.speed << " "
 		<< node->data.range << " "
 		<< node->data.position << endl;
-	
 }
 void Array2SLinkedList(legueoflegends LOL[], int n)
 {
@@ -43,7 +42,7 @@ void Array2SLinkedList(legueoflegends LOL[], int n)
 		if (head == nullptr)
 		{
 			head = newNode;
-			head->next = head;
+			head->next = newNode;
 		}
 		else
 		{
@@ -56,22 +55,6 @@ void Array2SLinkedList(legueoflegends LOL[], int n)
 		listcount++;
 	}
 }
-void Search_SL(string champ)
-{
-	if (head == nullptr) { cout << "찾지 못함" << endl; }
-	bool found = false;
-	Node* cur = head;
-	do
-	{
-		if (cur->data.name == champ)
-		{
-			printchamp(cur);
-			found = true;
-		}
-		cur = cur->next;
-	} while (cur != head);
-	if (!found) { cout << "찾지 못함" << endl; }
-}
 void PrintAll_SL()
 {
 	if (head == nullptr) { cout << "리스트가 비었음" << endl; return; }
@@ -82,13 +65,28 @@ void PrintAll_SL()
 		cur = cur->next;
 	} while (cur != head);
 }
+void Search_SL(string champ)
+{
+	if (head == nullptr) { cout << "찾지못함" << endl; return; }
+	Node* cur = head;
+	bool found = false;
+	do
+	{
+		if (cur->data.name == champ)
+		{
+			printchamp(cur);
+			found = true;
+		}
+			cur = cur->next;
+	} while (cur != head);
+	if (!found) { cout << "찾지 못함"; }
+}
 void FindMaxHp_SL()
 {
 	if (head == nullptr) return;
-
 	int maxhp = head->data.hp;
-	Node* cur = head->next;
-	while (cur != head)
+	Node* cur = head -> next;
+	while(cur != head)
 	{
 		if (cur->data.hp > maxhp) maxhp = cur->data.hp;
 		cur = cur->next;
@@ -96,15 +94,15 @@ void FindMaxHp_SL()
 	cur = head;
 	do
 	{
-		if (cur->data.hp == maxhp)printchamp(cur);
+		if (cur->data.hp == maxhp) printchamp(cur);
 		cur = cur->next;
-
 	} while (cur != head);
 }
 int main()
 {
 	legueoflegends LOL[172];
 	int filecount = 0;
+	
 	ifstream file("testdata.txt");
 	if (!file)
 	{
@@ -121,12 +119,16 @@ int main()
 		filecount++;
 	}
 	file.close();
+
 	Array2SLinkedList(LOL, filecount);
+
 	while (1)
 	{
 		cout << "명령어를 입력하세요.";
 		string command;
 		cin >> command;
+		cin.ignore();
+
 		if (command == "PrintAll")
 		{
 			PrintAll_SL();
@@ -142,5 +144,6 @@ int main()
 		{
 			FindMaxHp_SL();
 		}
+
 	}
 }
