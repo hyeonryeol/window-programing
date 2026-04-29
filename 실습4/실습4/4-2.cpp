@@ -68,6 +68,7 @@ void DrawCarV1(HDC hdc, int screenW, int right, int top, int bottom)
 		Rectangle(hdc, left, top, right, bottom); // 화면 안 정상 그리기
 	}
 }
+//노란불
 void CALLBACK TimerProc2(HWND hWnd, UINT, UINT, DWORD)
 {
 
@@ -91,11 +92,36 @@ void CALLBACK TimerProc2(HWND hWnd, UINT, UINT, DWORD)
 	}
 	KillTimer(hWnd, 2);
 }
+//a
 void CALLBACK TimerProc3(HWND hWnd, UINT, UINT, DWORD)
 {
 	yellowlight = true;
 	SetTimer(hWnd, 2, 1000, (TIMERPROC)TimerProc2);
 
+}
+//노란불2
+void CALLBACK TimerProc4(HWND hWnd, UINT, UINT, DWORD)
+{
+
+	if (redlight2 == true)
+	{
+
+
+		redlight2 = false;
+		yellowlight2 = false;
+		bluelight2 = true;
+
+	}
+	else if (bluelight2 == true)
+	{
+
+
+		bluelight2 = false;
+		yellowlight2 = false;
+		redlight2 = true;
+
+	}
+	KillTimer(hWnd, 4);
 }
 // ── 타이머 ────────────────────────────────────────────────────
 void CALLBACK TimerProc1(HWND hWnd, UINT, UINT, DWORD)
@@ -136,7 +162,7 @@ void CALLBACK TimerProc1(HWND hWnd, UINT, UINT, DWORD)
 		if (!stopped[1])
 		{
 			// 차2가 400에 서 있으면 차1은 510에 서야 함
-			int myStop1 = (stopped[2] && stoppedY[2] == 510) ? 620 : 510;
+			int myStop1 = (stopped[2] && stoppedY[2] == 510) ? 630 : 510;
 			int top1 = 50 + cary[1];
 
 			if (top1 > myStop1 && top1 - 10 <= myStop1)
@@ -155,7 +181,7 @@ void CALLBACK TimerProc1(HWND hWnd, UINT, UINT, DWORD)
 		// ── 차2 처리 (차1이 방금 멈췄을 수 있으니 stopped[1] 재확인) ──
 		if (!stopped[2])
 		{
-			int myStop2 = (stopped[1] && stoppedY[1] == 510) ? 620 : 510;
+			int myStop2 = (stopped[1] && stoppedY[1] == 510) ? 630 : 510;
 			int top2 = 250 + cary[2];
 
 			if (top2 > myStop2 && top2 - 10 <= myStop2)
@@ -246,34 +272,34 @@ void CALLBACK TimerProc1(HWND hWnd, UINT, UINT, DWORD)
 		////////////////////////////////////////////////////////////////////////
 		if (!stopped[8])
 		{
-			int myStop = (stopped[9] && stoppedX[4] == 630) ? 740 : 630;
-			int right6 = 150 + carx[6];
+			int myStop = (stopped[9] && stoppedX[4] == 200) ? 70 : 200;
+			int right6 = 150 + carx[8];
 
 			if (right6 <= myStop && right6 + 10 >= myStop)
 			{
-				carx[6] = myStop - 150;
-				stopped[6] = true;
-				stoppedX[1] = myStop;
+				carx[8] = myStop - 150;
+				stopped[8] = true;
+				stoppedX[3] = myStop;
 			}
 			else
 			{
-				carx[8] -= 10;
+				carx[8] += 10;
 			}
 		}
 		if (!stopped[9])
 		{
-			int myStop = (stopped[8] && stoppedX[3] == 630) ? 740 : 630;
-			int right7 = 650 + carx[7];
+			int myStop = (stopped[8] && stoppedX[3] == 200) ? 70 : 200;
+			int right7 = 650 + carx[9];
 
 			if (right7 <= myStop && right7 + 10 >= myStop)
 			{
-				carx[7] = myStop - 650;
-				stopped[7] = true;
-				stoppedX[2] = myStop;
+				carx[9] = myStop - 650;
+				stopped[9] = true;
+				stoppedX[4] = myStop;
 			}
 			else
 			{
-				carx[9] -= 10;
+				carx[9] += 10;
 			}
 		}
 	}
@@ -284,6 +310,8 @@ void CALLBACK TimerProc1(HWND hWnd, UINT, UINT, DWORD)
 	if (550 + cary[4] > H) { cary[4] -= H; stopped[4] = false; stoppedY[4] = 0; }
 	if (150 + carx[6] < 0) { carx[6] += L; stopped[6] = false; stoppedX[1] = 0; }
 	if (650 + carx[7] < 0) { carx[7] += L; stopped[7] = false; stoppedX[2] = 0; }
+	if (150 + carx[8] > L) { carx[8] -= L; stopped[8] = false; stoppedX[3] = 0; }
+	if (650 + carx[9] > L) { carx[9] -= L; stopped[9] = false; stoppedX[4] = 0; }
 		
 	InvalidateRect(hWnd, NULL, TRUE);
 }
@@ -359,6 +387,26 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		if (55 < mx && mx < 95 && 5 < my && my < 45)
 		{
 			redlight = true; yellowlight = false; bluelight = false;
+			redlight2 = false; yellowlight2 = false; bluelight2 = true;
+			stopped[6] = stopped[7] = stopped[8] = stopped[9] = false;
+			stopped[6] = stopped[7] = stopped[8] = stopped[9] = 0;
+		}
+		//노란불
+		if (105 < mx && mx < 145 && 5 < my && my < 45)
+		{
+			yellowlight = true;
+			
+			SetTimer(hWnd, 2, 1000, (TIMERPROC)TimerProc2);
+			yellowlight2 = true;
+			SetTimer(hWnd, 4, 1000, (TIMERPROC)TimerProc4);
+		}
+		// 파란불
+		if (155 < mx && mx < 195 && 5 < my && my < 45)
+		{
+			redlight = false; yellowlight = false; bluelight = true;cross = true;
+			stopped[1] = stopped[2] = stopped[3] = stopped[4] = false;
+			stoppedY[1] = stoppedY[2] = stoppedY[3] = stopped[4] =  0;
+			redlight2 = true; yellowlight2 = false; bluelight2 = false;
 			if (cross == false)
 			{
 				cross = true;
@@ -368,22 +416,39 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				cross = false;
 			}
 		}
-		//노란불
-		if (105 < mx && mx < 145 && 5 < my && my < 45)
+		//빨간불2
+		if (555 < mx && mx < 595 && 555 < my && my < 595)
 		{
-			yellowlight = true;
-			
-			SetTimer(hWnd, 2, 1000, (TIMERPROC)TimerProc2);
-
-		}
-		// 파란불
-		if (155 < mx && mx < 195 && 5 < my && my < 45)
-		{
+			redlight2 = true; yellowlight2 = false; bluelight2 = false;
+			if (cross == false)
+			{
+				cross = true;  
+			}
+			else if (cross == true)
+			{
+				cross = false;
+			}
 			redlight = false; yellowlight = false; bluelight = true;cross = true;
-			stopped[1] = stopped[2] = stopped[3] = stopped[4] = stopped[6] =stopped[7] = false;
-			stoppedY[1] = stoppedY[2] = stoppedY[3] = stopped[4] = stopped[6] = stopped[7] = 0;
+			stopped[1] = stopped[2] = stopped[3] = stopped[4] = false;
+			stoppedY[1] = stoppedY[2] = stoppedY[3] = stopped[4] = 0;
 		}
+		//노란불2
+		if (605 < mx && mx < 645 && 555 < my && my < 595)
+		{
+			yellowlight2 = true;
+			SetTimer(hWnd, 4, 1000, (TIMERPROC)TimerProc4);
+			yellowlight = true;
 
+			SetTimer(hWnd, 2, 1000, (TIMERPROC)TimerProc2);
+		}
+		//파란불2
+		if (655 < mx && mx < 695 && 555 < my && my < 595)
+		{
+			redlight2 = false; yellowlight2 = false; bluelight2 = true;
+			stopped[6] = stopped[7] = stopped[8] = stopped[9] = false;
+			stopped[6] = stopped[7] = stopped[8] = stopped[9] = 0;
+			redlight = true; yellowlight = false; bluelight = false;
+		}
 		return 0;
 	}
 
@@ -461,29 +526,29 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		if (redlight2 == true)
 		{
 			Ellipse(hdc, 555, 555, 595, 595);
-			SelectObject(hdc, oldbrush);
 		}
+			SelectObject(hdc, oldbrush);
+			oldbrush = (HBRUSH)SelectObject(hdc, signalyellow);
 		if (yellowlight == true)
 		{
-			oldbrush = (HBRUSH)SelectObject(hdc, signalyellow);
 			Ellipse(hdc, 105, 5, 145, 45);
 		}
 		if (yellowlight2 == true)
 		{
 
 			Ellipse(hdc, 605, 555, 645, 595);
-			SelectObject(hdc, oldbrush);
 		}
+			SelectObject(hdc, oldbrush);
+			oldbrush = (HBRUSH)SelectObject(hdc, signalblue);
 		if (bluelight == true)
 		{
-			oldbrush = (HBRUSH)SelectObject(hdc, signalblue);
 			Ellipse(hdc, 155, 5, 195, 45);
 		}
 		if (bluelight2 == true)
 		{
 			Ellipse(hdc, 655, 555, 695, 595);
-			SelectObject(hdc, oldbrush);
 		}
+			SelectObject(hdc, oldbrush);
 
 		// 자동차 (랩어라운드)
 		{
@@ -496,8 +561,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			DrawCarV(hdc, 320 + carx[4], 375 + carx[4], 550 + cary[4], H);
 			DrawCarV1(hdc, R, 150 + carx[6], 290 + cary[6], 350 + cary[6]);
 			DrawCarV1(hdc, R, 650 + carx[7], 290 + cary[7], 350 + cary[7]);
-			DrawCarV1(hdc, R, 150 + carx[8], 290 + cary[8], 350 + cary[8]);
-			DrawCarV1(hdc, R, 650 + carx[9], 290 + cary[9], 350 + cary[9]);
+			DrawCarV1(hdc, R, 150 + carx[8], 405 + cary[8], 465 + cary[8]);
+			DrawCarV1(hdc, R, 650 + carx[9], 405 + cary[9], 465 + cary[9]);
 			SelectObject(hdc, oldbrush);
 		}
 		oldbrush = (HBRUSH)SelectObject(hdc, peoplebrush);
@@ -510,6 +575,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		KillTimer(hWnd, 1);
 		KillTimer(hWnd, 2);
 		KillTimer(hWnd, 3);
+		KillTimer(hWnd, 4);
 		DeleteObject(linepen);
 		DeleteObject(dotpen);
 		DeleteObject(signalboxpen);
