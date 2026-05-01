@@ -7,13 +7,34 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 const wchar_t CLASS_NAME[] = L"MyWindowClass";
 const wchar_t WINDOW_TITLE[] = L"Win32 Basic Template";
 
+
+
+constexpr int CELL = 20;   // 셀 하나의 픽셀 크기
+constexpr int COLS = 20;   // 가로 칸 수
+constexpr int ROWS = 20;   // 세로 칸 수
+constexpr int OFFSET = 20;   // 보드 시작 여백
+
+
+
+constexpr int TOTAL = COLS * ROWS;
+constexpr int BOARD_LEFT = OFFSET;
+constexpr int BOARD_TOP = OFFSET;
+constexpr int BOARD_RIGHT = OFFSET + COLS * CELL;
+constexpr int BOARD_BOTTOM = OFFSET + ROWS * CELL;
+constexpr int BOARD_MAX_X = BOARD_RIGHT - CELL; // 클램프 최대 x
+constexpr int BOARD_MAX_Y = BOARD_BOTTOM - CELL; // 클램프 최대 y
+constexpr int PLAYER_IDX = (COLS / 2) * ROWS;   // 플레이어 기준 격자 인덱스
+constexpr int WIN_W = BOARD_RIGHT + 380;
+constexpr int WIN_H = BOARD_BOTTOM + 380;
+
 int mx[100] = {};
 int my[100] = {};
 int obcount = 60;
-int crash = -1;
-int g_rect[900][4];
-int g_player[900][4];
-int g_ob[900][4];
+int crashList[60] = {};
+int crashCount = 0;
+int g_rect[TOTAL][4];
+int g_player[TOTAL][4];
+int g_ob[TOTAL][4];
 int erasecount = 0;
 HBRUSH boardbrush;
 HBRUSH playerbrush;
@@ -24,118 +45,188 @@ int px = 0;
 int py = 0;
 int obx[100] = {};
 int oby[100] = {};
-int enterpress = 1;
+int rotDir = 0; // 0=위, 1=오른쪽, 2=아래, 3=왼쪽
 
 void makeboard()
 {
-	int w = 20, h = 20;
-	for (int i = 0; i < 30; ++i)
-		for (int j = 0; j < 30; ++j)
+	for (int i = 0; i < COLS; ++i)
+		for (int j = 0; j < ROWS; ++j)
 		{
-			int c = i * 30 + j;
-			g_rect[c][0] = i * w + 20;
-			g_rect[c][1] = j * h + 20;
-			g_rect[c][2] = g_rect[c][0] + w;
-			g_rect[c][3] = g_rect[c][1] + h;
+			int c = i * ROWS + j;
+			g_rect[c][0] = i * CELL + OFFSET;
+			g_rect[c][1] = j * CELL + OFFSET;
+			g_rect[c][2] = g_rect[c][0] + CELL;
+			g_rect[c][3] = g_rect[c][1] + CELL;
 		}
 }
 
 void player()
 {
-	int w = 20, h = 20;
-	for (int i = 0; i < 30; ++i)
-		for (int j = 0; j < 30; ++j)
+	for (int i = 0; i < COLS; ++i)
+		for (int j = 0; j < ROWS; ++j)
 		{
-			int c = i * 30 + j;
-			g_player[c][0] = i * w + 20;
-			g_player[c][1] = j * h + 20;
-			g_player[c][2] = g_player[c][0] + w;
-			g_player[c][3] = g_player[c][1] + h;
+			int c = i * ROWS + j;
+			g_player[c][0] = i * CELL + OFFSET;
+			g_player[c][1] = j * CELL + OFFSET;
+			g_player[c][2] = g_player[c][0] + CELL;
+			g_player[c][3] = g_player[c][1] + CELL;
 		}
 }
 
 void ob()
 {
-	int w = 20, h = 20;
-	for (int i = 0; i < 28; ++i)
-		for (int j = 0; j < 25; ++j)
+	for (int i = 0; i < COLS; ++i)
+		for (int j = 0; j < ROWS; ++j)
 		{
-			int c = i * 30 + j;
-			g_ob[c][0] = i * w + 60;
-			g_ob[c][1] = j * h + 60;
-			g_ob[c][2] = g_ob[c][0] + w;
-			g_ob[c][3] = g_ob[c][1] + h;
+			int c = i * ROWS + j;
+			g_ob[c][0] = i * CELL + OFFSET;
+			g_ob[c][1] = j * CELL + OFFSET;
+			g_ob[c][2] = g_ob[c][0] + CELL;
+			g_ob[c][3] = g_ob[c][1] + CELL;
 		}
+}
+
+bool inCrashList(int idx)
+{
+	for (int i = 0; i < crashCount; ++i)
+		if (crashList[i] == idx) return true;
+	return false;
+}
+
+void updateCarriedObstacles()
+{
+	int playerLeft = g_player[PLAYER_IDX][0] + px;
+	int playerTop = g_player[PLAYER_IDX][1] + py;
+
+	for (int ci = 0; ci < crashCount; ++ci)
+	{
+		int idx = crashList[ci];
+		int targetX, targetY;
+
+		switch (rotDir)
+		{
+		case 0: targetX = playerLeft;                  targetY = playerTop - CELL * (ci + 1); break; // 위
+		case 1: targetX = playerLeft + CELL * (ci + 1); targetY = playerTop;                   break; // 오른쪽
+		case 2: targetX = playerLeft;                  targetY = playerTop + CELL * (ci + 1); break; // 아래
+		case 3: targetX = playerLeft - CELL * (ci + 1); targetY = playerTop;                   break; // 왼쪽
+		default: targetX = playerLeft; targetY = playerTop - CELL * (ci + 1); break;
+		}
+
+		// 보드 범위 클램프
+		if (targetX < BOARD_LEFT)  targetX = BOARD_LEFT;
+		if (targetX > BOARD_MAX_X) targetX = BOARD_MAX_X;
+		if (targetY < BOARD_TOP)   targetY = BOARD_TOP;
+		if (targetY > BOARD_MAX_Y) targetY = BOARD_MAX_Y;
+
+		obx[idx] = targetX - g_ob[obposition[idx]][0];
+		oby[idx] = targetY - g_ob[obposition[idx]][1];
+	}
 }
 
 void CALLBACK PlayerTimerProc(HWND hWnd, UINT iMsg, UINT idEvent, DWORD dwTime)
 {
-	if (crash == -1)
+	py += CELL;
+
+	// 1) 첫 픽업
+	if (crashCount == 0)
 	{
 		for (int i = 0; i < 60; ++i)
 		{
-			if (g_ob[obposition[i]][3] + oby[i] == g_player[450][1] + py &&
-				g_player[450][0] + px == g_ob[obposition[i]][0] + obx[i])
+			if (oby[i] <= -9000) continue;
+			if (g_ob[obposition[i]][3] + oby[i] == g_player[PLAYER_IDX][1] + py &&
+				g_player[PLAYER_IDX][0] + px == g_ob[obposition[i]][0] + obx[i])
 			{
-				crash = i;
-				oby[crash] += 20;
+				crashList[crashCount++] = i;
+				rotDir = 0;
 			}
 		}
 	}
-	else
+
+	// 2) 위치 업데이트
+	updateCarriedObstacles();
+
+	// 3) 체인 픽업
+	if (crashCount > 0)
 	{
-		oby[crash] += 20;
+		bool changed = true;
+		while (changed)
+		{
+			changed = false;
+			int topIdx = crashList[crashCount - 1];
+			int stackTop = g_ob[obposition[topIdx]][1] + oby[topIdx];
+			int stackLeft = g_ob[obposition[topIdx]][0] + obx[topIdx];
+			int stackRight = g_ob[obposition[topIdx]][2] + obx[topIdx];
+
+			for (int i = 0; i < 60; ++i)
+			{
+				if (oby[i] <= -9000 || inCrashList(i)) continue;
+				int bottom = g_ob[obposition[i]][3] + oby[i];
+				int iLeft = g_ob[obposition[i]][0] + obx[i];
+				int iRight = g_ob[obposition[i]][2] + obx[i];
+
+				if (bottom == stackTop && iLeft < stackRight && iRight > stackLeft)
+				{
+					crashList[crashCount++] = i;
+					updateCarriedObstacles();
+					changed = true;
+					break;
+				}
+			}
+		}
 	}
 
-	py += 20;
-	if (g_player[450][3] + py > 620)
+	// 4) 바닥 도달 시 리셋
+	if (g_player[PLAYER_IDX][3] + py > BOARD_BOTTOM)
 	{
 		py = 0;
-		crash = -1;
+		crashCount = 0;
+		rotDir = 0;
 	}
 
-	
+	// 5) 줄 지우기 로직
 	erasecount = 0;
 	int lastrow[100] = {};
 
-	// 기존 장애물 (0~59)
 	for (int i = 0; i < 60; ++i)
-	{
-		if (g_ob[obposition[i]][3] + oby[i] == 620)
-		{
-			lastrow[erasecount] = i;
-			erasecount++;
-		}
-	}
-	// 클릭 장애물 +20
-	for (int i = 60; i < obcount; ++i)
-	{
-		if (my[i] + 20 == 620)
-		{
-			lastrow[erasecount] = i;
-			erasecount++;
-		}
-	}
+		if (oby[i] > -9000 && g_ob[obposition[i]][3] + oby[i] == BOARD_BOTTOM)
+			lastrow[erasecount++] = i;
 
-	if (erasecount == 30)
+	for (int i = 60; i < obcount; ++i)
+		if (my[i] > -9000 && my[i] + CELL == BOARD_BOTTOM)
+			lastrow[erasecount++] = i;
+
+	if (erasecount > 0)
 	{
-		bool sameColor = true;
-		for (int i = 0; i < erasecount - 1; ++i)
+		// COLS개의 고유 x 칸이 전부 채워졌는지 확인
+		bool filledX[COLS] = {};
+		for (int i = 0; i < erasecount; ++i)
 		{
-			if (randcolor[lastrow[i]] != randcolor[lastrow[i + 1]])
-			{
-				sameColor = false;
-				break;
-			}
+			int idx = lastrow[i];
+			int blockX = (idx < 60)
+				? g_ob[obposition[idx]][0] + obx[idx]
+				: mx[idx];
+			int col = (blockX - OFFSET) / CELL;
+			if (col >= 0 && col < COLS) filledX[col] = true;
 		}
-		if (sameColor)
+
+		bool fullRow = true;
+		for (int i = 0; i < COLS; ++i)
+			if (!filledX[i]) { fullRow = false; break; }
+
+		if (fullRow)
 		{
-			for (int i = 0; i < erasecount; ++i)
-			{
-				int idx = lastrow[i];
-				if (idx < 60) oby[idx] = -9999;  // 기존 장애물
-				else          my[idx] = -9999;  // 클릭 장애물
-			}
+			bool sameColor = true;
+			int  refColor = randcolor[lastrow[0]];
+			for (int i = 1; i < erasecount; ++i)
+				if (randcolor[lastrow[i]] != refColor) { sameColor = false; break; }
+
+			if (sameColor)
+				for (int i = 0; i < erasecount; ++i)
+				{
+					int idx = lastrow[i];
+					if (idx < 60) oby[idx] = -9999;
+					else          my[idx] = -9999;
+				}
 		}
 	}
 
@@ -158,7 +249,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR, int nCmdShow)
 
 	HWND hWnd = CreateWindowExW(
 		0, CLASS_NAME, WINDOW_TITLE, WS_OVERLAPPEDWINDOW,
-		CW_USEDEFAULT, CW_USEDEFAULT, 1000, 1000,
+		CW_USEDEFAULT, CW_USEDEFAULT, WIN_W, WIN_H,
 		nullptr, nullptr, hInstance, nullptr);
 	if (!hWnd) return 0;
 
@@ -176,12 +267,11 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR, int nCmdShow)
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
-	HDC hdc, mDC;
-	HBITMAP hBitmap;
-	RECT rt ;
-	
+	HDC      hdc, mDC;
+	HBITMAP  hBitmap;
+	RECT     rt;
+
 	GetClientRect(hWnd, &rt);
-	static BOOL Selection;
 	switch (msg)
 	{
 	case WM_CREATE:
@@ -190,7 +280,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		for (int i = 0; i < 60; ++i)
 		{
 			randcolor[i] = rand() % 4 + 1;
-			obposition[i] = rand() % 900;
+			obposition[i] = rand() % TOTAL;
 			if (randcolor[i] == 1) randcolor[i] = RGB(255, 0, 0);
 			if (randcolor[i] == 2) randcolor[i] = RGB(0, 255, 0);
 			if (randcolor[i] == 3) randcolor[i] = RGB(0, 0, 255);
@@ -206,10 +296,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	}
 	case WM_LBUTTONDOWN:
 	{
-		mx[obcount] = (LOWORD(lParam) / 20) * 20;
-		my[obcount] = (HIWORD(lParam) / 20) * 20;
-		if (mx[obcount] >= 20 && mx[obcount] < 620 &&
-			my[obcount] >= 20 && my[obcount] < 620)
+		mx[obcount] = (LOWORD(lParam) / CELL) * CELL;
+		my[obcount] = (HIWORD(lParam) / CELL) * CELL;
+		if (mx[obcount] >= BOARD_LEFT && mx[obcount] < BOARD_RIGHT &&
+			my[obcount] >= BOARD_TOP && my[obcount] < BOARD_BOTTOM)
 		{
 			randcolor[obcount] = RGB(255, 0, 0);
 			obcount++;
@@ -228,68 +318,38 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				clickX <= g_ob[obposition[i]][2] + obx[i] &&
 				clickY >= g_ob[obposition[i]][1] + oby[i] &&
 				clickY <= g_ob[obposition[i]][3] + oby[i])
-			{
 				oby[i] = -9999;
-			}
 		}
 		for (int i = 60; i < obcount; ++i)
 		{
-			if (clickX >= mx[i] && clickX <= mx[i] + 20 &&
-				clickY >= my[i] && clickY <= my[i] + 20)
-			{
+			if (clickX >= mx[i] && clickX <= mx[i] + CELL &&
+				clickY >= my[i] && clickY <= my[i] + CELL)
 				my[i] = -9999;
-			}
 		}
 		InvalidateRect(hWnd, nullptr, false);
 		return 0;
 	}
 	case WM_KEYDOWN:
 	{
-		if (wParam == VK_LEFT)
+		if (wParam == VK_LEFT) { px -= CELL; updateCarriedObstacles(); }
+		if (wParam == VK_RIGHT) { px += CELL; updateCarriedObstacles(); }
+		if (wParam == VK_RETURN && crashCount > 0)
 		{
-			px -= 20;
-			for (int i = 0; i < 60; ++i)
-			{
-				if (g_player[450][2] + px == g_ob[obposition[i]][0] + obx[i] &&
-					g_ob[obposition[i]][3] + oby[i] == g_player[450][1] + py)
-				{
-					obx[i] -= 20;
-				}
-			}
-		}
-		if (wParam == VK_RIGHT)
-		{
-			px += 20;
-			for (int i = 0; i < 60; ++i)
-			{
-				if (g_player[450][0] + px == g_ob[obposition[i]][2] + obx[i] &&
-					g_ob[obposition[i]][3] + oby[i] == g_player[450][1] + py)
-				{
-					obx[i] += 20;
-				}
-			}
-		}
-		if (wParam == VK_RETURN)
-		{
-			if (enterpress == 1) { obx[crash] += 20; oby[crash] += 20; enterpress++; }
-			else if (enterpress == 2) { obx[crash] -= 20; oby[crash] += 20; enterpress++; }
-			else if (enterpress == 3) { obx[crash] -= 20; oby[crash] -= 20; enterpress++; }
-			else if (enterpress == 4) { obx[crash] += 20; oby[crash] -= 20; enterpress = 1; }
+			rotDir = (rotDir + 1) % 4;
+			updateCarriedObstacles();
 		}
 		if (wParam == 'Q') PostQuitMessage(0);
 		if (wParam == 'R')
 		{
-			crash = -1;
+			crashCount = 0;
+			rotDir = 0;
 			obcount = 60;
 			px = 0; py = 0;
-			for (int i = 0; i < 60; ++i)
-			{
-				oby[i] = 0; obx[i] = 0;
-			}
+			for (int i = 0; i < 60; ++i) { oby[i] = 0; obx[i] = 0; }
 			for (int i = 0; i < 60; ++i)
 			{
 				randcolor[i] = rand() % 4 + 1;
-				obposition[i] = rand() % 900;
+				obposition[i] = rand() % TOTAL;
 				if (randcolor[i] == 1) randcolor[i] = RGB(255, 0, 0);
 				if (randcolor[i] == 2) randcolor[i] = RGB(0, 255, 0);
 				if (randcolor[i] == 3) randcolor[i] = RGB(0, 0, 255);
@@ -304,20 +364,20 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		PAINTSTRUCT ps;
 		HDC hdc = BeginPaint(hWnd, &ps);
 
-		mDC = CreateCompatibleDC(hdc); //--- 메모리 DC 만들기
-		hBitmap = CreateCompatibleBitmap(hdc, rt.right, rt.bottom); //--- 메모리 DC와 연결할 비트맵 만들기
-		SelectObject(mDC, (HBITMAP)hBitmap); //--- 메모리 DC와 비트맵 연결하기
-		FillRect(mDC, &rt, (HBRUSH)GetStockObject(WHITE_BRUSH)); // 배경 흰색
+		mDC = CreateCompatibleDC(hdc);
+		hBitmap = CreateCompatibleBitmap(hdc, rt.right, rt.bottom);
+		SelectObject(mDC, (HBITMAP)hBitmap);
+		FillRect(mDC, &rt, (HBRUSH)GetStockObject(WHITE_BRUSH));
 
 		HBRUSH oldbrush = (HBRUSH)SelectObject(mDC, boardbrush);
-		for (int i = 0; i < 900; ++i)
+		for (int i = 0; i < TOTAL; ++i)
 			Rectangle(mDC, g_rect[i][0], g_rect[i][1], g_rect[i][2], g_rect[i][3]);
 		SelectObject(mDC, oldbrush);
 
 		oldbrush = (HBRUSH)SelectObject(mDC, playerbrush);
 		Ellipse(mDC,
-			g_player[450][0] + px, g_player[450][1] + py,
-			g_player[450][2] + px, g_player[450][3] + py);
+			g_player[PLAYER_IDX][0] + px, g_player[PLAYER_IDX][1] + py,
+			g_player[PLAYER_IDX][2] + px, g_player[PLAYER_IDX][3] + py);
 		SelectObject(mDC, oldbrush);
 
 		for (int i = 0; i < 60; ++i)
@@ -334,13 +394,14 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		{
 			obbrush = (HBRUSH)CreateSolidBrush(randcolor[i]);
 			oldbrush = (HBRUSH)SelectObject(mDC, obbrush);
-			Rectangle(mDC, mx[i], my[i], mx[i] + 20, my[i] + 20);
+			Rectangle(mDC, mx[i], my[i], mx[i] + CELL, my[i] + CELL);
 			SelectObject(mDC, oldbrush);
 			DeleteObject(obbrush);
 		}
+
 		BitBlt(hdc, 0, 0, rt.right, rt.bottom, mDC, 0, 0, SRCCOPY);
-		DeleteDC(mDC); //--- 생성한 메모리 DC 삭제
-		DeleteObject(hBitmap); //--- 생성한 비트맵 삭제
+		DeleteDC(mDC);
+		DeleteObject(hBitmap);
 		EndPaint(hWnd, &ps);
 		return 0;
 	}
