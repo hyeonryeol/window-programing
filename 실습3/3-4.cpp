@@ -10,8 +10,8 @@ const wchar_t WINDOW_TITLE[] = L"Win32 Basic Template";
 
 
 constexpr int CELL = 20;   // 셀 하나의 픽셀 크기
-constexpr int COLS = 20;   // 가로 칸 수
-constexpr int ROWS = 20;   // 세로 칸 수
+constexpr int COLS = 30;   // 가로 칸 수
+constexpr int ROWS = 30;   // 세로 칸 수
 constexpr int OFFSET = 20;   // 보드 시작 여백
 
 
