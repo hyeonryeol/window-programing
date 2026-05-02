@@ -1,6 +1,5 @@
 #include <windows.h>
 
-// ── 메뉴 ID ────────────────────────────────────────────────────
 #define ID_MENU_HBLUE_VRED  1001
 #define ID_MENU_HRED_VBLUE  1002
 #define ID_MENU_AUTO        1003
@@ -29,23 +28,22 @@ bool bluelight2 = false;
 
 bool stopped[10] = {};
 int  stoppedY[10] = {};
-int  stoppedX[10] = {};   
+int  stoppedX[10] = {};
 
-// ── 사람 이동 전역 변수 
-int  personX = 0;     // 사람 x 오프셋 (★ 추가: 대각선 이동용)
-int  personY = 0;     // 사람 y 오프셋
-bool personWalking = false; // 이동 중 여부
-bool waitForPerson = false; // 오른쪽 클릭 후 사람 완료 대기 (★ 추가)
+// 사람 상태
+int  personX = 0, personY = 0;
+int  personBaseX = 0, personBaseY = 0;
+bool personWalking = false;
+bool personReturning = false;
+bool waitForPerson = false;
 
-// ── 자동 신호 모드 
-bool autoMode = false;     
+bool autoMode = false;
 
-// ── TimerProc 전방 선언 (서로 참조하므로 필요) 
 void CALLBACK TimerProc1(HWND, UINT, UINT, DWORD);
 void CALLBACK TimerProc2(HWND, UINT, UINT, DWORD);
 void CALLBACK TimerProc3(HWND, UINT, UINT, DWORD);
 
-// ── 차 그리기 (랩어라운드)
+// 세로 차 그리기 (랩어라운드)
 void DrawCarV(HDC hdc, int left, int right, int top, int screenH)
 {
     int bottom = top + 100;
@@ -61,6 +59,8 @@ void DrawCarV(HDC hdc, int left, int right, int top, int screenH)
         Rectangle(hdc, left, top, right, bottom);
     }
 }
+
+// 가로 차 그리기 (랩어라운드)
 void DrawCarV1(HDC hdc, int screenW, int right, int top, int bottom)
 {
     int left = right - 100;
@@ -74,7 +74,6 @@ void DrawCarV1(HDC hdc, int screenW, int right, int top, int bottom)
     }
 }
 
-
 // 세로=파랑, 가로=빨강
 void SetSignal_VBlue_HRed()
 {
@@ -82,6 +81,7 @@ void SetSignal_VBlue_HRed()
     redlight2 = true; yellowlight2 = false; bluelight2 = false;
     for (int i = 6; i <= 9; i++) { stopped[i] = false; stoppedX[i] = 0; }
 }
+
 // 세로=빨강, 가로=파랑
 void SetSignal_VRed_HBlue()
 {
@@ -90,180 +90,153 @@ void SetSignal_VRed_HBlue()
     for (int i = 1; i <= 4; i++) { stopped[i] = false; stoppedY[i] = 0; }
 }
 
-// 노랑 다음 신호 전환 
+// 노랑 후 신호 전환
 void CALLBACK TimerProc2(HWND hWnd, UINT, UINT, DWORD)
 {
-    if (redlight) {
-        SetSignal_VBlue_HRed();  // 빨강 파랑
-    }
-    else if (bluelight) {
-        SetSignal_VRed_HBlue();  // 파랑 빨강
-    }
+    if (redlight)       SetSignal_VBlue_HRed();
+    else if (bluelight) SetSignal_VRed_HBlue();
     KillTimer(hWnd, 2);
-
-    // ★ 자동 모드이면 5초 후 다시 노랑 시작
-    if (autoMode)
-        SetTimer(hWnd, 3, 5000, (TIMERPROC)TimerProc3);
+    if (autoMode) SetTimer(hWnd, 3, 5000, (TIMERPROC)TimerProc3);
 }
 
-// 노랑 시작 
+// 노랑 시작
 void CALLBACK TimerProc3(HWND hWnd, UINT, UINT, DWORD)
 {
-    yellowlight = true;
-    yellowlight2 = true;
+    yellowlight = true; yellowlight2 = true;
     KillTimer(hWnd, 3);
     SetTimer(hWnd, 2, 1000, (TIMERPROC)TimerProc2);
 }
 
-// 메인 타이머: 차 이동 & 사람 이동
+// 메인 타이머: 차 및 사람 이동
 void CALLBACK TimerProc1(HWND hWnd, UINT, UINT, DWORD)
 {
-    RECT rc;
-    GetClientRect(hWnd, &rc);
-    int H = rc.bottom;
-    int L = rc.right;
-    int X = L / 3;   // 교차로 x 구간: X ~ 2X
-    int Y = H / 3;   // 교차로 y 구간: Y ~ 2Y
+    RECT rc; GetClientRect(hWnd, &rc);
+    int H = rc.bottom, L = rc.right;
+    int X = L / 3, Y = H / 3;
 
-    // 사람 대각선 이동
+    bool allStoppedV = stopped[1] && stopped[2] && stopped[3] && stopped[4];
+    bool allStoppedH = stopped[6] && stopped[7] && stopped[8] && stopped[9];
+
+    // 사람 이동
     if (personWalking)
     {
-        personX += 5;
-        personY -= 5;
-
-        // 교차로 건넘 완료
-        if (personX >= X + 40)
+        if (allStoppedV && allStoppedH)
         {
-            personX = 0;
-            personY = 0;
-            personWalking = false;
-
-            // 오른쪽 클릭 대기 중이었으면 이제 재개
-            if (waitForPerson)
+            // 모든 차 멈춤 → 대각선 이동
+            personX += 5; personY -= 5;
+            if (personX >= X + 40)
             {
-                waitForPerson = false;
-                SetSignal_VRed_HBlue();   // H-blue(가로 파랑)로 재개
+                personBaseX += personX; personBaseY += personY;
+                personX = 0; personY = 0;
+                personWalking = false;
+                personReturning = true;
+                if (waitForPerson) { waitForPerson = false; SetSignal_VRed_HBlue(); }
             }
         }
+        else
+        {
+            // 좌우 차만 멈춤 → 위로 이동
+            personY -= 5;
+            if (personY <= -Y)
+            {
+                personBaseX += personX; personBaseY += personY;
+                personX = 0; personY = 0;
+                personWalking = false;
+                personReturning = true;
+                if (waitForPerson) { waitForPerson = false; SetSignal_VRed_HBlue(); }
+            }
+        }
+    }
+    else if (personReturning)
+    {
+        // 원래 자리로 복귀
+        if (personBaseX > 0) personBaseX -= 5;
+        if (personBaseX < 0) personBaseX += 5;
+        if (personBaseY < 0) personBaseY += 5;
+        if (personBaseY > 0) personBaseY -= 5;
+        if (personBaseX == 0 && personBaseY == 0)
+            personReturning = false;
     }
     else
     {
-        // 빨강 + 상하 4대 모두 멈춤  사람 이동 시작
-        bool allStoppedV = stopped[1] && stopped[2] && stopped[3] && stopped[4];
-        if (redlight && allStoppedV)
-            personWalking = true;
+        // 신호 조건 충족 시 이동 시작
+        if (redlight && allStoppedV) personWalking = true;
+        if (redlight2 && allStoppedH) personWalking = true;
     }
 
-    // 파란불: 상하 차 이동
+    // 파란불: 세로 차 이동
     if (bluelight)
     {
-        cary[1] -= 10;
-        cary[2] -= 10;
-        cary[3] += 5;
-        cary[4] += 10;
-    }
-    // 파란불2: 좌우 차 이동
-    if (bluelight2)
-    {
-        carx[6] -= 10;
-        carx[7] -= 10;
-        carx[8] += 10;
-        carx[9] += 10;
+        cary[1] -= 10; cary[2] -= 10;
+        cary[3] += 5; cary[4] += 10;
     }
 
-    // 빨강: 상하 차 정지 처리 
+    // 파란불2: 가로 차 이동
+    if (bluelight2)
+    {
+        carx[6] -= 10; carx[7] -= 10;
+        carx[8] += 10; carx[9] += 10;
+    }
+
+    // 빨강: 세로 차 정지
     if (redlight)
     {
-        // 차1 (위로 이동)
-        if (!stopped[1])
-        {
+        if (!stopped[1]) {
             int myStop = (stopped[2] && stoppedY[2] == 510) ? 630 : 510;
             int top1 = 50 + cary[1];
-            if (top1 > myStop && top1 - 10 <= myStop) {
-                cary[1] = myStop - 50; stopped[1] = true; stoppedY[1] = myStop;
-            }
+            if (top1 > myStop && top1 - 10 <= myStop) { cary[1] = myStop - 50;  stopped[1] = true; stoppedY[1] = myStop; }
             else cary[1] -= 10;
         }
-        // 차2
-        if (!stopped[2])
-        {
+        if (!stopped[2]) {
             int myStop = (stopped[1] && stoppedY[1] == 510) ? 630 : 510;
             int top2 = 250 + cary[2];
-            if (top2 > myStop && top2 - 10 <= myStop) {
-                cary[2] = myStop - 250; stopped[2] = true; stoppedY[2] = myStop;
-            }
+            if (top2 > myStop && top2 - 10 <= myStop) { cary[2] = myStop - 250; stopped[2] = true; stoppedY[2] = myStop; }
             else cary[2] -= 10;
         }
-        // 차3 (아래로 이동)
-        if (!stopped[3])
-        {
+        if (!stopped[3]) {
             int myStop = (stopped[4] && stoppedY[4] == 250) ? 130 : 250;
             int bottom3 = 450 + cary[3];
-            if (bottom3 <= myStop && bottom3 + 10 >= myStop) {
-                cary[3] = myStop - 450; stopped[3] = true; stoppedY[3] = myStop;
-            }
+            if (bottom3 <= myStop && bottom3 + 10 >= myStop) { cary[3] = myStop - 450; stopped[3] = true; stoppedY[3] = myStop; }
             else cary[3] += 10;
         }
-        // 차4
-        if (!stopped[4])
-        {
+        if (!stopped[4]) {
             int myStop = (stopped[3] && stoppedY[3] == 250) ? 130 : 250;
             int bottom4 = 650 + cary[4];
-            if (bottom4 <= myStop && bottom4 + 10 >= myStop) {
-                cary[4] = myStop - 650; stopped[4] = true; stoppedY[4] = myStop;
-            }
+            if (bottom4 <= myStop && bottom4 + 10 >= myStop) { cary[4] = myStop - 650; stopped[4] = true; stoppedY[4] = myStop; }
             else cary[4] += 10;
         }
     }
 
-    //  빨강2: 좌우 차 정지 처리 
+    // 빨강2: 가로 차 정지
     if (redlight2)
     {
-        // 차6 (오른쪽→왼쪽 이동, right 감소)
-        if (!stopped[6])
-        {
-            // ★ 수정: stoppedX 인덱스를 차 번호로 통일
+        if (!stopped[6]) {
             int myStop = (stopped[7] && stoppedX[7] == 630) ? 740 : 630;
             int right6 = 150 + carx[6];
-            if (right6 <= myStop && right6 + 10 >= myStop) {
-                carx[6] = myStop - 150; stopped[6] = true; stoppedX[6] = myStop;
-            }
+            if (right6 <= myStop && right6 + 10 >= myStop) { carx[6] = myStop - 150; stopped[6] = true; stoppedX[6] = myStop; }
             else carx[6] -= 10;
         }
-        // 차7
-        if (!stopped[7])
-        {
+        if (!stopped[7]) {
             int myStop = (stopped[6] && stoppedX[6] == 630) ? 740 : 630;
             int right7 = 650 + carx[7];
-            if (right7 <= myStop && right7 + 10 >= myStop) {
-                carx[7] = myStop - 650; stopped[7] = true; stoppedX[7] = myStop;
-            }
+            if (right7 <= myStop && right7 + 10 >= myStop) { carx[7] = myStop - 650; stopped[7] = true; stoppedX[7] = myStop; }
             else carx[7] -= 10;
         }
-        // 버그 수정: 차8, 9는 왼쪽→오른쪽 이동 → 조건 반전 (<=, + → >=, -)
-        // 차8 (왼쪽→오른쪽 이동, right 증가)
-        if (!stopped[8])
-        {
+        if (!stopped[8]) {
             int myStop = (stopped[9] && stoppedX[9] == 200) ? 70 : 200;
             int right8 = 150 + carx[8];
-            if (right8 >= myStop && right8 - 10 <= myStop) {   // ★ 수정
-                carx[8] = myStop - 150; stopped[8] = true; stoppedX[8] = myStop;
-            }
+            if (right8 >= myStop && right8 - 10 <= myStop) { carx[8] = myStop - 150; stopped[8] = true; stoppedX[8] = myStop; }
             else carx[8] += 10;
         }
-        // 차9  버그 수정
-        if (!stopped[9])
-        {
+        if (!stopped[9]) {
             int myStop = (stopped[8] && stoppedX[8] == 200) ? 70 : 200;
             int right9 = 650 + carx[9];
-            if (right9 >= myStop && right9 - 10 <= myStop) {   // ★ 수정
-                carx[9] = myStop - 650; stopped[9] = true; stoppedX[9] = myStop;
-            }
+            if (right9 >= myStop && right9 - 10 <= myStop) { carx[9] = myStop - 650; stopped[9] = true; stoppedX[9] = myStop; }
             else carx[9] += 10;
         }
     }
 
-    // ── 랩어라운드 ────────────────────────────────────────────
+    // 랩어라운드
     if (150 + cary[1] < 0) { cary[1] += H; stopped[1] = false; stoppedY[1] = 0; }
     if (350 + cary[2] < 0) { cary[2] += H; stopped[2] = false; stoppedY[2] = 0; }
     if (350 + cary[3] > H) { cary[3] -= H; stopped[3] = false; stoppedY[3] = 0; }
@@ -276,7 +249,6 @@ void CALLBACK TimerProc1(HWND hWnd, UINT, UINT, DWORD)
     InvalidateRect(hWnd, NULL, TRUE);
 }
 
-// ── WinMain ───────────────────────────────────────────────────
 int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR, int nCmdShow)
 {
     WNDCLASSEXW wc = {};
@@ -291,7 +263,6 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR, int nCmdShow)
     wc.hIconSm = LoadIcon(nullptr, IDI_APPLICATION);
     RegisterClassExW(&wc);
 
-    // ──  메뉴 생성
     HMENU hMenu = CreateMenu();
     HMENU hSubMenu = CreatePopupMenu();
     AppendMenuW(hSubMenu, MF_STRING, ID_MENU_HBLUE_VRED, L"H-blue, V-red");
@@ -305,7 +276,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR, int nCmdShow)
 
     HWND hWnd = CreateWindowExW(0, CLASS_NAME, WINDOW_TITLE,
         WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, 800, 800,
-        nullptr, hMenu, hInstance, nullptr);   // ★ hMenu 전달
+        nullptr, hMenu, hInstance, nullptr);
     if (!hWnd) return 0;
 
     ShowWindow(hWnd, nCmdShow);
@@ -319,11 +290,9 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR, int nCmdShow)
     return (int)msg.wParam;
 }
 
-// ── 윈도우 프로시저
 LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
-    RECT clientRect;
-    GetClientRect(hWnd, &clientRect);
+    RECT clientRect; GetClientRect(hWnd, &clientRect);
     int x = clientRect.right / 3;
     int y = clientRect.bottom / 3;
     int x1 = clientRect.right / 2;
@@ -332,7 +301,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
     switch (msg)
     {
     case WM_CREATE:
-    {
         linepen = CreatePen(PS_SOLID, 1, RGB(0, 0, 0));
         dotpen = CreatePen(PS_DASH, 1, RGB(0, 0, 0));
         signalboxpen = CreatePen(PS_SOLID, 1, RGB(0, 0, 0));
@@ -344,89 +312,69 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
         peoplebrush = CreateSolidBrush(RGB(255, 255, 50));
         SetTimer(hWnd, 1, speed1, (TIMERPROC)TimerProc1);
         return 0;
-    }
 
-    //
     case WM_LBUTTONDOWN:
     {
-        int mx = LOWORD(lParam);
-        int my = HIWORD(lParam);
+        int mx = LOWORD(lParam), my = HIWORD(lParam);
         bool clickedSignal = false;
 
-        // 상하 신호등 (위쪽 박스)
-        if (55 < mx && mx < 95 && 5 < my && my < 45) {   // 빨강 원
+        // 세로 신호등 클릭
+        if (55 < mx && mx < 95 && 5 < my && my < 45) {
             redlight = true; yellowlight = false; bluelight = false;
             redlight2 = false; yellowlight2 = false; bluelight2 = true;
             for (int i = 6; i <= 9; i++) { stopped[i] = false; stoppedX[i] = 0; }
             clickedSignal = true;
         }
-        if (105 < mx && mx < 145 && 5 < my && my < 45) {   // 노랑 원
+        if (105 < mx && mx < 145 && 5 < my && my < 45) {
             yellowlight = true; yellowlight2 = true;
             SetTimer(hWnd, 2, 1000, (TIMERPROC)TimerProc2);
             clickedSignal = true;
         }
-        if (155 < mx && mx < 195 && 5 < my && my < 45) {   // 파랑 원
+        if (155 < mx && mx < 195 && 5 < my && my < 45) {
             redlight = false; yellowlight = false; bluelight = true;
             redlight2 = true; yellowlight2 = false; bluelight2 = false;
             for (int i = 1; i <= 4; i++) { stopped[i] = false; stoppedY[i] = 0; }
             clickedSignal = true;
         }
 
-        // 좌우 신호등 (아래쪽 박스)
-        if (555 < mx && mx < 595 && 555 < my && my < 595) { // 빨강2 원
+        // 가로 신호등 클릭
+        if (555 < mx && mx < 595 && 555 < my && my < 595) {
             redlight2 = true; yellowlight2 = false; bluelight2 = false;
             redlight = false; yellowlight = false; bluelight = true;
             for (int i = 1; i <= 4; i++) { stopped[i] = false; stoppedY[i] = 0; }
             clickedSignal = true;
         }
-        if (605 < mx && mx < 645 && 555 < my && my < 595) { // 노랑2 원
+        if (605 < mx && mx < 645 && 555 < my && my < 595) {
             yellowlight2 = true; yellowlight = true;
             SetTimer(hWnd, 2, 1000, (TIMERPROC)TimerProc2);
             clickedSignal = true;
         }
-        if (655 < mx && mx < 695 && 555 < my && my < 595) { // 파랑2 원
+        if (655 < mx && mx < 695 && 555 < my && my < 595) {
             redlight2 = false; yellowlight2 = false; bluelight2 = true;
             redlight = true; yellowlight = false; bluelight = false;
             for (int i = 6; i <= 9; i++) { stopped[i] = false; stoppedX[i] = 0; }
             clickedSignal = true;
         }
 
-        //  신호등 원 밖 클릭 → 전체 정지 (양쪽 모두 빨강)
-        if (!clickedSignal)
-        {
+        // 신호등 밖 클릭 → 전체 정지
+        if (!clickedSignal) {
             redlight = true; yellowlight = false; bluelight = false;
             redlight2 = true; yellowlight2 = false; bluelight2 = false;
         }
         return 0;
     }
 
-    // ── ★ 오른쪽 클릭: 자동차 재개 ───────────────────────────
     case WM_RBUTTONDOWN:
-    {
-        if (personWalking)
-        {
-            // 사람이 이동 중이면 완료 후 재개
-            waitForPerson = true;
-        }
-        else
-        {
-            // 바로 재개: 가로=파랑, 세로=빨강
-            SetSignal_VRed_HBlue();
-        }
+        // 오른쪽 클릭: 사람 이동 중이면 완료 후 재개, 아니면 즉시 재개
+        if (personWalking) waitForPerson = true;
+        else               SetSignal_VRed_HBlue();
         return 0;
-    }
 
-    // ── ★ 메뉴 처리 ───────────────────────────────────────────
     case WM_COMMAND:
-    {
         switch (LOWORD(wParam))
         {
-        case ID_MENU_HBLUE_VRED:
-            SetSignal_VRed_HBlue();   // 가로(H)=파랑, 세로(V)=빨강
-            break;
-        case ID_MENU_HRED_VBLUE:
-            SetSignal_VBlue_HRed();   // 가로(H)=빨강, 세로(V)=파랑
-            break;
+        case ID_MENU_HBLUE_VRED: SetSignal_VRed_HBlue(); break;
+        case ID_MENU_HRED_VBLUE: SetSignal_VBlue_HRed(); break;
         case ID_MENU_AUTO:
             autoMode = true;
             KillTimer(hWnd, 3);
@@ -436,45 +384,25 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
             autoMode = false;
             KillTimer(hWnd, 3);
             break;
-        case ID_MENU_QUIT:
-            PostQuitMessage(0);
-            break;
+        case ID_MENU_QUIT: PostQuitMessage(0); break;
         }
         return 0;
-    }
 
     case WM_KEYDOWN:
-    {
-        if (wParam == VK_OEM_PLUS)
-        {
-            if (speed1 > 50) {
-                KillTimer(hWnd, 1);
-                speed1 -= 50;
-                SetTimer(hWnd, 1, speed1, (TIMERPROC)TimerProc1);
-            }
-        }
-        if (wParam == VK_OEM_MINUS)
-        {
-            KillTimer(hWnd, 1);
-            speed1 += 50;
+        if (wParam == VK_OEM_PLUS && speed1 > 50) {
+            KillTimer(hWnd, 1); speed1 -= 50;
             SetTimer(hWnd, 1, speed1, (TIMERPROC)TimerProc1);
         }
-        // ★ 수정: A키로 자동 모드 토글 (한 번 누르면 시작, 다시 누르면 정지)
-        if (wParam == 'A')
-        {
-            if (!autoMode) {
-                autoMode = true;
-                SetTimer(hWnd, 3, 5000, (TIMERPROC)TimerProc3);
-            }
-            else {
-                autoMode = false;
-                KillTimer(hWnd, 3);
-            }
+        if (wParam == VK_OEM_MINUS) {
+            KillTimer(hWnd, 1); speed1 += 50;
+            SetTimer(hWnd, 1, speed1, (TIMERPROC)TimerProc1);
         }
-        if (wParam == 'Q')
-            PostQuitMessage(0);
+        if (wParam == 'A') {
+            if (!autoMode) { autoMode = true;  SetTimer(hWnd, 3, 5000, (TIMERPROC)TimerProc3); }
+            else { autoMode = false; KillTimer(hWnd, 3); }
+        }
+        if (wParam == 'Q') PostQuitMessage(0);
         return 0;
-    }
 
     case WM_PAINT:
     {
@@ -529,8 +457,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
         // 자동차
         {
-            int H = clientRect.bottom;
-            int R = clientRect.right;
+            int H = clientRect.bottom, R = clientRect.right;
             oldbrush = (HBRUSH)SelectObject(hdc, carbrush);
             DrawCarV(hdc, 405, 460, 50 + cary[1], H);
             DrawCarV(hdc, 405, 460, 250 + cary[2], H);
@@ -543,11 +470,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
             SelectObject(hdc, oldbrush);
         }
 
-        // ★ 사람 (personX, personY로 대각선 이동 반영)
+        // 사람
         oldbrush = (HBRUSH)SelectObject(hdc, peoplebrush);
         Ellipse(hdc,
-            x - 40 + personX, 2 * y + personY,
-            x + personX, 2 * y + 40 + personY);
+            x - 40 + personBaseX + personX, 2 * y + personBaseY + personY,
+            x + personBaseX + personX, 2 * y + 40 + personBaseY + personY);
         SelectObject(hdc, oldbrush);
 
         EndPaint(hWnd, &ps);
@@ -555,17 +482,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
     }
 
     case WM_DESTROY:
-        KillTimer(hWnd, 1);
-        KillTimer(hWnd, 2);
-        KillTimer(hWnd, 3);
-        DeleteObject(linepen);
-        DeleteObject(dotpen);
-        DeleteObject(signalboxpen);
-        DeleteObject(dotlinepen);
-        DeleteObject(signalred);
-        DeleteObject(signalyellow);
-        DeleteObject(signalblue);
-        DeleteObject(carbrush);
+        KillTimer(hWnd, 1); KillTimer(hWnd, 2); KillTimer(hWnd, 3);
+        DeleteObject(linepen); DeleteObject(dotpen);
+        DeleteObject(signalboxpen); DeleteObject(dotlinepen);
+        DeleteObject(signalred); DeleteObject(signalyellow);
+        DeleteObject(signalblue); DeleteObject(carbrush);
         DeleteObject(peoplebrush);
         PostQuitMessage(0);
         return 0;
