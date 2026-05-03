@@ -3,5 +3,5 @@
     <Platform Name="x64" />
     <Platform Name="x86" />
   </Configurations>
-  <Project Path="롤딕 이중환형연결리스트.vcxproj" />
+  <Project Path="롤딕 이중환형연결리스트.vcxproj" Id="f5b6215a-7af0-4d0a-bd63-4ba6cf73bacb" />
 </Solution>
