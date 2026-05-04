@@ -18,6 +18,9 @@ bool press2 = false;
 bool press4 = false;
 bool press6 = false;
 int selected = 0;
+bool rpress = false;
+
+int source = SRCCOPY;
 
 // 프로그램 시작점
 int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR, int nCmdShow)
@@ -120,7 +123,30 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
         }
         if (press6 == true)
         {
-
+            if (mousex < rect.right / 3 && mousey < rect.bottom / 2)
+            {
+                selected = 7;
+            }
+            if (mousex > rect.right / 3 &&mousex < 2*rect.right / 3 && mousey < rect.bottom / 2)
+            {
+                selected = 8;
+            }
+            if (mousex > 2*rect.right / 3 && mousex < 3 * rect.right / 3 && mousey < rect.bottom / 2)
+            {
+                selected = 9;
+            }
+            if (mousex < rect.right / 3 && mousey > rect.bottom / 2)
+            {
+                selected = 10;
+            }
+            if (mousex > rect.right / 3 && mousex < 2 * rect.right / 3 && mousey > rect.bottom / 2)
+            {
+                selected = 11;
+            }
+            if (mousex > 2 * rect.right / 3 && mousex < 3 * rect.right / 3 && mousey > rect.bottom / 2)
+            {
+                selected = 12;
+            }
         }
         InvalidateRect(hWnd, NULL, true);
         return 0;
@@ -177,6 +203,15 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
             press6 = true;
         
         }
+        if (wParam == 'R')
+        {
+            rpress = !rpress;
+            
+        }
+        if (wParam == 'Q')
+        {
+            PostQuitMessage(0);
+        }
         InvalidateRect(hWnd, NULL, true);
         return 0;
     }
@@ -203,13 +238,24 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
             if (selected == 1)
             {
                 Rectangle(hdc, 0, 0, rect.right / 2, rect.bottom);
+                
             }
             if (selected == 2)
             {
                 Rectangle(hdc, rect.right / 2, 0, rect.right, rect.bottom);
             }
             StretchBlt(hdc, 1, 1, rect.right/2-2, rect.bottom-2, hMemDC, 0, 0, bmp.bmWidth, bmp.bmHeight, SRCCOPY);
+            if (selected == 1 && rpress == true)
+            {
+                StretchBlt(hdc, 1, 1, rect.right / 2 - 2, rect.bottom - 2, hMemDC, 0, 0, bmp.bmWidth, bmp.bmHeight, DSTINVERT);
+
+            }
             StretchBlt(hdc, rect.right/2+1, 1, rect.right/2-2, rect.bottom-2, hMemDC, 0, 0, bmp.bmWidth, bmp.bmHeight, SRCCOPY);
+            if (selected == 2 && rpress == true)
+            {
+                StretchBlt(hdc, rect.right / 2 + 1, 1, rect.right / 2 - 2, rect.bottom - 2, hMemDC, 0, 0, bmp.bmWidth, bmp.bmHeight, DSTINVERT);
+
+            }
         }
         if (press4 == true)
         {
@@ -230,18 +276,85 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
                 Rectangle(hdc, rect.right / 2, rect.bottom / 2, rect.right, rect.bottom );
             }
             StretchBlt(hdc, 1, 1, rect.right / 2-2, rect.bottom/2-2, hMemDC, 0, 0, bmp.bmWidth, bmp.bmHeight, SRCCOPY);
+            if (selected == 3 && rpress == true)
+            {
+                StretchBlt(hdc, 1, 1, rect.right / 2 - 2, rect.bottom / 2 - 2, hMemDC, 0, 0, bmp.bmWidth, bmp.bmHeight, DSTINVERT);
+            }
             StretchBlt(hdc, rect.right/2+1, 1, rect.right / 2-2, rect.bottom / 2-2, hMemDC, 0, 0, bmp.bmWidth, bmp.bmHeight, SRCCOPY);
-            StretchBlt(hdc, rect.right / 2+1, rect.bottom / 2+1, rect.right / 2-2, rect.bottom / 2-2, hMemDC, 0, 0, bmp.bmWidth, bmp.bmHeight, SRCCOPY);
+            if (selected == 4 && rpress == true)
+            {
+                StretchBlt(hdc, rect.right / 2 + 1, 1, rect.right / 2 - 2, rect.bottom / 2 - 2, hMemDC, 0, 0, bmp.bmWidth, bmp.bmHeight, DSTINVERT);
+            }
             StretchBlt(hdc, 1, rect.bottom / 2+1, rect.right / 2-2, rect.bottom / 2-2, hMemDC, 0, 0, bmp.bmWidth, bmp.bmHeight, SRCCOPY);
+            if (selected == 5 && rpress == true)
+            {
+                StretchBlt(hdc, 1, rect.bottom / 2 + 1, rect.right / 2 - 2, rect.bottom / 2 - 2, hMemDC, 0, 0, bmp.bmWidth, bmp.bmHeight, DSTINVERT);
+            }
+            StretchBlt(hdc, rect.right / 2+1, rect.bottom / 2+1, rect.right / 2-2, rect.bottom / 2-2, hMemDC, 0, 0, bmp.bmWidth, bmp.bmHeight, SRCCOPY);
+            if (selected == 6 && rpress == true)
+            {
+                StretchBlt(hdc, rect.right / 2 + 1, rect.bottom / 2 + 1, rect.right / 2 - 2, rect.bottom / 2 - 2, hMemDC, 0, 0, bmp.bmWidth, bmp.bmHeight, DSTINVERT);
+            }
         }
         if (press6 == true)
         {
-            StretchBlt(hdc, 0, 0, rect.right / 3, rect.bottom / 2, hMemDC, 0, 0, bmp.bmWidth, bmp.bmHeight, SRCCOPY);
-            StretchBlt(hdc, rect.right / 3, 0, rect.right / 3, rect.bottom / 2, hMemDC, 0, 0, bmp.bmWidth, bmp.bmHeight, SRCCOPY);
-            StretchBlt(hdc, 2*rect.right / 3,0, rect.right / 3, rect.bottom / 2, hMemDC, 0, 0, bmp.bmWidth, bmp.bmHeight, SRCCOPY);
-            StretchBlt(hdc, 0, rect.bottom / 2, rect.right / 3, rect.bottom / 2, hMemDC, 0, 0, bmp.bmWidth, bmp.bmHeight, SRCCOPY);
-            StretchBlt(hdc, rect.right / 3, rect.bottom / 2, rect.right / 3, rect.bottom / 2, hMemDC, 0, 0, bmp.bmWidth, bmp.bmHeight, SRCCOPY);
-            StretchBlt(hdc, 2 * rect.right / 3, rect.bottom / 2, rect.right / 3, rect.bottom / 2, hMemDC, 0, 0, bmp.bmWidth, bmp.bmHeight, SRCCOPY);
+            if (selected == 7)
+            {
+                Rectangle(hdc, 0, 0, rect.right / 3, rect.bottom / 2);
+            }
+            if (selected == 8)
+            {
+                Rectangle(hdc, rect.right / 3, 0, 2*rect.right / 3, rect.bottom / 2);
+            }
+            if (selected == 9)
+            {
+                Rectangle(hdc, 2*rect.right / 3, 0, 3*rect.right / 3, rect.bottom / 2);
+            }
+            if (selected == 10)
+            {
+                Rectangle(hdc, 0, rect.bottom / 2, rect.right / 3, rect.bottom );
+            }
+            if (selected == 11)
+            {
+                Rectangle(hdc, rect.right / 3, rect.bottom / 2, 2*rect.right / 3, rect.bottom );
+            }
+            if (selected == 12)
+            {
+                Rectangle(hdc, 2*rect.right / 3, rect.bottom / 2, 3*rect.right / 3, rect.bottom );
+
+            }
+
+            StretchBlt(hdc, 1, 1, rect.right / 3 -2, rect.bottom / 2-2, hMemDC, 0, 0, bmp.bmWidth, bmp.bmHeight, SRCCOPY);
+            if (selected == 7 && rpress == true)
+            {
+                StretchBlt(hdc, 1, 1, rect.right / 3 - 2, rect.bottom / 2 - 2, hMemDC, 0, 0, bmp.bmWidth, bmp.bmHeight, DSTINVERT);
+            }
+
+            StretchBlt(hdc, rect.right / 3+1, 1, rect.right / 3-2, rect.bottom / 2-2, hMemDC, 0, 0, bmp.bmWidth, bmp.bmHeight, SRCCOPY);
+            if (selected == 8 && rpress == true)
+            {
+                StretchBlt(hdc, rect.right / 3 + 1, 1, rect.right / 3 - 2, rect.bottom / 2 - 2, hMemDC, 0, 0, bmp.bmWidth, bmp.bmHeight, DSTINVERT);
+            }
+            StretchBlt(hdc, 2*rect.right / 3+1,1, rect.right / 3-2, rect.bottom / 2-2, hMemDC, 0, 0, bmp.bmWidth, bmp.bmHeight, SRCCOPY);
+            if (selected == 9 && rpress == true)
+            {
+                StretchBlt(hdc, 2 * rect.right / 3 + 1, 1, rect.right / 3 - 2, rect.bottom / 2 - 2, hMemDC, 0, 0, bmp.bmWidth, bmp.bmHeight, DSTINVERT);
+            }
+            StretchBlt(hdc, 1, rect.bottom / 2+1, rect.right / 3-2, rect.bottom / 2-2, hMemDC, 0, 0, bmp.bmWidth, bmp.bmHeight, SRCCOPY);
+            if (selected == 10 && rpress == true)
+            {
+                StretchBlt(hdc, 1, rect.bottom / 2 + 1, rect.right / 3 - 2, rect.bottom / 2 - 2, hMemDC, 0, 0, bmp.bmWidth, bmp.bmHeight, DSTINVERT);
+            }
+            StretchBlt(hdc, rect.right / 3+1, rect.bottom / 2+1, rect.right / 3-2, rect.bottom / 2-2, hMemDC, 0, 0, bmp.bmWidth, bmp.bmHeight, SRCCOPY);
+            if (selected == 11 && rpress == true)
+            {
+                StretchBlt(hdc, rect.right / 3 + 1, rect.bottom / 2 + 1, rect.right / 3 - 2, rect.bottom / 2 - 2, hMemDC, 0, 0, bmp.bmWidth, bmp.bmHeight, DSTINVERT);
+            }
+            StretchBlt(hdc, 2 * rect.right / 3+1, rect.bottom / 2+1, rect.right / 3-2, rect.bottom / 2-2, hMemDC, 0, 0, bmp.bmWidth, bmp.bmHeight, SRCCOPY);
+            if (selected == 12 && rpress == true)
+            {
+                StretchBlt(hdc, 2 * rect.right / 3 + 1, rect.bottom / 2 + 1, rect.right / 3 - 2, rect.bottom / 2 - 2, hMemDC, 0, 0, bmp.bmWidth, bmp.bmHeight, DSTINVERT);
+            }
         }
         DeleteDC(hMemDC);
         SelectObject(hdc, oldpen);
