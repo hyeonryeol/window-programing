@@ -1,15 +1,28 @@
 #include <windows.h>
 
+#include "resource.h"
+
+HINSTANCE g_hInstance;
 // 윈도우 프로시저 선언
 LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 // 클래스 이름 / 창 제목
 const wchar_t CLASS_NAME[] = L"MyWindowClass";
 const wchar_t WINDOW_TITLE[] = L"Win32 Basic Template";
+HPEN rectbrush;
+bool apress = false;
+int x = 0;
+int y = 0;
+bool press1 = true;
+bool press2 = false;
+bool press4 = false;
+bool press6 = false;
+int selected = 0;
 
 // 프로그램 시작점
 int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR, int nCmdShow)
 {
+    g_hInstance = hInstance;
     // 1) 윈도우 클래스 등록
     WNDCLASSEXW wc = {};
     wc.cbSize = sizeof(wc);
@@ -31,7 +44,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR, int nCmdShow)
         WINDOW_TITLE,
         WS_OVERLAPPEDWINDOW,
         CW_USEDEFAULT, CW_USEDEFAULT, 800, 600,
-        nullptr, nullptr, hInstance, nullptr
+        nullptr, nullptr, g_hInstance, nullptr
     );
 
     if (!hWnd) return 0;
@@ -63,12 +76,108 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
     {
     case WM_CREATE:
     {
-        hBitmap = (HBITMAP)LoadBitmap(hInstance, MAKEINTRESOURCE(IDB_BITMAP1)); //--- 리소스로 비트맵 읽어오기
+        hBitmap = (HBITMAP)LoadBitmap(g_hInstance, MAKEINTRESOURCE(IDB_BITMAP1)); //--- 리소스로 비트맵 읽어오기
         GetClientRect(hWnd, &rect); //--- 윈도우 크기 읽어오기
         GetObject(hBitmap, sizeof(BITMAP), &bmp); //--- 비트맵 정보 읽어오기 (크기 포함)
+        rectbrush = CreatePen(PS_SOLID, 2, RGB(255, 0, 0));
+        return 0;
+    }
+    case WM_LBUTTONDOWN:
+    {
+        int mousex = LOWORD(lParam);
+        int mousey = HIWORD(lParam);
+        if (press2 == true)
+        {
+            if (mousex < rect.right / 2)
+            {
+                selected = 1;
+                
+            }
+            if (mousex > rect.right / 2)
+            {
+                selected = 2;
+                
+            }
+        }
+        if (press4 == true)
+        {
+            if (mousex < rect.right / 2 && mousey < rect.bottom / 2)
+            {
+                selected = 3;
+            }
+            if (mousex > rect.right / 2 && mousey < rect.bottom / 2)
+            {
+                selected = 4;
+            }
+            if (mousex < rect.right / 2 && mousey > rect.bottom / 2)
+            {
+                selected = 5;
+            }
+            if (mousex > rect.right / 2 && mousey > rect.bottom / 2)
+            {
+                selected = 6;
+            }
+        }
+        if (press6 == true)
+        {
+
+        }
+        InvalidateRect(hWnd, NULL, true);
+        return 0;
     }
     case WM_KEYDOWN:
     {
+        if (wParam == 'A')
+        {
+            apress = true;
+        }
+        if (wParam == VK_OEM_PLUS)
+        {
+            x += 100;
+            y += 100;
+           
+        }
+        if (wParam == VK_OEM_MINUS)
+        {
+            x -= 100;
+            y -= 100;
+        }
+        if (wParam == '1')
+        {
+            press1 = true;
+            press2 = false;
+            press4 = false;
+            press6 = false;
+          
+
+
+        }
+        if (wParam == '2')
+        {
+            press1 = false;
+            press2 = true;
+            press4 = false;
+            press6 = false;
+        
+            
+        }
+        if (wParam == '4')
+        {
+            press1 = false;
+            press2 = false;
+            press4 = true;
+            press6 = false;
+          
+        }
+        if (wParam == '6')
+        {
+            press1 = false;
+            press2 = false;
+            press4 = false;
+            press6 = true;
+        
+        }
+        InvalidateRect(hWnd, NULL, true);
         return 0;
     }
 
@@ -76,11 +185,66 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
     {
         PAINTSTRUCT ps;
         HDC hdc = BeginPaint(hWnd, &ps);
-        hMemDC = CreateCompatibleDC(hDC); //--- 메모리 DC 만들기
+        hMemDC = CreateCompatibleDC(hdc); //--- 메모리 DC 만들기
         (HBITMAP)SelectObject(hMemDC, hBitmap); //--- 비트맵과 메모리 DC 연결하기
-        StretchBlt(hDC, 0, 0, rect.right, rect.bottom, hMemDC, 0, 0, bmp.bmWidth, bmp.bmHeight, SRCCOPY); //--- 윈도우 크기에 맞기 비트맵 그려주기
-        DeleteDC(hMemDC);
+        HPEN oldpen = (HPEN)SelectObject(hdc, rectbrush);
+        if (apress == false)
+        {
+        StretchBlt(hdc, 0, 0, rect.right-100, rect.bottom-100, hMemDC, 0, 0, bmp.bmWidth, bmp.bmHeight, SRCCOPY);
 
+        }
+
+        if (apress == true && press1 == true)
+        {
+            StretchBlt(hdc, 0, 0, rect.right + x, rect.bottom + y, hMemDC, 0, 0, bmp.bmWidth, bmp.bmHeight, SRCCOPY); //--- 윈도우 크기에 맞기 비트맵 그려주기
+        }
+        if (press2 == true)
+        {
+            if (selected == 1)
+            {
+                Rectangle(hdc, 0, 0, rect.right / 2, rect.bottom);
+            }
+            if (selected == 2)
+            {
+                Rectangle(hdc, rect.right / 2, 0, rect.right, rect.bottom);
+            }
+            StretchBlt(hdc, 1, 1, rect.right/2-2, rect.bottom-2, hMemDC, 0, 0, bmp.bmWidth, bmp.bmHeight, SRCCOPY);
+            StretchBlt(hdc, rect.right/2+1, 1, rect.right/2-2, rect.bottom-2, hMemDC, 0, 0, bmp.bmWidth, bmp.bmHeight, SRCCOPY);
+        }
+        if (press4 == true)
+        {
+            if (selected == 3)
+            {
+                Rectangle(hdc, 0, 0, rect.right / 2, rect.bottom / 2);
+            }
+            if (selected == 4)
+            {
+                Rectangle(hdc, rect.right / 2, 0, rect.right, rect.bottom / 2);
+            }
+            if (selected == 5)
+            {
+                Rectangle(hdc, 0, rect.bottom / 2, rect.right / 2, rect.bottom);
+            }
+            if (selected == 6)
+            {
+                Rectangle(hdc, rect.right / 2, rect.bottom / 2, rect.right, rect.bottom );
+            }
+            StretchBlt(hdc, 1, 1, rect.right / 2-2, rect.bottom/2-2, hMemDC, 0, 0, bmp.bmWidth, bmp.bmHeight, SRCCOPY);
+            StretchBlt(hdc, rect.right/2+1, 1, rect.right / 2-2, rect.bottom / 2-2, hMemDC, 0, 0, bmp.bmWidth, bmp.bmHeight, SRCCOPY);
+            StretchBlt(hdc, rect.right / 2+1, rect.bottom / 2+1, rect.right / 2-2, rect.bottom / 2-2, hMemDC, 0, 0, bmp.bmWidth, bmp.bmHeight, SRCCOPY);
+            StretchBlt(hdc, 1, rect.bottom / 2+1, rect.right / 2-2, rect.bottom / 2-2, hMemDC, 0, 0, bmp.bmWidth, bmp.bmHeight, SRCCOPY);
+        }
+        if (press6 == true)
+        {
+            StretchBlt(hdc, 0, 0, rect.right / 3, rect.bottom / 2, hMemDC, 0, 0, bmp.bmWidth, bmp.bmHeight, SRCCOPY);
+            StretchBlt(hdc, rect.right / 3, 0, rect.right / 3, rect.bottom / 2, hMemDC, 0, 0, bmp.bmWidth, bmp.bmHeight, SRCCOPY);
+            StretchBlt(hdc, 2*rect.right / 3,0, rect.right / 3, rect.bottom / 2, hMemDC, 0, 0, bmp.bmWidth, bmp.bmHeight, SRCCOPY);
+            StretchBlt(hdc, 0, rect.bottom / 2, rect.right / 3, rect.bottom / 2, hMemDC, 0, 0, bmp.bmWidth, bmp.bmHeight, SRCCOPY);
+            StretchBlt(hdc, rect.right / 3, rect.bottom / 2, rect.right / 3, rect.bottom / 2, hMemDC, 0, 0, bmp.bmWidth, bmp.bmHeight, SRCCOPY);
+            StretchBlt(hdc, 2 * rect.right / 3, rect.bottom / 2, rect.right / 3, rect.bottom / 2, hMemDC, 0, 0, bmp.bmWidth, bmp.bmHeight, SRCCOPY);
+        }
+        DeleteDC(hMemDC);
+        SelectObject(hdc, oldpen);
         // TODO: 여기에 그리기 코드 작성
 
         EndPaint(hWnd, &ps);
@@ -88,6 +252,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
     }
 
     case WM_DESTROY:
+        DeleteObject(rectbrush);
         PostQuitMessage(0);
         return 0;
     }
