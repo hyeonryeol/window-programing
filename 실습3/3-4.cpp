@@ -10,8 +10,8 @@ const wchar_t WINDOW_TITLE[] = L"Win32 Basic Template";
 
 
 constexpr int CELL = 20;   // 셀 하나의 픽셀 크기
-constexpr int COLS = 30;   // 가로 칸 수
-constexpr int ROWS = 30;   // 세로 칸 수
+constexpr int COLS = 10;   // 가로 칸 수
+constexpr int ROWS = 10;   // 세로 칸 수
 constexpr int OFFSET = 20;   // 보드 시작 여백
 
 
@@ -279,12 +279,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		srand((unsigned)time(NULL));
 		for (int i = 0; i < 60; ++i)
 		{
-			randcolor[i] = rand() % 4 + 1;
+			randcolor[i] = 1;
 			obposition[i] = rand() % TOTAL;
 			if (randcolor[i] == 1) randcolor[i] = RGB(255, 0, 0);
-			if (randcolor[i] == 2) randcolor[i] = RGB(0, 255, 0);
-			if (randcolor[i] == 3) randcolor[i] = RGB(0, 0, 255);
-			if (randcolor[i] == 4) randcolor[i] = RGB(0, 255, 255);
+			//if (randcolor[i] == 2) randcolor[i] = RGB(0, 255, 0);
+			//if (randcolor[i] == 3) randcolor[i] = RGB(0, 0, 255);
+			//if (randcolor[i] == 4) randcolor[i] = RGB(0, 255, 255);
 		}
 		playerbrush = (HBRUSH)CreateSolidBrush(RGB(255, 0, 0));
 		boardbrush = (HBRUSH)CreateSolidBrush(RGB(255, 255, 255));

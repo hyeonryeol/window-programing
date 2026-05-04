@@ -1,4 +1,4 @@
-#include <windows.h>
+﻿#include <windows.h>
 
 #define ID_MENU_HBLUE_VRED  1001
 #define ID_MENU_HRED_VBLUE  1002

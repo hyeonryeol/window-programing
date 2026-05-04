@@ -1,4 +1,4 @@
-#include <windows.h>
+﻿#include <windows.h>
 #include <ctime>
 #include <cstdlib>
 #include <cwchar>

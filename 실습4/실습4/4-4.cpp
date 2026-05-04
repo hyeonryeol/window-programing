@@ -1,4 +1,4 @@
-#include <windows.h>
+﻿#include <windows.h>
 #include <cstdlib>
 #include <ctime>
 #include <cwchar>
@@ -232,6 +232,7 @@ void DrawSidePanel(HDC hdc)
         SetTextColor(hdc, RGB(0, 0, 180));
         RECT sr = { sx,OFFY + 25 + 5 * (ps + 15) + 5,sx + 150,OFFY + 25 + 5 * (ps + 15) + 30 };
         DrawTextW(hdc, buf, -1, &sr, DT_LEFT | DT_SINGLELINE);
+       
     }
 }
 
@@ -300,6 +301,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
         return 0;
 
     case WM_LBUTTONDOWN: {
+        
         if (!g_gameStarted || g_gameOver) return 0;
         int mx = LOWORD(lParam), my = HIWORD(lParam);
         int c = (mx - OFFX) / CELL, r = (my - OFFY) / CELL;
@@ -308,6 +310,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
             g_dragR1 = g_dragR2 = r; g_dragC1 = g_dragC2 = c;
             SetCapture(hWnd);
         }
+        
         return 0;
     }
 
@@ -327,6 +330,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
             int c1 = min(g_dragC1, g_dragC2), c2 = max(g_dragC1, g_dragC2);
             for (int r = r1;r <= r2;r++) for (int c = c1;c <= c2;c++) OpenCell(hWnd, r, c);
             g_dragR1 = g_dragR2 = g_dragC1 = g_dragC2 = -1;
+          
+            g_score = CalcScore();
+            if (g_score == 5) {
+                PostQuitMessage(0);
+            }
             InvalidateRect(hWnd, NULL, TRUE);
         }
         return 0;
