@@ -20,7 +20,7 @@ bool press6 = false;
 int selected = 0;
 bool rpress = false;
 
-int source = SRCCOPY;
+
 
 // 프로그램 시작점
 int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR, int nCmdShow)
