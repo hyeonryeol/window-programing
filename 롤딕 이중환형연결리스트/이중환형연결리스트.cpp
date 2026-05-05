@@ -251,30 +251,26 @@ void Insert_DL(legueoflegends champ)
 // ═══════════════════════════════════════════════════════════════
 void Delete_DL(string champ)
 {
-    if (head == nullptr) { cout << "그런챔피언은 없음" << endl; return; }
-
+    if (head == nullptr) { cout << "찾지 못함" << endl; return; }
     bool found = false;
     Node* cur = head;
-
-    // listcount만큼만 순회 (무한루프 방지)
-    int count = listcount;
-    for (int i = 0; i < count; i++)
-    {
-        Node* next = cur->next;  // ★ 삭제 전에 미리 다음 노드 저장
-
+    do {
         if (cur->data.name == champ)
         {
             found = true;
-            unlinkNode(cur); // 리스트에서 분리
-            delete cur;      // 메모리 해제
+            Node* next = cur->next;  // ← delete 전에 next 저장
+            unlinkNode(cur);
+            delete cur;
             cout << "삭제" << endl;
+            cur = next;              // ← 저장해둔 next로 이동
         }
+        else
+        {
+            cur = cur->next;
+        }
+    } while (cur != head);
 
-        if (head == nullptr) break; // 리스트가 완전히 비면 종료
-        cur = next;                 // 미리 저장해 둔 next로 이동
-    }
-
-    if (!found) cout << "그런챔피언은 없음" << endl;
+    if (!found) { cout << "찾지 못함" << endl; return; }
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -351,25 +347,17 @@ void FindMaxHp_DL()
 //   이동 전:  ... ↔ [maxNode] ↔ ...  ←← 원래 위치에서 분리
 //   이동 후:  ... ↔ [maxNode] ↔ [unsortedStart] ↔ ...
 //
-// ═══════════════════════════════════════════════════════════════
 void SortByHp_DL()
 {
-    if (head == nullptr || head->next == head) return; // 노드 0개 또는 1개면 정렬 불필요
+    if (head == nullptr || head->next == head) return;
 
-    int n = listcount;
+    Node* unsortedStart = head;
 
-    for (int i = 0; i < n - 1; i++)
+    while (unsortedStart->next != head)
     {
-        // unsortedStart: i번째 자리 (이 라운드에서 채워야 할 위치)
-        Node* unsortedStart = head;
-        for (int j = 0; j < i; j++)
-            unsortedStart = unsortedStart->next; // i번 이동하면 미정렬 구간 시작
-
-        // ── 미정렬 구간(unsortedStart ~ 끝)에서 최대 HP 노드 탐색 ──
+        // 미정렬 구간에서 최대 HP 탐색
         Node* maxNode = unsortedStart;
         Node* cur = unsortedStart->next;
-
-        // 원형이므로 head까지 오면 한 바퀴 완료
         while (cur != head)
         {
             if (cur->data.hp > maxNode->data.hp)
@@ -377,34 +365,27 @@ void SortByHp_DL()
             cur = cur->next;
         }
 
-        // 이미 제 위치면 이동 불필요
-        if (maxNode == unsortedStart) continue;
+        if (maxNode == unsortedStart)
+        {
+            unsortedStart = unsortedStart->next; // 이미 제자리면 다음으로
+        }
+        else
+        {
+            // maxNode 분리
+            maxNode->prev->next = maxNode->next;
+            maxNode->next->prev = maxNode->prev;
 
-        // ── 1단계: maxNode를 현재 위치에서 분리 ──
-        //
-        //   분리 전:  [maxNode.prev] ↔ [maxNode] ↔ [maxNode.next]
-        //   분리 후:  [maxNode.prev] ↔ [maxNode.next]
-        //
-        maxNode->prev->next = maxNode->next;
-        maxNode->next->prev = maxNode->prev;
+            // unsortedStart 앞에 삽입
+            Node* before = unsortedStart->prev;
+            before->next = maxNode;
+            maxNode->prev = before;
+            maxNode->next = unsortedStart;
+            unsortedStart->prev = maxNode;
 
-        // ── 2단계: maxNode를 unsortedStart 바로 앞에 삽입 ──
-        //
-        //   삽입 전:  [before] ↔ [unsortedStart]
-        //   삽입 후:  [before] ↔ [maxNode] ↔ [unsortedStart]
-        //
-        Node* before = unsortedStart->prev; // unsortedStart 앞 노드
-        before->next = maxNode;
-        maxNode->prev = before;
-        maxNode->next = unsortedStart;
-        unsortedStart->prev = maxNode;
-
-        // ── 3단계: unsortedStart가 head였다면 head를 maxNode로 갱신 ──
-        if (unsortedStart == head)
-            head = maxNode;
+            if (unsortedStart == head) head = maxNode;
+        }
     }
 }
-
 // ═══════════════════════════════════════════════════════════════
 // main
 // ═══════════════════════════════════════════════════════════════
