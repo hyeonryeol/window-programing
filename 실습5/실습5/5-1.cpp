@@ -155,7 +155,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
     {
         if (wParam == 'A')
         {
-            apress = true;
+            apress = !apress;
         }
         if (wParam == VK_OEM_PLUS)
         {
