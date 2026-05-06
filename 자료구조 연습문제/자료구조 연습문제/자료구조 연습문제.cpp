@@ -29,11 +29,11 @@ void printchamp(Node* node)
 		<< node->data.range << " "
 		<< node->data.position << endl;
 }
-
 void Array2DLinkedList(legueoflegends LOL[], int n)
 {
 	head = nullptr;
 	listcount = 0;
+
 	for (int i = 0; i < n; ++i)
 	{
 		Node* newNode = new Node();
@@ -43,24 +43,26 @@ void Array2DLinkedList(legueoflegends LOL[], int n)
 		if (head == nullptr)
 		{
 			head = newNode;
-			head->next = head;
 			head->prev = head;
+			head->next = head;
 		}
 		else
 		{
 			Node* last = head->prev;
-			
+
 			last->next = newNode;
 			newNode->prev = last;
 			newNode->next = head;
 			head->prev = newNode;
+		
 		}
 		listcount++;
 	}
 }
+
 void PrintAll_DL()
 {
-	if (head == nullptr) { cout << "리스트가 비었음" << endl; return; }
+	if (head == nullptr) { cout << "리스트가 비었음 " << endl; return; }
 	Node* cur = head;
 	do {
 		printchamp(cur);
@@ -73,14 +75,14 @@ void Search_DL(string champ)
 	Node* cur = head;
 	bool found = false;
 	do {
-		if (cur->data.name == champ)
+		if (champ == cur->data.name)
 		{
 			found = true;
 			printchamp(cur);
+
 		}
 		cur = cur->next;
 	} while (cur != head);
-	if (!found) { cout << "찾지 못함" << endl; return; }
 }
 void unlinknode(Node* node)
 {
@@ -90,13 +92,14 @@ void unlinknode(Node* node)
 	if (head == node)
 		head = (node->next == node) ? nullptr : node->next;
 	node->next = node->prev = nullptr;
+	listcount--;
 }
 void insertafter(Node* target, Node* newNode)
 {
 	newNode->next = target->next;
 	newNode->prev = target;
 	target->next->prev = newNode;
-	target->next = newNode;
+	target->prev = newNode;
 }
 void Insert_DL(legueoflegends champ)
 {
@@ -107,18 +110,19 @@ void Insert_DL(legueoflegends champ)
 	if (head == nullptr)
 	{
 		head = newNode;
-		head->next = head;
 		head->prev = head;
+		head->next = head;
 		listcount++;
 		return;
 	}
-	if (head->data.hp > champ.hp)
+	if (champ.hp > head->data.hp)
 	{
+
 		Node* last = head->prev;
 
-		last->next = newNode;
-		newNode->prev = last;
 		newNode->next = head;
+		newNode->prev = last;
+		last->next = newNode;
 		head->prev = newNode;
 		head = newNode;
 		listcount++;
@@ -137,67 +141,74 @@ void Delete_DL(string champ)
 	Node* cur = head;
 	bool found = false;
 	do {
-		if (cur->data.name == champ)
+		if (champ == cur->data.name)
 		{
 			found = true;
 			Node* next = cur->next;
 			unlinknode(cur);
 			delete cur;
-			cout << "삭제" << endl;
-			cur = next;
+			next = cur;
+
 		}
 		else
 		{
+		cur = cur->next;
 
-			cur = cur->next;
 		}
 	} while (cur != head);
-	if (!found) { cout << "찾지 못함" << endl; return; }
-}
-void DeleteAll_DL(string pos)
-{
-	if (head == nullptr) { cout << "찾지 못함" << endl; return; }
-	Node* cur = head;
-	bool found = false;
-	do {
-		if (cur->data.position == pos)
-		{
-			found = true;
-			Node* next = cur->next;
-			unlinknode(cur);
-			delete cur;
-			cout << "삭제" << endl;
-			cur = next;
-		}
-		else
-		{
-
-			cur = cur->next;
-		}
-	} while (cur != head);
-	if (!found) { cout << "찾지 못함" << endl; return; }
 }
 void FindMaxHp_DL()
 {
-	if (head == nullptr)return;
-	
+	if (head == nullptr) return;
 	Node* cur = head->next;
 	int maxhp = head->data.hp;
+
 	do {
 		if (cur->data.hp > maxhp)maxhp = cur->data.hp;
 		cur = cur->next;
-
 	} while (cur != head);
 	do {
 		if (cur->data.hp == maxhp)printchamp(cur);
 		cur = cur->next;
 	} while (cur != head);
 }
+void SortByHp_DL()
+{
+	if (head == nullptr)return;
+	Node* unsort = head;
+	while (unsort->next != head)
+	{
+		Node* maxnode = unsort;
+		Node* cur = unsort->next;
+		while (cur != head)
+		{
+			if (cur->data.hp > maxnode->data.hp)
+				maxnode = cur;
+			cur = cur->next;
+			
+		}
+		if (maxnode == unsort)
+		{
+			unsort = unsort->next;
+		}
+		else
+		{
+			maxnode->prev->next = maxnode->next;
+			maxnode->next->prev = maxnode->prev;
+
+			Node* before = unsort->prev;
+			before->next = maxnode;
+			maxnode->prev = before;
+			maxnode->next = unsort;
+			unsort->prev = maxnode;
+			if (unsort == head) head = maxnode;
+		}
+	}
+}
 int main()
 {
 	legueoflegends LOL[172];
 	int filecount = 0;
-
 	ifstream file("testdata.txt");
 	if (!file)
 	{
@@ -219,7 +230,7 @@ int main()
 
 	while (1)
 	{
-		cout << "command를 입력: ";
+		cout << "명령어를 입력하세요.:";
 		string command;
 		cin >> command;
 		cin.ignore();
@@ -234,40 +245,13 @@ int main()
 			cin.ignore();
 			Search_DL(champ);
 		}
-		else if (command == "Insert")
-		{
-			legueoflegends champ;
-			cout << "이름을 입력해";
-			cin >> champ.name;
-			cout << "hp";
-			cin >> champ.hp;
-			cout << "mp";
-			cin >> champ.mp;
-			cout << "speed";
-			cin >> champ.speed;
-			cout << "range";
-			cin >> champ.range;
-			cout << "position";
-			cin >> champ.position;
-			Insert_DL(champ);
-		}
-		else if (command == "Delete")
-		{
-			string champ;
-			cin >> champ;
-			cin.ignore();
-			Delete_DL(champ);
-		}
-		else if (command == "DeleteAll")
-		{
-			string pos;
-			cin >> pos;
-			cin.ignore();
-			DeleteAll_DL(pos);
-		}
 		else if (command == "FindMaxHp")
 		{
 			FindMaxHp_DL();
+		}
+		else if (command == "SortByHp")
+		{
+			SortByHp_DL();
 		}
 	}
 }
