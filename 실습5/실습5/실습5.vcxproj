@@ -145,21 +145,37 @@
   </ItemGroup>
   <ItemGroup>
     <Image Include="..\..\..\..\Downloads\dog.bmp" />
+    <Image Include="..\..\..\..\OneDrive\Desktop\tuk 2학년\goranirun1.png" />
+    <Image Include="..\..\..\..\OneDrive\Desktop\tuk 2학년\goranirun2.png" />
+    <Image Include="..\..\..\..\OneDrive\Desktop\tuk 2학년\goranirun3.png" />
+    <Image Include="..\..\..\..\OneDrive\Desktop\tuk 2학년\goranirun4.png" />
+    <Image Include="..\..\..\..\OneDrive\Desktop\tuk 2학년\goranirun5.png" />
+    <Image Include="bitmap1.bmp" />
+    <Image Include="bitmap2.bmp" />
     <Image Include="dog.bmp.bmp" />
     <Image Include="gorani.bmp" />
+    <Image Include="goranirun1.png" />
+    <Image Include="goranirun2.png" />
+    <Image Include="goranirun3.png" />
+    <Image Include="goranirun4.png" />
+    <Image Include="goranirun5.png" />
+    <Image Include="mouse1.png" />
+    <Image Include="mouse2.png" />
+    <Image Include="mouse3.png" />
     <Image Include="num16.bmp" />
     <Image Include="num2.bmp" />
     <Image Include="num32.bmp" />
     <Image Include="num4.bmp" />
     <Image Include="num64.bmp" />
     <Image Include="num8.bmp" />
-    <Image Include="cat.gif" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="resource.h" />
+    <ClInclude Include="resource1.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Resource.rc" />
+    <ResourceCompile Include="Resource1.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

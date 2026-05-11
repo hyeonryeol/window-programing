@@ -59,7 +59,49 @@
     <Image Include="num64.bmp">
       <Filter>리소스 파일</Filter>
     </Image>
-    <Image Include="cat.gif">
+    <Image Include="bitmap1.bmp">
+      <Filter>리소스 파일</Filter>
+    </Image>
+    <Image Include="..\..\..\..\OneDrive\Desktop\tuk 2학년\goranirun1.png">
+      <Filter>리소스 파일</Filter>
+    </Image>
+    <Image Include="..\..\..\..\OneDrive\Desktop\tuk 2학년\goranirun2.png">
+      <Filter>리소스 파일</Filter>
+    </Image>
+    <Image Include="..\..\..\..\OneDrive\Desktop\tuk 2학년\goranirun3.png">
+      <Filter>리소스 파일</Filter>
+    </Image>
+    <Image Include="bitmap2.bmp">
+      <Filter>리소스 파일</Filter>
+    </Image>
+    <Image Include="..\..\..\..\OneDrive\Desktop\tuk 2학년\goranirun4.png">
+      <Filter>리소스 파일</Filter>
+    </Image>
+    <Image Include="..\..\..\..\OneDrive\Desktop\tuk 2학년\goranirun5.png">
+      <Filter>리소스 파일</Filter>
+    </Image>
+    <Image Include="goranirun1.png">
+      <Filter>리소스 파일</Filter>
+    </Image>
+    <Image Include="goranirun2.png">
+      <Filter>리소스 파일</Filter>
+    </Image>
+    <Image Include="goranirun3.png">
+      <Filter>리소스 파일</Filter>
+    </Image>
+    <Image Include="goranirun4.png">
+      <Filter>리소스 파일</Filter>
+    </Image>
+    <Image Include="goranirun5.png">
+      <Filter>리소스 파일</Filter>
+    </Image>
+    <Image Include="mouse1.png">
+      <Filter>리소스 파일</Filter>
+    </Image>
+    <Image Include="mouse2.png">
+      <Filter>리소스 파일</Filter>
+    </Image>
+    <Image Include="mouse3.png">
       <Filter>리소스 파일</Filter>
     </Image>
   </ItemGroup>
@@ -67,9 +109,15 @@
     <ClInclude Include="resource.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
+    <ClInclude Include="resource1.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Resource.rc">
+      <Filter>리소스 파일</Filter>
+    </ResourceCompile>
+    <ResourceCompile Include="Resource1.rc">
       <Filter>리소스 파일</Filter>
     </ResourceCompile>
   </ItemGroup>
