@@ -47,7 +47,7 @@ void LoadNumberBitmaps()
         g_numBmps[i] = (HBITMAP)LoadImage(
             NULL, files[i], IMAGE_BITMAP,
             CELL, CELL,
-            LR_LOADFROMFILE  // 파일에서 직접 로드
+            LR_LOADFROMFILE  
         );
     }
 }
@@ -381,12 +381,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
         if (CheckWin())
         {
-            MessageBox(hWnd, L"목표 달성! 승리!", L"게임 종료", MB_OK);
+            MessageBox(hWnd, L"목표 달성! 승리", L"게임 종료", MB_OK);
             g_gameRunning = false;
         }
         else if (!spawned || CheckLose())
         {
-            MessageBox(hWnd, L"움직일 칸이 없습니다. 패배!", L"게임 종료", MB_OK);
+            MessageBox(hWnd, L"움직일 칸이 없습니다. 패배", L"게임 종료", MB_OK);
             g_gameRunning = false;
         }
 

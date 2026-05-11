@@ -263,21 +263,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
     case WM_ERASEBKGND:
         return 1;   // 더블버퍼링 사용 → 기본 배경 지우기 생략
 
-<<<<<<< HEAD
-		(HBITMAP)SelectObject(hMemDC, hBitmap); //--- 비트맵과 메모리 DC 연결하기
-		// TODO: 여기에 그리기 코드 작성
-		StretchBlt(hdc, 0, 0, rect.right, rect.bottom, hMemDC, 0, 0, bmp.bmWidth, bmp.bmHeight, SRCCOPY); //--- 윈도우 크기에 맞기 비트
-		if (divide == true)
-		{
-			StretchBlt(hdc, rect.right / 3, 0, rect.right / 3, rect.bottom, hMemDC, 0, 0, bmp.bmWidth / 3, bmp.bmHeight, SRCCOPY);
-			StretchBlt(hdc, 0, 0, rect.right / 3, rect.bottom, hMemDC, bmp.bmWidth / 3, 0, bmp.bmWidth / 3, bmp.bmHeight, SRCCOPY);
-			StretchBlt(hdc, 2*rect.right / 3, 0, rect.right / 3, rect.bottom, hMemDC, 2*bmp.bmWidth / 3, 0, bmp.bmWidth / 3, bmp.bmHeight, SRCCOPY);
-		}
-		DeleteDC(hMemDC);
-		}
-		if (show2 == true)
-		{
-=======
         // ──────────────────────────────────────────────────
     case WM_COMMAND:
         switch (LOWORD(wParam))
@@ -304,7 +289,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
         }
         return 0;
 
-        // ──────────────────────────────────────────────────
+   
     case WM_KEYDOWN:
         switch (wParam)
         {
@@ -343,9 +328,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
         }
         }
         return 0;
->>>>>>> 0b44e00947150fd6fbf6f96f199d6e42391bd322
 
-        // ──────────────────────────────────────────────────
+    
     case WM_LBUTTONDOWN:
         lmbHeld = true;
         dragDone = false;

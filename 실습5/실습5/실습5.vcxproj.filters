@@ -27,6 +27,9 @@
     <ClCompile Include="5-4.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
+    <ClCompile Include="5-5.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Image Include="..\..\..\..\Downloads\dog.bmp">
@@ -54,6 +57,9 @@
       <Filter>리소스 파일</Filter>
     </Image>
     <Image Include="num64.bmp">
+      <Filter>리소스 파일</Filter>
+    </Image>
+    <Image Include="cat.gif">
       <Filter>리소스 파일</Filter>
     </Image>
   </ItemGroup>
