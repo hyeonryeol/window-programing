@@ -122,7 +122,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
         // 스프라이트
         if (!img[chaCount].IsNull()) {
             HDC imgDC = img[chaCount].GetDC();
-            TransparentBlt(memDC, xPos, yPos, 100, 100,
+            TransparentBlt(memDC, xPos, yPos, 300, 300,
                 imgDC, 0, 0,
                 img[chaCount].GetWidth(),
                 img[chaCount].GetHeight(),
