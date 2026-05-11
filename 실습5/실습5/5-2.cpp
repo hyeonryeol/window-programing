@@ -127,8 +127,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		StretchBlt(hdc, 0, 0, rect.right, rect.bottom, hMemDC, 0, 0, bmp.bmWidth, bmp.bmHeight, SRCCOPY); //--- 윈도우 크기에 맞기 비트
 		if (divide == true)
 		{
-
-			BitBlt(hdc, 0, 0, rect.right / 3, rect.bottom / 3, hMemDC, 0, 0, SRCCOPY);
+			StretchBlt(hdc, rect.right / 3, 0, rect.right / 3, rect.bottom, hMemDC, 0, 0, bmp.bmWidth / 3, bmp.bmHeight, SRCCOPY);
+			StretchBlt(hdc, 0, 0, rect.right / 3, rect.bottom, hMemDC, bmp.bmWidth / 3, 0, bmp.bmWidth / 3, bmp.bmHeight, SRCCOPY);
+			StretchBlt(hdc, 2*rect.right / 3, 0, rect.right / 3, rect.bottom, hMemDC, 2*bmp.bmWidth / 3, 0, bmp.bmWidth / 3, bmp.bmHeight, SRCCOPY);
 		}
 		DeleteDC(hMemDC);
 		}
