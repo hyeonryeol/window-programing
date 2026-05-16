@@ -30,6 +30,9 @@
     <ClCompile Include="5-5.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
+    <ClCompile Include="5-6.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Image Include="..\..\..\..\Downloads\dog.bmp">
@@ -56,9 +59,6 @@
     <Image Include="num64.bmp">
       <Filter>리소스 파일</Filter>
     </Image>
-    <Image Include="bitmap1.bmp">
-      <Filter>리소스 파일</Filter>
-    </Image>
     <Image Include="..\..\..\..\OneDrive\Desktop\tuk 2학년\goranirun1.png">
       <Filter>리소스 파일</Filter>
     </Image>
@@ -66,9 +66,6 @@
       <Filter>리소스 파일</Filter>
     </Image>
     <Image Include="..\..\..\..\OneDrive\Desktop\tuk 2학년\goranirun3.png">
-      <Filter>리소스 파일</Filter>
-    </Image>
-    <Image Include="bitmap2.bmp">
       <Filter>리소스 파일</Filter>
     </Image>
     <Image Include="..\..\..\..\OneDrive\Desktop\tuk 2학년\goranirun4.png">
@@ -111,6 +108,21 @@
       <Filter>리소스 파일</Filter>
     </Image>
     <Image Include="goraniscream3.png">
+      <Filter>리소스 파일</Filter>
+    </Image>
+    <Image Include="packman1.png">
+      <Filter>리소스 파일</Filter>
+    </Image>
+    <Image Include="packman2.png">
+      <Filter>리소스 파일</Filter>
+    </Image>
+    <Image Include="background.bmp">
+      <Filter>리소스 파일</Filter>
+    </Image>
+    <Image Include="packmanD.png">
+      <Filter>리소스 파일</Filter>
+    </Image>
+    <Image Include="packmanD2.png">
       <Filter>리소스 파일</Filter>
     </Image>
   </ItemGroup>
