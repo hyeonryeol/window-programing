@@ -159,6 +159,9 @@
     <Image Include="goranirun3.png" />
     <Image Include="goranirun4.png" />
     <Image Include="goranirun5.png" />
+    <Image Include="goraniscream1.png" />
+    <Image Include="goraniscream2.png" />
+    <Image Include="goraniscream3.png" />
     <Image Include="mouse1.png" />
     <Image Include="mouse2.png" />
     <Image Include="mouse3.png" />

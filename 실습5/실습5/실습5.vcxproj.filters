@@ -38,9 +38,6 @@
     <Image Include="dog.bmp.bmp">
       <Filter>리소스 파일</Filter>
     </Image>
-    <Image Include="gorani.bmp">
-      <Filter>리소스 파일</Filter>
-    </Image>
     <Image Include="num2.bmp">
       <Filter>리소스 파일</Filter>
     </Image>
@@ -102,6 +99,18 @@
       <Filter>리소스 파일</Filter>
     </Image>
     <Image Include="mouse3.png">
+      <Filter>리소스 파일</Filter>
+    </Image>
+    <Image Include="gorani.bmp">
+      <Filter>리소스 파일</Filter>
+    </Image>
+    <Image Include="goraniscream1.png">
+      <Filter>리소스 파일</Filter>
+    </Image>
+    <Image Include="goraniscream2.png">
+      <Filter>리소스 파일</Filter>
+    </Image>
+    <Image Include="goraniscream3.png">
       <Filter>리소스 파일</Filter>
     </Image>
   </ItemGroup>
