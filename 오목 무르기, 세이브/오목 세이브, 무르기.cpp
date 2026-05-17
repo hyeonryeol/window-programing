@@ -1,7 +1,7 @@
 #include <iostream>
-#include <fstream>   // 추가
-#include <stack>     // 추가
-#include <string>    // 추가
+#include <fstream>   // [추가]
+#include <stack>     // [추가]
+#include <string>    // [추가]
 using namespace std;
 
 char board[19][19];
@@ -12,7 +12,8 @@ int garowboard[19];
 int serowboard[19];
 int garobboard[19];
 int serobboard[19];
-// 게임 상태 스냅샷 구조체
+
+// [추가] 게임 상태 스냅샷 구조체
 struct GameState {
 	char board[19][19];
 	bool turn;
@@ -20,10 +21,10 @@ struct GameState {
 	int bstonecount;
 };
 
-stack<GameState> undoStack;   // 무르기용 스택
-stack<GameState> redoStack;   // 되돌리기용 스택
+stack<GameState> undoStack;   // [추가] 무르기용 스택
+stack<GameState> redoStack;   // [추가] 되돌리기용 스택
 
-// 현재 상태를 스냅샷으로 캡처
+// [추가] 현재 상태를 스냅샷으로 캡처
 GameState captureState()
 {
 	GameState s;
@@ -36,7 +37,7 @@ GameState captureState()
 	return s;
 }
 
-// 스냅샷을 현재 상태로 복원
+// [추가] 스냅샷을 현재 상태로 복원
 void restoreState(const GameState& s)
 {
 	for (int i = 0; i < 19; i++)
@@ -47,7 +48,7 @@ void restoreState(const GameState& s)
 	bstonecount = s.bstonecount;
 }
 
-// 파일로 저장
+// [추가] 파일로 저장
 void saveToFile()
 {
 	ofstream f("omok_save.txt");
@@ -61,6 +62,7 @@ void saveToFile()
 	}
 	cout << "저장 완료: omok_save.txt" << endl;
 }
+
 void printboard()
 {
 	for (int i = 0; i < 19; ++i)
@@ -70,8 +72,7 @@ void printboard()
 		cout << endl;
 	}
 }
-
-// 파일에서 불러오기
+// [추가] 파일에서 불러오기
 void loadFromFile()
 {
 	ifstream f("omok_save.txt");
@@ -89,7 +90,6 @@ void loadFromFile()
 			board[i][j] = row[j];
 	}
 
-	// 불러온 후 스택 초기화
 	while (!undoStack.empty()) undoStack.pop();
 	while (!redoStack.empty()) redoStack.pop();
 
@@ -110,12 +110,10 @@ void position(int garo, int sero, char stone)
 	board[garo][sero] = stone;
 }
 
-// 수정 1 2 3 4 반영
 void printmulti()
 {
 	cout << "2번 구현" << endl;
 
-	// 가로줄: 각 줄별 흰 검 최대 연속 좌표 출력, 동률이면 둘 다 출력
 	for (int i = 0; i < 19; ++i)
 	{
 		int wmulti = 0, wmax = 0, wstart = 0, wbest = 0;
@@ -141,7 +139,6 @@ void printmulti()
 		cout << i << "번째 가로줄: ";
 		if (wmax == 0 && bmax == 0) { cout << "없음" << endl; continue; }
 
-		// 흰 돌 출력
 		if (wmax > 0)
 		{
 			cout << "흰 돌 " << wmax << "개 ";
@@ -149,7 +146,6 @@ void printmulti()
 				cout << "(" << wbest + k << "," << i << ") ";
 		}
 		if (wmax > 0 && bmax > 0) cout << "| ";
-		// 검은 돌 출력 (동률이어도 출력)
 		if (bmax > 0)
 		{
 			cout << "검은 돌 " << bmax << "개 ";
@@ -159,7 +155,6 @@ void printmulti()
 		cout << endl;
 	}
 
-	// 세로줄: 각 줄별 흰 검 최대 연속 좌표 출력, 동률이면 둘 다 출력
 	for (int i = 0; i < 19; ++i)
 	{
 		int wmulti = 0, wmax = 0, wstart = 0, wbest = 0;
@@ -201,8 +196,6 @@ void printmulti()
 		cout << endl;
 	}
 }
-
-// 기능 1 과 기능 2 추가
 
 struct StreakResult {
 	int count;
@@ -461,39 +454,32 @@ void crossline()
 	}
 }
 
-// 흰 돌과 검은 돌 개수를 매 차례마다 둘 다 출력하는 함수
 void printAllCounts()
 {
-	// 흰 돌 가로
 	for (int i = 0; i < 19; ++i) {
 		garowboard[i] = 0;
 		for (int j = 0; j < 19; ++j)
 			if (board[i][j] == '0') garowboard[i]++;
 	}
-	// 검은 돌 가로
 	for (int i = 0; i < 19; ++i) {
 		garobboard[i] = 0;
 		for (int j = 0; j < 19; ++j)
 			if (board[i][j] == 'X') garobboard[i]++;
 	}
-	// 출력 (가로)
 	for (int i = 0; i < 19; ++i)
 		cout << i << "번째 가로줄 흰 돌:" << garowboard[i]
 		<< " 검은 돌:" << garobboard[i] << endl;
 
-	// 흰 돌 세로
 	for (int i = 0; i < 19; ++i) {
 		serowboard[i] = 0;
 		for (int j = 0; j < 19; ++j)
 			if (board[j][i] == '0') serowboard[i]++;
 	}
-	// 검은 돌 세로
 	for (int i = 0; i < 19; ++i) {
 		serobboard[i] = 0;
 		for (int j = 0; j < 19; ++j)
 			if (board[j][i] == 'X') serobboard[i]++;
 	}
-	// 출력 (세로)
 	for (int i = 0; i < 19; ++i)
 		cout << i << "번째 세로줄 흰 돌:" << serowboard[i]
 		<< " 검은 돌:" << serobboard[i] << endl;
@@ -503,40 +489,39 @@ int main()
 {
 	inboard();
 	printboard();
-	cout << "[명령] 좌표 입력: x y | S: 저장 | L: 불러오기 | U: 무르기 | R: 되돌리기" << endl;
+	cout << "[명령] 좌표 입력: x y | S: 저장 | L: 불러오기 | U: 무르기 | R: 되돌리기" << endl; // [추가]
 
 	while (1)
 	{
 		if (turn == false)
-			cout << "흰 돌을 놓을 위치를 입력하세요 (명령어 S/L/U/R 가능): ";
+			cout << "검은 돌을 놓을 위치를 입력하세요.:";
 		else
-			cout << "검은 돌을 놓을 위치를 입력하세요 (명령어 S/L/U/R 가능): ";
+			cout << "흰 돌을 놓을 위치를 입력하세요.:";
 
+		// [변경] string으로 먼저 받아 S/L/U/R 처리, 아니면 기존 로직 유지
 		string cmd;
 		cin >> cmd;
 
-		// 저장
+		// [추가] 저장
 		if (cmd == "S" || cmd == "s")
 		{
 			saveToFile();
 			continue;
 		}
-		// 불러오기
+		// [추가] 불러오기
 		else if (cmd == "L" || cmd == "l")
 		{
 			loadFromFile();
 			continue;
 		}
-		// 무르기 (U)
+		// [추가] 무르기
 		else if (cmd == "U" || cmd == "u")
 		{
 			if (undoStack.empty())
-			{
 				cout << "무를 수 있는 수가 없습니다." << endl;
-			}
 			else
 			{
-				redoStack.push(captureState());   // 현재 상태를 되돌리기 스택에 보관
+				redoStack.push(captureState());
 				restoreState(undoStack.top());
 				undoStack.pop();
 				cout << "한 수 무르기 완료." << endl;
@@ -544,16 +529,14 @@ int main()
 			}
 			continue;
 		}
-		// 되돌리기 (R)
+		// [추가] 되돌리기
 		else if (cmd == "R" || cmd == "r")
 		{
 			if (redoStack.empty())
-			{
 				cout << "되돌릴 수 있는 수가 없습니다." << endl;
-			}
 			else
 			{
-				undoStack.push(captureState());   // 현재 상태를 무르기 스택에 보관
+				undoStack.push(captureState());
 				restoreState(redoStack.top());
 				redoStack.pop();
 				cout << "되돌리기 완료." << endl;
@@ -561,46 +544,89 @@ int main()
 			}
 			continue;
 		}
-		// 좌표 입력
-		else
+
+		// [변경] 기존 int x 입력을 string->stoi로 변환, 나머지 로직은 원본 유지
+		int x, y;
+		try { x = stoi(cmd); }
+		catch (...) { cout << "정상적인 입력이 아닙니다." << endl; cin.clear(); cin.ignore(1000, '\n'); continue; }
+
+		if (!(cin >> y)) { cout << "정상적인 입력이 아닙니다." << endl; cin.clear(); cin.ignore(1000, '\n'); continue; }
+
+		if (turn == false)
 		{
-			int x, y;
-			try { x = stoi(cmd); }
-			catch (...) { cout << "정상적인 입력이 아닙니다." << endl; cin.clear(); cin.ignore(1000, '\n'); continue; }
-
-			if (!(cin >> y)) { cout << "정상적인 입력이 아닙니다." << endl; cin.clear(); cin.ignore(1000, '\n'); continue; }
-
-			if (x >= 19 || y >= 19 || x < 0 || y < 0)
+			if (cin.fail())
 			{
 				cout << "정상적인 입력이 아닙니다." << endl;
-				continue;
+				cin.clear();
+				cin.ignore(1000, '\n');
 			}
-
-			if (board[y][x] != '+')
+			else
 			{
-				cout << "이미 돌이 놓여있습니다." << endl;
-				continue;
+				if (x < 19 && y < 19)
+				{
+					if (board[y][x] != '+')
+						cout << "이미 돌이 놓여있습니다." << endl;
+					else
+					{
+						// [추가] 돌 놓기 전 상태 저장
+						undoStack.push(captureState());
+						while (!redoStack.empty()) redoStack.pop();
+
+						position(y, x, 'X');
+						printboard();
+						bstonecount++;
+						cout << "흰 돌의 개수: " << wstonecount
+							<< " 검은돌의 개수: " << bstonecount << endl;
+
+						printAllCounts();
+						printmulti();
+						crossline();
+						feature1_printMaxGap();
+						feature2_printBlock('X');
+						turn = true;
+					}
+				}
+				else
+					cout << "정상적인 입력이 아닙니다." << endl;
 			}
+		}
+		else
+		{
+			if (cin.fail())
+			{
+				cout << "정상적인 입력이 아닙니다." << endl;
+				cin.clear();
+				cin.ignore(1000, '\n');
+			}
+			else
+			{
+				if (x < 19 && y < 19)
+				{
+					if (board[y][x] != '+')
+						cout << "이미 돌이 놓여있습니다." << endl;
+					else
+					{
+						// [추가] 돌 놓기 전 상태 저장
+						undoStack.push(captureState());
+						while (!redoStack.empty()) redoStack.pop();
 
-			// 돌 놓기 전 상태 저장 (무르기용)
-			undoStack.push(captureState());
-			while (!redoStack.empty()) redoStack.pop();   // 새 수를 두면 되돌리기 스택 초기화
+						position(y, x, '0');
+						printboard();
+						wstonecount++;
+						cout << "흰 돌의 개수: " << wstonecount
+							<< " 검은돌의 개수: " << bstonecount << endl;
 
-			char stone = (turn == false) ? '0' : 'X';
-			position(y, x, stone);
-			printboard();
-
-			if (stone == '0') wstonecount++;
-			else              bstonecount++;
-
-			cout << "흰 돌의 개수: " << wstonecount << " 검은돌의 개수: " << bstonecount << endl;
-			printAllCounts();
-			printmulti();
-			crossline();
-			feature1_printMaxGap();
-			feature2_printBlock(stone);
-
-			turn = !turn;
+						printAllCounts();
+						printmulti();
+						crossline();
+						feature1_printMaxGap();
+						feature2_printBlock('0');
+						turn = false;
+					}
+				}
+				else
+					cout << "정상적인 입력이 아닙니다." << endl;
+			}
 		}
 	}
 }

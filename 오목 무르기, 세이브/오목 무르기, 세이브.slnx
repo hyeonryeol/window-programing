@@ -3,5 +3,5 @@
     <Platform Name="x64" />
     <Platform Name="x86" />
   </Configurations>
-  <Project Path="오목 무르기, 세이브.vcxproj" />
+  <Project Path="오목 무르기, 세이브.vcxproj" Id="af0fa973-1ddd-479e-b336-0a79d157e7e6" />
 </Solution>

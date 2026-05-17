@@ -239,7 +239,7 @@ void DrawBoard(HDC hdc)
                 SelectObject(hdc, old);
                 DeleteObject(br);
             }
-            else if (val == -1)     // 장애물 — Rectangle
+            else if (val == -1)     // 장애물 
             {
                 HBRUSH br = CreateSolidBrush(RGB(100, 149, 237));
                 HBRUSH old = (HBRUSH)SelectObject(hdc, br);
@@ -247,7 +247,7 @@ void DrawBoard(HDC hdc)
                 SelectObject(hdc, old);
                 DeleteObject(br);
             }
-            else                    // 숫자 — 비트맵
+            else                    // 숫자 비트맵
             {
                 HDC     memDC = CreateCompatibleDC(hdc);
                 HBITMAP oldBmp = (HBITMAP)SelectObject(memDC, g_numBmps[GetBmpIndex(val)]);

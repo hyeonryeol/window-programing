@@ -143,11 +143,16 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="5-6.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="5-7.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="..\..\..\..\Downloads\dog.bmp" />
+    <Image Include="..\..\..\..\OneDrive\Desktop\boom.png" />
+    <Image Include="..\..\..\..\OneDrive\Desktop\boom2.png" />
+    <Image Include="..\..\..\..\OneDrive\Desktop\ground.png" />
+    <Image Include="..\..\..\..\OneDrive\Desktop\sky.png" />
     <Image Include="..\..\..\..\OneDrive\Desktop\tuk 2학년\goranirun1.png" />
     <Image Include="..\..\..\..\OneDrive\Desktop\tuk 2학년\goranirun2.png" />
     <Image Include="..\..\..\..\OneDrive\Desktop\tuk 2학년\goranirun3.png" />
