@@ -218,7 +218,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
     switch (msg) {
 
     case WM_CREATE: {
-        // ↓↓↓ 이미지 파일명 입력 (L"파일명.png") ↓↓↓
+    
         ImgLoad(imgBgSky, L"sky.png");   // 하늘 배경
         ImgLoad(imgBgGnd, L"ground.png");   // 땅 배경
         ImgLoad(imgCharF[0], L"goranirun1.png");   // 캐릭터 달리기 프레임0
@@ -231,7 +231,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
         ImgLoad(imgMonF[1][1], L"packmanD2.png");   // 공중 몬스터 프레임1
         ImgLoad(imgExpF[0], L"boom2.png");   // 폭발 프레임0
         ImgLoad(imgExpF[1], L"boom.png");   // 폭발 프레임1
-        // ↑↑↑ 이미지 파일명 입력 ↑↑↑
+       
 
         HDC hdc = GetDC(hwnd);
         hBufDC = CreateCompatibleDC(hdc);

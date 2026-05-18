@@ -197,6 +197,15 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
                     0, 0,
                     imgGorani[chaCount].GetWidth(),
                     imgGorani[chaCount].GetHeight());
+                if (nomouserand == 1) { xPos += 5; yPos -= 5; }
+                else if (nomouserand == 2) { xPos += 5; yPos += 5; }
+                else if (nomouserand == 3) { xPos -= 5; yPos += 5; }
+                else if (nomouserand == 4) { xPos -= 5; yPos -= 5; }
+
+                if (xPos > rect.right)        xPos = -300;
+                if (xPos + 300 < rect.left)   xPos = rect.right;
+                if (yPos + 300 < 0)           yPos = rect.bottom;
+                if (yPos > rect.bottom)       yPos = -300;
             }
         }
         else
@@ -225,7 +234,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
     case WM_TIMER:
     {
         // 랜덤 이동 (마우스/먹이 없을 때)
-        if (mouse == false && !foodVisible)
+        if (mouse == false && !foodVisible && gorani == false)
         {
             if (nomouserand == 1) { xPos += 5; yPos -= 5; }
             else if (nomouserand == 2) { xPos += 5; yPos += 5; }

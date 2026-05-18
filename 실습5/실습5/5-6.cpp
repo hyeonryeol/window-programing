@@ -15,6 +15,7 @@ const wchar_t WINDOW_TITLE[] = L"실습 5-6";
 PAINTSTRUCT ps;
 static RECT rect;
 
+int speed = 5;
 static CImage imgsD[2];
 static int     packmanSize = 100;
 static COLORREF packmanColor = RGB(255, 220, 0);
@@ -320,10 +321,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
     case WM_TIMER:
     {
         // 팩맨 이동
-        if (packmanmove == 1) xPos += 5;
-        if (packmanmove == 2) xPos -= 5;
-        if (packmanmove == 3) yPos -= 5;
-        if (packmanmove == 4) yPos += 5;
+        if (packmanmove == 1) xPos += speed;
+        if (packmanmove == 2) xPos -= speed;
+        if (packmanmove == 3) yPos -= speed;
+        if (packmanmove == 4) yPos += speed;
 
         // 화면 경계
         if (xPos > rect.right)            xPos = -packmanSize;
@@ -396,6 +397,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
                     if (obHp[j] <= 0) {
                         obVisible[j] = false;
                         int boost = obSize[j] / 20 + 5;
+                        
+                        speed += 5;
                         timerInterval = max(30, timerInterval - boost);
                         KillTimer(hWnd, 1);
                         SetTimer(hWnd, 1, timerInterval, nullptr);
