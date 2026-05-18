@@ -18,12 +18,6 @@ const wchar_t WINDOW_TITLE[] = L"실습 5-4";
 const int CELL = 70;
 const int OX = 30;
 const int OY = 50;
-// ── 슬라이딩 애니메이션 ──────────────────────────────────
-bool  animOn = false;
-int   animFR, animFC, animTR, animTC;
-float animT = 0.f;
-#define TIMER_ANIM 1
-static const float ANIM_SPEED = 1.0f / 18.0f;   // 18프레임 슬라이딩
 
 int  g_cells[6][6];
 int  g_targetScore = 64;
@@ -40,14 +34,7 @@ HBITMAP   g_numBmps[6];
 
 LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
 
-
-void StartAnim(HWND hWnd, int fr, int fc, int tr, int tc) {
-    animOn = true;
-    animFR = fr; animFC = fc;
-    animTR = tr; animTC = tc;
-    animT = 0.f;
-    SetTimer(hWnd, TIMER_ANIM, 16, nullptr);
-}
+    
 void LoadNumberBitmaps()
 {
     const wchar_t* files[] = {
