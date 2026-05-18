@@ -20,19 +20,15 @@ struct Gamestate {
 	int bstonecount;
 };
 
-stack <Gamestate> undostack;
-stack <Gamestate> redostack;
+stack<Gamestate> undostack;
+stack<Gamestate> redostack;
 
 Gamestate capture()
 {
 	Gamestate s;
 	for (int i = 0; i < 19; ++i)
-	{
 		for (int j = 0; j < 19; ++j)
-		{
 			s.board[i][j] = board[i][j];
-		}
-	}
 	s.turn = turn;
 	s.wstonecount = wstonecount;
 	s.bstonecount = bstonecount;
@@ -48,11 +44,10 @@ void restorestate(const Gamestate& s)
 	wstonecount = s.wstonecount;
 	bstonecount = s.bstonecount;
 }
-
 void savetofile()
 {
 	ofstream f("omok_save.txt");
-	if (!f) { cout << "파일 저장 실패" << endl; return; }
+	if (!f) { cout << "파일 저장 오류" << endl; return; }
 	f << (int)turn << " " << wstonecount << " " << bstonecount << "\n";
 	for (int i = 0; i < 19; ++i)
 	{
@@ -60,9 +55,8 @@ void savetofile()
 			f << board[i][j];
 		f << "\n";
 	}
-	cout << "저장 완료: omok_save.txt" << endl;
+	cout << "저장완료" << endl;
 }
-
 void inboard()
 {
 	for (int i = 0; i < 19; ++i)
@@ -79,16 +73,14 @@ void printboard()
 		cout << endl;
 	}
 }
-
 void loadfromfile()
 {
 	ifstream f("omok_save.txt");
-	if (!f) { cout << "저장 파일이 없습니다." << endl; return; }
-
+	if (!f) { cout << "파일 불러오기 오류" << endl; return; }
+	
 	int t;
 	f >> t >> wstonecount >> bstonecount;
-	turn = (bool)t;
-
+	turn=(bool)t;
 	string row;
 	for (int i = 0; i < 19; ++i)
 	{
@@ -102,7 +94,6 @@ void loadfromfile()
 	cout << "불러오기 완료" << endl;
 	printboard();
 }
-
 void position(int garo, int sero, char stone)
 {
 	board[garo][sero] = stone;
@@ -501,66 +492,14 @@ int main()
 {
 	inboard();
 	printboard();
-	cout << "좌표입력: x y | S:저장 | L:불러오기| U: 무르기 | R:되돌리기" << endl;
+
 	while (1)
 	{
 		if (turn == false)
-
-			cout << "검은 돌을 놓을 위치를 입력하세요.:";
-		else
+		{
 			cout << "흰 돌을 놓을 위치를 입력하세요.:";
-
-		string cmd;
-		cin >> cmd;
-		if (cmd == "S")
-		{
-			savetofile();
-			continue;
-		}
-		else if (cmd == "L")
-		{
-			loadfromfile();
-			continue;
-		}
-		else if (cmd == "U")
-		{
-			if (undostack.empty())
-				cout << "무를 수가 없음." << endl;
-			else
-			{
-				redostack.push(capture());
-				restorestate(undostack.top());
-				undostack.pop();
-				cout << "한 수 무르기 완료" << endl;
-				printboard();
-			}
-			continue;
-
-		}
-		else if (cmd == "R")
-		{
-			if (redostack.empty())
-				cout << "무를 수가 없음." << endl;
-			else
-			{
-				undostack.push(capture());
-				restorestate(redostack.top());
-				redostack.pop();
-				cout << "한 수 무르기 완료" << endl;
-				printboard();
-			}
-			continue;
-
-		}
 			int x, y;
-			try { x = stoi(cmd); }
-			catch (...) { cout << "정상적인 입력이 아닙니다." << endl; cin.clear(); cin.ignore(1000, '\n'); continue; }
-
-			if (!(cin >> y)) { cout << "정상적인 입력이 아닙니다." << endl; cin.clear(); cin.ignore(1000, '\n'); continue; }
-		if (turn == false)
-		{
-
-
+			cin >> x >> y;
 			if (cin.fail())
 			{
 				cout << "정상적인 입력이 아닙니다." << endl;
@@ -575,47 +514,6 @@ int main()
 						cout << "이미 돌이 놓여있습니다." << endl;
 					else
 					{
-						undostack.push(capture());
-						while (!redostack.empty()) redostack.pop();
-
-						position(y, x, 'X');
-						printboard();
-						bstonecount++;
-						cout << "흰 돌의 개수: " << wstonecount
-							<< " 검은돌의 개수: " << bstonecount << endl;
-
-						printAllCounts();   // 흰 돌과 검은 돌 개수 둘 다 출력
-						printmulti();
-						crossline();
-						feature1_printMaxGap();
-						feature2_printBlock('X');
-						turn = true;
-					}
-				}
-				else
-					cout << "정상적인 입력이 아닙니다." << endl;
-			}
-		}
-		else
-		{
-
-			if (cin.fail())
-			{
-				cout << "정상적인 입력이 아닙니다." << endl;
-				cin.clear();
-				cin.ignore(1000, '\n');
-			}
-			else
-			{
-				if (x < 19 && y < 19)
-				{
-					if (board[y][x] != '+')
-						cout << "이미 돌이 놓여있습니다." << endl;
-					else
-					{
-						undostack.push(capture());
-						while (!redostack.empty()) redostack.pop();
-
 						position(y, x, '0');
 						printboard();
 						wstonecount++;
@@ -627,6 +525,43 @@ int main()
 						crossline();
 						feature1_printMaxGap();
 						feature2_printBlock('0');
+						turn = true;
+					}
+				}
+				else
+					cout << "정상적인 입력이 아닙니다." << endl;
+			}
+		}
+		else
+		{
+			cout << "검은 돌을 놓을 위치를 입력하세요.:";
+			int x, y;
+			cin >> x >> y;
+			if (cin.fail())
+			{
+				cout << "정상적인 입력이 아닙니다." << endl;
+				cin.clear();
+				cin.ignore(1000, '\n');
+			}
+			else
+			{
+				if (x < 19 && y < 19)
+				{
+					if (board[y][x] != '+')
+						cout << "이미 돌이 놓여있습니다." << endl;
+					else
+					{
+						position(y, x, 'X');
+						printboard();
+						bstonecount++;
+						cout << "흰 돌의 개수: " << wstonecount
+							<< " 검은돌의 개수: " << bstonecount << endl;
+
+						printAllCounts();   // 흰 돌과 검은 돌 개수 둘 다 출력
+						printmulti();
+						crossline();
+						feature1_printMaxGap();
+						feature2_printBlock('X');
 						turn = false;
 					}
 				}
