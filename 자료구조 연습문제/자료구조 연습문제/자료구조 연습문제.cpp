@@ -1,7 +1,8 @@
 ﻿#include <iostream>
 #include <fstream>
-#include <string>
 #include <stack>
+#include <string>
+
 using namespace std;
 
 char board[19][19];
@@ -18,12 +19,12 @@ struct Gamestate {
 	bool turn;
 	int wstonecount;
 	int bstonecount;
-};
 
+};
 stack<Gamestate> undostack;
 stack<Gamestate> redostack;
 
-Gamestate capture()
+Gamestate capturestate()
 {
 	Gamestate s;
 	for (int i = 0; i < 19; ++i)
@@ -33,6 +34,7 @@ Gamestate capture()
 	s.wstonecount = wstonecount;
 	s.bstonecount = bstonecount;
 	return s;
+
 }
 
 void restorestate(const Gamestate& s)
@@ -44,6 +46,7 @@ void restorestate(const Gamestate& s)
 	wstonecount = s.wstonecount;
 	bstonecount = s.bstonecount;
 }
+
 void savetofile()
 {
 	ofstream f("omok_save.txt");
@@ -56,6 +59,7 @@ void savetofile()
 		f << "\n";
 	}
 	cout << "저장완료" << endl;
+
 }
 void inboard()
 {
@@ -76,11 +80,10 @@ void printboard()
 void loadfromfile()
 {
 	ifstream f("omok_save.txt");
-	if (!f) { cout << "파일 불러오기 오류" << endl; return; }
-	
+	if (!f) { cout << "파일 로드 오류" << endl; return; }
 	int t;
 	f >> t >> wstonecount >> bstonecount;
-	turn=(bool)t;
+	turn = (bool)t;
 	string row;
 	for (int i = 0; i < 19; ++i)
 	{
@@ -88,11 +91,11 @@ void loadfromfile()
 		for (int j = 0; j < 19; ++j)
 			board[i][j] = row[j];
 	}
+	cout << "로드완료" << endl;
 
 	while (!undostack.empty()) undostack.pop();
 	while (!redostack.empty()) redostack.pop();
-	cout << "불러오기 완료" << endl;
-	printboard();
+
 }
 void position(int garo, int sero, char stone)
 {
@@ -492,14 +495,75 @@ int main()
 {
 	inboard();
 	printboard();
+	cout << "돌 놓을 위치: x y | S:저장 | L: 로드| U: 무르기| R: 되돌리기" << endl;
 
 	while (1)
 	{
 		if (turn == false)
 		{
-			cout << "흰 돌을 놓을 위치를 입력하세요.:";
-			int x, y;
-			cin >> x >> y;
+			cout << "검은 돌을 놓을 위치를 입력하세요.:";
+		}
+		else
+		{
+			cout << "흰 돌을 놓을 위치를 입력하세요:";
+		}
+		string cmd;
+		cin >> cmd;
+		if (cmd == "S")
+		{
+			savetofile();
+			continue;
+		}
+		else if (cmd == "L")
+		{
+			loadfromfile();
+			continue;
+		}
+		else if (cmd == "U")
+		{
+			if (undostack.empty()) { cout << "무를 수가 없습니다." << endl; continue; }
+
+			else
+			{
+				redostack.push(capturestate());
+				restorestate(undostack.top());
+				undostack.pop();
+				cout << "무르기 완" << endl;
+				printboard();
+			}
+			continue;
+		}
+		else if (cmd == "R")
+		{
+			if (redostack.empty()) { cout << "되돌릴 수가 없습니다." << endl; continue; }
+
+			else
+			{
+				undostack.push(capturestate());
+				restorestate(redostack.top());
+				redostack.pop();
+				cout << "되돌리기 완" << endl;
+				printboard();
+			}
+			continue;
+		}
+
+		int x, y;
+		try { x = stoi(cmd); }
+		catch (...) {
+			cout << "정상적인 입력이 아닙니다." << endl;
+			cin.clear();
+			cin.ignore(1000, '\n');
+			continue;
+		}
+		if (!(cin >> y)) {
+			cout << "정상적인 입력이 아닙니다." << endl;
+			cin.clear();
+			cin.ignore(1000, '\n');
+			continue;
+		}
+		if (turn == false)
+		{
 			if (cin.fail())
 			{
 				cout << "정상적인 입력이 아닙니다." << endl;
@@ -514,9 +578,11 @@ int main()
 						cout << "이미 돌이 놓여있습니다." << endl;
 					else
 					{
-						position(y, x, '0');
+						undostack.push(capturestate());
+						while (!redostack.empty()) redostack.pop();
+						position(y, x, 'X');
 						printboard();
-						wstonecount++;
+						bstonecount++;
 						cout << "흰 돌의 개수: " << wstonecount
 							<< " 검은돌의 개수: " << bstonecount << endl;
 
@@ -534,9 +600,7 @@ int main()
 		}
 		else
 		{
-			cout << "검은 돌을 놓을 위치를 입력하세요.:";
-			int x, y;
-			cin >> x >> y;
+
 			if (cin.fail())
 			{
 				cout << "정상적인 입력이 아닙니다." << endl;
@@ -551,9 +615,11 @@ int main()
 						cout << "이미 돌이 놓여있습니다." << endl;
 					else
 					{
-						position(y, x, 'X');
+						undostack.push(capturestate());
+						while (!redostack.empty()) redostack.pop();
+						position(y, x, '0');
 						printboard();
-						bstonecount++;
+						wstonecount++;
 						cout << "흰 돌의 개수: " << wstonecount
 							<< " 검은돌의 개수: " << bstonecount << endl;
 
