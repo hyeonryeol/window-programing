@@ -36,6 +36,9 @@
     <ClCompile Include="5-7.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
+    <ClCompile Include="5-8.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Image Include="..\..\..\..\Downloads\dog.bmp">
@@ -138,6 +141,69 @@
       <Filter>리소스 파일</Filter>
     </Image>
     <Image Include="..\..\..\..\OneDrive\Desktop\sky.png">
+      <Filter>리소스 파일</Filter>
+    </Image>
+    <Image Include="back.png">
+      <Filter>리소스 파일</Filter>
+    </Image>
+    <Image Include="ch1.png">
+      <Filter>리소스 파일</Filter>
+    </Image>
+    <Image Include="ch2.png">
+      <Filter>리소스 파일</Filter>
+    </Image>
+    <Image Include="ch3.png">
+      <Filter>리소스 파일</Filter>
+    </Image>
+    <Image Include="ch4.png">
+      <Filter>리소스 파일</Filter>
+    </Image>
+    <Image Include="ch5.png">
+      <Filter>리소스 파일</Filter>
+    </Image>
+    <Image Include="ch6.png">
+      <Filter>리소스 파일</Filter>
+    </Image>
+    <Image Include="back.bmp">
+      <Filter>리소스 파일</Filter>
+    </Image>
+    <Image Include="ch1.bmp">
+      <Filter>리소스 파일</Filter>
+    </Image>
+    <Image Include="ch2.bmp">
+      <Filter>리소스 파일</Filter>
+    </Image>
+    <Image Include="ch3.bmp">
+      <Filter>리소스 파일</Filter>
+    </Image>
+    <Image Include="ch4.bmp">
+      <Filter>리소스 파일</Filter>
+    </Image>
+    <Image Include="ch5.bmp">
+      <Filter>리소스 파일</Filter>
+    </Image>
+    <Image Include="ch6.bmp">
+      <Filter>리소스 파일</Filter>
+    </Image>
+    <Image Include="d1.bmp">
+      <Filter>리소스 파일</Filter>
+    </Image>
+    <Image Include="d2.bmp">
+      <Filter>리소스 파일</Filter>
+    </Image>
+    <Image Include="d3.bmp">
+      <Filter>리소스 파일</Filter>
+    </Image>
+    <Image Include="d4.bmp">
+      <Filter>리소스 파일</Filter>
+    </Image>
+    <Image Include="d5.bmp">
+      <Filter>리소스 파일</Filter>
+    </Image>
+    <Image Include="d6.bmp">
+      <Filter>리소스 파일</Filter>
+    </Image>
+    <Image Include="d7.bmp">
       <Filter>리소스 파일</Filter>
     </Image>
   </ItemGroup>

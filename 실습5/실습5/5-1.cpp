@@ -357,7 +357,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
             }
         }
         DeleteDC(hMemDC);
-        SelectObject(hdc, oldpen);
+        SelectObject(hMemDC, oldpen);
         // TODO: 여기에 그리기 코드 작성
 
         EndPaint(hWnd, &ps);
