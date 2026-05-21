@@ -23,6 +23,7 @@ int ox = 0;
 int oy = 0;
 bool click = false;
 bool paint = false;
+bool stopped[40] = {};
 HPEN  rectpen;
 int dbrect1[10] = {};
 int dbrect2[10] = {};
@@ -76,13 +77,13 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message,
         srand((unsigned)time(NULL));
         rectpen = (HPEN)CreatePen(PS_SOLID, 2, RGB(255, 0, 0));
         imgBg.Load(TEXT("back.bmp"));
-        g_img[0].Load(TEXT("ch1.bmp"));
-        g_img[1].Load(TEXT("ch2.bmp"));
-        g_img[2].Load(TEXT("ch3.bmp"));
-        g_img[3].Load(TEXT("ch4.bmp"));
-        g_img[4].Load(TEXT("ch5.bmp"));
-        g_img[5].Load(TEXT("ch6.bmp"));
-        SetTimer(hWnd, 1, 16, NULL);
+        g_img[0].Load(TEXT("ch1.png"));
+        g_img[1].Load(TEXT("ch2.png"));
+        g_img[2].Load(TEXT("ch3.png"));
+        g_img[3].Load(TEXT("ch4.png"));
+        g_img[4].Load(TEXT("ch5.png"));
+        g_img[5].Load(TEXT("ch6.png"));
+        SetTimer(hWnd, 1, 8, NULL);
         for (int i = 0; i < 40; ++i)
         {
             grand[i] = rand() % rect.right;
@@ -101,7 +102,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message,
         dy = GET_Y_LPARAM(lParam) ;
         dbrect1[1] = dx;
         dbrect2[1] = dy;
+        paint = false;
         click = true;
+        memset(stopped, 0, sizeof(stopped));
         return 0;
     }
     case WM_MOUSEMOVE: {
@@ -142,20 +145,29 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message,
             }
             for (int i = 0; i < 40; ++i)
             {
+                if (g_x[i] > rect.bottom - 30) g_x[i] = rect.bottom - 30;
 
-            if (g_x[i] > rect.bottom - 30) g_x[i] = rect.bottom - 30;
+                if (paint)
+                {
+                    int boxLeft = min(dbrect1[1], obrect1[1]);
+                    int boxRight = max(dbrect1[1], obrect1[1]);
+                    int boxBottom = max(dbrect2[1], obrect2[1]);
 
-            if (g_x[i] < obrect2[1] -30)
-            {
-                g_x[i] += 2;
+                    bool inXRange = (grand[i] < boxRight && grand[i] + 30 > boxLeft);
+                    bool reachedBottom = (g_x[i] + 30 == boxBottom);
+
+                    if (inXRange && reachedBottom)
+                    {
+                        g_x[i] = boxBottom - 30;
+                        stopped[i] = true;
+                    }
+                }
+
+                if (!stopped[i])
+                {
+                    g_x[i] += 1;
+                }
             }
-            else if (grand[i] >= dbrect1[1] && grand[i] <= obrect1[1])
-            {
-                g_x[i] += 2;
-            }
-            }
-           
-            
 
             InvalidateRect(hWnd, NULL, FALSE);
             return 0;
@@ -177,12 +189,13 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message,
             // 장애물 사각형 그리기
             if (paint == true)
             {
-
                 HPEN oldpen = (HPEN)SelectObject(hMemDC, rectpen);
-                Rectangle(hMemDC, dbrect1[1], dbrect2[1], obrect1[1], obrect2[1]);
-                
-                SelectObject(hMemDC, oldpen);
+                HBRUSH oldBrush = (HBRUSH)SelectObject(hMemDC, GetStockObject(NULL_BRUSH));
 
+                Rectangle(hMemDC, dbrect1[1], dbrect2[1], obrect1[1], obrect2[1]);
+
+                SelectObject(hMemDC, oldpen);
+                SelectObject(hMemDC, oldBrush);
             }
         // ── TransparentBlt로 배경색 제거하며 이미지 출력 ──────────────
         // HDC hImgDC = CreateCompatibleDC(hMemDC);
