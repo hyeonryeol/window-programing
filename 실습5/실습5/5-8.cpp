@@ -8,6 +8,10 @@
 LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
 
 #define IMG_COUNT1 6
+#define IMG_COUNT2 3
+CImage g_img2[IMG_COUNT2];
+int g_frame2 = 0;
+int g_frameTimer2 = 0;
 int g_frame = 0;
 int g_frameTimer = 0;
 CImage g_img[IMG_COUNT1];
@@ -30,6 +34,15 @@ int dbrect2[10] = {};
 int obrect1[10] = {};
 int obrect2[10] = {};
 int clickcount = 0;
+// 사각형 이동 관련
+bool g_movingRect = false;
+int  g_moveStartX = 0, g_moveStartY = 0;
+int  g_rectOrigX1 = 0, g_rectOrigY1 = 0;
+int  g_rectOrigX2 = 0, g_rectOrigY2 = 0;
+int  g_imgOrigX[40] = {};
+int  g_imgOrigY[40] = {};
+bool g_inMove[40] = {};  // 사각형과 함께 이동할 이미지 표시
+int g_speed[40] = {};   // 이미지별 낙하 속도
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
     LPSTR lpCmdLine, int nCmdShow)
 {
@@ -59,7 +72,13 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
     }
     return (int)msg.wParam;
 }
-
+bool PointInSelRect(int x, int y) {
+    int left = min(dbrect1[1], obrect1[1]);
+    int right = max(dbrect1[1], obrect1[1]);
+    int top = min(dbrect2[1], obrect2[1]);
+    int bottom = max(dbrect2[1], obrect2[1]);
+    return x >= left && x <= right && y >= top && y <= bottom;
+}
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message,
     WPARAM wParam, LPARAM lParam)
 {
@@ -83,10 +102,15 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message,
         g_img[3].Load(TEXT("ch4.png"));
         g_img[4].Load(TEXT("ch5.png"));
         g_img[5].Load(TEXT("ch6.png"));
+        g_img2[0].Load(TEXT("d1.png"));
+        g_img2[1].Load(TEXT("d2.png"));
+        g_img2[2].Load(TEXT("d3.png"));
         SetTimer(hWnd, 1, 8, NULL);
         for (int i = 0; i < 40; ++i)
         {
             grand[i] = rand() % rect.right;
+            g_speed[i] = rand() % 4 + 1;          // 속도 1~4 랜덤
+            g_x[i] = -(rand() % 600);         // 시작 y 위치 분산 (화면 위쪽부터)
         }
         HDC hdc = GetDC(hWnd);
         hMemDC = CreateCompatibleDC(hdc);
@@ -98,28 +122,81 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message,
 
   
     case WM_LBUTTONDOWN: {
-        dx = GET_X_LPARAM(lParam);
-        dy = GET_Y_LPARAM(lParam) ;
-        dbrect1[1] = dx;
-        dbrect2[1] = dy;
-        paint = false;
-        click = true;
-        memset(stopped, 0, sizeof(stopped));
+        int mx = GET_X_LPARAM(lParam);
+        int my = GET_Y_LPARAM(lParam);
+
+        if (paint && PointInSelRect(mx, my)) {
+            // 사각형 안을 클릭 → 이동 모드
+            g_movingRect = true;
+            g_moveStartX = mx;
+            g_moveStartY = my;
+            g_rectOrigX1 = dbrect1[1];  g_rectOrigY1 = dbrect2[1];
+            g_rectOrigX2 = obrect1[1];  g_rectOrigY2 = obrect2[1];
+
+            int left = min(dbrect1[1], obrect1[1]);
+            int right = max(dbrect1[1], obrect1[1]);
+            int top = min(dbrect2[1], obrect2[1]);
+            int bottom = max(dbrect2[1], obrect2[1]);
+
+            for (int i = 0; i < 40; i++) {
+                int cx = grand[i] + 15;   // 이미지 중심 x
+                int cy = g_x[i] + 15;   // 이미지 중심 y
+                g_inMove[i] = stopped[i]
+                    && cx >= left && cx <= right
+                    && cy >= top && cy <= bottom;
+                if (g_inMove[i]) {
+                    g_imgOrigX[i] = grand[i];
+                    g_imgOrigY[i] = g_x[i];
+                }
+            }
+        }
+        else {
+            // 사각형 밖 클릭 → 새 사각형 그리기
+            dx = mx;  dy = my;
+            dbrect1[1] = dx;  dbrect2[1] = dy;
+            paint = false;  click = true;
+            g_movingRect = false;
+            memset(stopped, 0, sizeof(stopped));
+            memset(g_inMove, 0, sizeof(g_inMove));
+        }
         return 0;
     }
     case WM_MOUSEMOVE: {
-        
         ox = GET_X_LPARAM(lParam);
-        oy = GET_Y_LPARAM(lParam) ;
-       
+        oy = GET_Y_LPARAM(lParam);
+
+        if (g_movingRect) {
+            int ddx = ox - g_moveStartX;
+            int ddy = oy - g_moveStartY;
+
+            // 사각형 이동
+            dbrect1[1] = g_rectOrigX1 + ddx;
+            dbrect2[1] = g_rectOrigY1 + ddy;
+            obrect1[1] = g_rectOrigX2 + ddx;
+            obrect2[1] = g_rectOrigY2 + ddy;
+
+            // 사각형 안 이미지 함께 이동
+            for (int i = 0; i < 40; i++) {
+                if (g_inMove[i]) {
+                    grand[i] = g_imgOrigX[i] + ddx;
+                    g_x[i] = g_imgOrigY[i] + ddy;
+                }
+            }
+        }
+
         InvalidateRect(hWnd, NULL, TRUE);
         return 0;
     }
     case WM_LBUTTONUP: {
-        click = false;
-        paint = true;
-        obrect1[1] = ox;
-        obrect2[1] = oy;
+        if (g_movingRect) {
+            g_movingRect = false;   // 이동 종료, 사각형/이미지 현 위치 확정
+        }
+        else {
+            click = false;
+            paint = true;
+            obrect1[1] = ox;
+            obrect2[1] = oy;
+        }
         InvalidateRect(hWnd, NULL, TRUE);
         return 0;
     }
@@ -143,10 +220,18 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message,
                 g_frameTimer = 0;
                 g_frame = (g_frame + 1) % IMG_COUNT1;
             }
+            g_frameTimer2++;
+            if (g_frameTimer2 >= 10) {
+                g_frameTimer2 = 0;
+                g_frame2 = (g_frame2 + 1) % IMG_COUNT2;
+            }
             for (int i = 0; i < 40; ++i)
             {
-                if (g_x[i] > rect.bottom - 30) g_x[i] = rect.bottom - 30;
+                if (stopped[i]) continue;   // 멈춘 이미지는 건너뜀
 
+                g_x[i] += g_speed[i];      // 개별 속도로 낙하
+
+                // 사각형 바닥에 닿으면 정지
                 if (paint)
                 {
                     int boxLeft = min(dbrect1[1], obrect1[1]);
@@ -154,18 +239,21 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message,
                     int boxBottom = max(dbrect2[1], obrect2[1]);
 
                     bool inXRange = (grand[i] < boxRight && grand[i] + 30 > boxLeft);
-                    bool reachedBottom = (g_x[i] + 30 == boxBottom);
+                    bool reachedBottom = (g_x[i] + 30 >= boxBottom);
 
                     if (inXRange && reachedBottom)
                     {
                         g_x[i] = boxBottom - 30;
                         stopped[i] = true;
+                        continue;
                     }
                 }
 
-                if (!stopped[i])
+                // 화면 바닥을 넘으면 위에서 다시 시작
+                if (g_x[i] > rect.bottom)
                 {
-                    g_x[i] += 1;
+                    g_x[i] = -(rand() % 200);      // 화면 위 랜덤 위치
+                   
                 }
             }
 
@@ -217,8 +305,23 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message,
         // 기본 Draw (배경 제거 없이 출력, TransparentBlt 쓸 때는 주석 처리)
             for (int i = 0; i < 40; ++i)
             {
+                bool inRect = false;
+                if (paint) {
+                    int left = min(dbrect1[1], obrect1[1]);
+                    int right = max(dbrect1[1], obrect1[1]);
+                    int top = min(dbrect2[1], obrect2[1]);
+                    int bottom = max(dbrect2[1], obrect2[1]);
+                    int cx = grand[i] + 15;   // 이미지 중심
+                    int cy = g_x[i] + 15;
+                    inRect = stopped[i]
+                        && cx >= left && cx <= right
+                        && cy >= top && cy <= bottom;
+                }
 
-                g_img[g_frame].Draw(hMemDC, grand[i], g_x[i], 30, 30);
+                if (inRect)
+                    g_img2[g_frame2].Draw(hMemDC, grand[i], g_x[i], 30, 30);  // 다른 애니메이션
+                else
+                    g_img[g_frame].Draw(hMemDC, grand[i], g_x[i], 30, 30);    // 기본 애니메이션
             }
 
        
@@ -239,6 +342,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message,
         DeleteObject(rectpen);
         for (int i = 0; i < IMG_COUNT1; i++)
             g_img[i].Destroy();
+        for (int i = 0; i < IMG_COUNT2; i++)
+            g_img2[i].Destroy();
         DeleteDC(hMemDC);
         DeleteObject(hBitmap);
         PostQuitMessage(0);

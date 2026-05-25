@@ -185,25 +185,13 @@
     <Image Include="ch6.bmp">
       <Filter>리소스 파일</Filter>
     </Image>
-    <Image Include="d1.bmp">
+    <Image Include="d1.png">
       <Filter>리소스 파일</Filter>
     </Image>
-    <Image Include="d2.bmp">
+    <Image Include="d2.png">
       <Filter>리소스 파일</Filter>
     </Image>
-    <Image Include="d3.bmp">
-      <Filter>리소스 파일</Filter>
-    </Image>
-    <Image Include="d4.bmp">
-      <Filter>리소스 파일</Filter>
-    </Image>
-    <Image Include="d5.bmp">
-      <Filter>리소스 파일</Filter>
-    </Image>
-    <Image Include="d6.bmp">
-      <Filter>리소스 파일</Filter>
-    </Image>
-    <Image Include="d7.bmp">
+    <Image Include="d3.png">
       <Filter>리소스 파일</Filter>
     </Image>
   </ItemGroup>

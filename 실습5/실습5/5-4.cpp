@@ -28,7 +28,12 @@ int  g_score = 0;
 bool g_dragging = false;
 int  g_startX = 0;
 int  g_startY = 0;
-
+// 슬라이딩 애니메이션
+bool  g_animating = false;
+float g_animT = 0.0f;
+int   g_animNewCells[6][6];   // 이동 후 최종 보드
+int   g_animFromR[6][6];      // 각 셀이 어디서 왔는지 (행)
+int   g_animFromC[6][6];      // 각 셀이 어디서 왔는지 (열)
 HINSTANCE g_hInstance;
 HBITMAP   g_numBmps[6];
 
@@ -132,16 +137,62 @@ int PushRight(int* seg, int len)
     for (int i = 0; i < len; i++) seg[i] = rev[len - 1 - i];
     return score;
 }
+// 이동 출처를 함께 기록하는 Push (fromIdx[i] = 결과 i번이 원래 몇 번에서 왔는지)
+int PushLeftTracked(int* seg, int len, int* fromIdx)
+{
+    std::vector<int> vals, idxs;
+    for (int i = 0; i < len; i++)
+        if (seg[i] > 0) { vals.push_back(seg[i]); idxs.push_back(i); }
 
+    std::vector<int> mVals, mFrom;
+    bool didMerge = false;
+    int score = 0;
+    for (int k = 0; k < (int)vals.size(); k++)
+    {
+        if (!mVals.empty() && !didMerge && mVals.back() == vals[k])
+        {
+            mVals.back() *= 2; score += mVals.back(); didMerge = true;
+        }
+        else { mVals.push_back(vals[k]); mFrom.push_back(idxs[k]); didMerge = false; }
+    }
+    for (int i = 0; i < len; i++)
+    {
+        seg[i] = (i < (int)mVals.size()) ? mVals[i] : 0;
+        fromIdx[i] = (i < (int)mFrom.size()) ? mFrom[i] : i;
+    }
+    return score;
+}
+
+int PushRightTracked(int* seg, int len, int* fromIdx)
+{
+    std::vector<int> rev(seg, seg + len);
+    std::reverse(rev.begin(), rev.end());
+    std::vector<int> revFrom(len);
+    int score = PushLeftTracked(rev.data(), len, revFrom.data());
+    for (int i = 0; i < len; i++)
+    {
+        seg[i] = rev[len - 1 - i];
+        fromIdx[i] = (len - 1) - revFrom[len - 1 - i];
+    }
+    return score;
+}
 void DoLeft()
 {
+    memcpy(g_animNewCells, g_cells, sizeof(g_cells));
     for (int r = 0; r < 6; r++)
-    {
+        for (int c = 0; c < 6; c++) { g_animFromR[r][c] = r; g_animFromC[r][c] = c; }
+
+    for (int r = 0; r < 6; r++) {
         int start = 0;
         for (int c = 0; c <= 6; c++)
-            if (c == 6 || g_cells[r][c] == -1)
-            {
-                if (c > start) g_score += PushLeft(&g_cells[r][start], c - start);
+            if (c == 6 || g_animNewCells[r][c] == -1) {
+                int len = c - start;
+                if (len > 0) {
+                    int fromIdx[6] = {};
+                    g_score += PushLeftTracked(&g_animNewCells[r][start], len, fromIdx);
+                    for (int i = 0; i < len; i++)
+                        g_animFromC[r][start + i] = start + fromIdx[i];
+                }
                 start = c + 1;
             }
     }
@@ -149,13 +200,21 @@ void DoLeft()
 
 void DoRight()
 {
+    memcpy(g_animNewCells, g_cells, sizeof(g_cells));
     for (int r = 0; r < 6; r++)
-    {
+        for (int c = 0; c < 6; c++) { g_animFromR[r][c] = r; g_animFromC[r][c] = c; }
+
+    for (int r = 0; r < 6; r++) {
         int start = 0;
         for (int c = 0; c <= 6; c++)
-            if (c == 6 || g_cells[r][c] == -1)
-            {
-                if (c > start) g_score += PushRight(&g_cells[r][start], c - start);
+            if (c == 6 || g_animNewCells[r][c] == -1) {
+                int len = c - start;
+                if (len > 0) {
+                    int fromIdx[6] = {};
+                    g_score += PushRightTracked(&g_animNewCells[r][start], len, fromIdx);
+                    for (int i = 0; i < len; i++)
+                        g_animFromC[r][start + i] = start + fromIdx[i];
+                }
                 start = c + 1;
             }
     }
@@ -163,19 +222,23 @@ void DoRight()
 
 void DoUp()
 {
-    for (int col = 0; col < 6; col++)
-    {
+    memcpy(g_animNewCells, g_cells, sizeof(g_cells));
+    for (int r = 0; r < 6; r++)
+        for (int c = 0; c < 6; c++) { g_animFromR[r][c] = r; g_animFromC[r][c] = c; }
+
+    for (int col = 0; col < 6; col++) {
         int start = 0;
         for (int r = 0; r <= 6; r++)
-            if (r == 6 || g_cells[r][col] == -1)
-            {
+            if (r == 6 || g_animNewCells[r][col] == -1) {
                 int len = r - start;
-                if (len > 0)
-                {
-                    std::vector<int> seg(len);
-                    for (int i = 0; i < len; i++) seg[i] = g_cells[start + i][col];
-                    g_score += PushLeft(seg.data(), len);
-                    for (int i = 0; i < len; i++) g_cells[start + i][col] = seg[i];
+                if (len > 0) {
+                    int seg[6], fromIdx[6] = {};
+                    for (int i = 0; i < len; i++) seg[i] = g_animNewCells[start + i][col];
+                    g_score += PushLeftTracked(seg, len, fromIdx);
+                    for (int i = 0; i < len; i++) {
+                        g_animNewCells[start + i][col] = seg[i];
+                        g_animFromR[start + i][col] = start + fromIdx[i];
+                    }
                 }
                 start = r + 1;
             }
@@ -184,25 +247,28 @@ void DoUp()
 
 void DoDown()
 {
-    for (int col = 0; col < 6; col++)
-    {
+    memcpy(g_animNewCells, g_cells, sizeof(g_cells));
+    for (int r = 0; r < 6; r++)
+        for (int c = 0; c < 6; c++) { g_animFromR[r][c] = r; g_animFromC[r][c] = c; }
+
+    for (int col = 0; col < 6; col++) {
         int start = 0;
         for (int r = 0; r <= 6; r++)
-            if (r == 6 || g_cells[r][col] == -1)
-            {
+            if (r == 6 || g_animNewCells[r][col] == -1) {
                 int len = r - start;
-                if (len > 0)
-                {
-                    std::vector<int> seg(len);
-                    for (int i = 0; i < len; i++) seg[i] = g_cells[start + i][col];
-                    g_score += PushRight(seg.data(), len);
-                    for (int i = 0; i < len; i++) g_cells[start + i][col] = seg[i];
+                if (len > 0) {
+                    int seg[6], fromIdx[6] = {};
+                    for (int i = 0; i < len; i++) seg[i] = g_animNewCells[start + i][col];
+                    g_score += PushRightTracked(seg, len, fromIdx);
+                    for (int i = 0; i < len; i++) {
+                        g_animNewCells[start + i][col] = seg[i];
+                        g_animFromR[start + i][col] = start + fromIdx[i];
+                    }
                 }
                 start = r + 1;
             }
     }
 }
-
 bool CheckWin()
 {
     for (int r = 0; r < 6; r++)
@@ -222,44 +288,55 @@ bool CheckLose()
 
 void DrawBoard(HDC hdc)
 {
-    for (int r = 0; r < 6; r++)
+    // 배경(빈칸·장애물) 먼저 그리기
+    const int* board = g_animating ? &g_animNewCells[0][0] : &g_cells[0][0];
+    for (int r = 0; r < 6; r++) for (int c = 0; c < 6; c++)
     {
-        for (int c = 0; c < 6; c++)
-        {
-            int x = OX + c * CELL;
-            int y = OY + r * CELL;
-            int val = g_cells[r][c];
-
-            if (val == 0)           // 빈 칸
-            {
-                HBRUSH br = CreateSolidBrush(RGB(205, 193, 180));
-                HBRUSH old = (HBRUSH)SelectObject(hdc, br);
-                Rectangle(hdc, x, y, x + CELL, y + CELL);
-                SelectObject(hdc, old);
-                DeleteObject(br);
-            }
-            else if (val == -1)     // 장애물 
-            {
-                HBRUSH br = CreateSolidBrush(RGB(100, 149, 237));
-                HBRUSH old = (HBRUSH)SelectObject(hdc, br);
-                Rectangle(hdc, x, y, x + CELL, y + CELL);
-                SelectObject(hdc, old);
-                DeleteObject(br);
-            }
-            else                    // 숫자 비트맵
-            {
-                HDC     memDC = CreateCompatibleDC(hdc);
-                HBITMAP oldBmp = (HBITMAP)SelectObject(memDC, g_numBmps[GetBmpIndex(val)]);
-                StretchBlt(hdc, x, y, CELL, CELL, memDC, 0, 0, 70, 70, SRCCOPY);
-                SelectObject(memDC, oldBmp);
-                DeleteDC(memDC);
-            }
-        }
+        int x = OX + c * CELL, y = OY + r * CELL;
+        int val = board[r * 6 + c];
+        COLORREF col = (val == -1) ? RGB(100, 149, 237) : RGB(205, 193, 180);
+        HBRUSH br = CreateSolidBrush(col);
+        HBRUSH old = (HBRUSH)SelectObject(hdc, br);
+        Rectangle(hdc, x, y, x + CELL, y + CELL);
+        SelectObject(hdc, old); DeleteObject(br);
     }
 
+    // 타일 그리기
+    if (g_animating)
+    {
+        for (int r = 0; r < 6; r++) for (int c = 0; c < 6; c++)
+        {
+            int val = g_animNewCells[r][c];
+            if (val <= 0) continue;
 
+            // 출발 픽셀 → 도착 픽셀 보간
+            float sx = (float)(OX + g_animFromC[r][c] * CELL);
+            float sy = (float)(OY + g_animFromR[r][c] * CELL);
+            float dx = (float)(OX + c * CELL);
+            float dy = (float)(OY + r * CELL);
+            int curX = (int)(sx + (dx - sx) * g_animT);
+            int curY = (int)(sy + (dy - sy) * g_animT);
+
+            HDC memDC = CreateCompatibleDC(hdc);
+            HBITMAP old = (HBITMAP)SelectObject(memDC, g_numBmps[GetBmpIndex(val)]);
+            StretchBlt(hdc, curX, curY, CELL, CELL, memDC, 0, 0, 70, 70, SRCCOPY);
+            SelectObject(memDC, old); DeleteDC(memDC);
+        }
+    }
+    else
+    {
+        for (int r = 0; r < 6; r++) for (int c = 0; c < 6; c++)
+        {
+            int val = g_cells[r][c];
+            if (val <= 0) continue;
+            int x = OX + c * CELL, y = OY + r * CELL;
+            HDC memDC = CreateCompatibleDC(hdc);
+            HBITMAP old = (HBITMAP)SelectObject(memDC, g_numBmps[GetBmpIndex(val)]);
+            StretchBlt(hdc, x, y, CELL, CELL, memDC, 0, 0, 70, 70, SRCCOPY);
+            SelectObject(memDC, old); DeleteDC(memDC);
+        }
+    }
 }
-
 
 
 HMENU CreateAppMenu()
@@ -360,39 +437,53 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
     case WM_LBUTTONUP:
     {
-        if (!g_dragging || !g_gameRunning) return 0;
+        if (!g_dragging || !g_gameRunning || g_animating) return 0;
         g_dragging = false;
 
         int dx = GET_X_LPARAM(lParam) - g_startX;
         int dy = GET_Y_LPARAM(lParam) - g_startY;
         if (abs(dx) < 10 && abs(dy) < 10) return 0;
 
-        if (abs(dx) >= abs(dy))
-        {
-            if (dx > 0) DoRight(); else DoLeft();
-        }
-        else
-        {
-            if (dy > 0) DoDown();  else DoUp();
-        }
+        int oldCells[6][6];
+        memcpy(oldCells, g_cells, sizeof(g_cells));
 
-        bool spawned = SpawnNew2();
+        if (abs(dx) >= abs(dy)) { if (dx > 0) DoRight(); else DoLeft(); }
+        else { if (dy > 0) DoDown();  else DoUp(); }
 
-        if (CheckWin())
-        {
-            MessageBox(hWnd, L"목표 달성! 승리", L"게임 종료", MB_OK);
-            g_gameRunning = false;
-        }
-        else if (!spawned || CheckLose())
-        {
-            MessageBox(hWnd, L"움직일 칸이 없습니다. 패배", L"게임 종료", MB_OK);
-            g_gameRunning = false;
-        }
+        // 실제 변화 없으면 무시
+        if (memcmp(oldCells, g_animNewCells, sizeof(g_cells)) == 0) return 0;
 
+        // 애니메이션 시작
+        g_animT = 0.0f;
+        g_animating = true;
+        SetTimer(hWnd, 1, 16, nullptr);   // 16ms ≈ 60fps
         InvalidateRect(hWnd, nullptr, TRUE);
         return 0;
     }
+    case WM_TIMER:
+        if (wParam == 1 && g_animating)
+        {
+            g_animT += 0.15f;
+            if (g_animT >= 1.0f)
+            {
+                g_animT = 1.0f;
+                g_animating = false;
+                KillTimer(hWnd, 1);
+                memcpy(g_cells, g_animNewCells, sizeof(g_cells));  // 최종 적용
 
+                bool spawned = SpawnNew2();
+                if (CheckWin())
+                {
+                    MessageBox(hWnd, L"목표 달성! 승리", L"게임 종료", MB_OK); g_gameRunning = false;
+                }
+                else if (!spawned || CheckLose())
+                {
+                    MessageBox(hWnd, L"움직일 칸이 없습니다. 패배", L"게임 종료", MB_OK); g_gameRunning = false;
+                }
+            }
+            InvalidateRect(hWnd, nullptr, FALSE);
+        }
+        return 0;
     case WM_ERASEBKGND:
         return 1;
 
