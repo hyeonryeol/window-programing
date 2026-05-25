@@ -58,22 +58,39 @@ public:
         }
     }
 
+    SNode* merge_SL(SNode* a, SNode* b) {
+        if (!a) return b;
+        if (!b) return a;
+        if (a->data.hp <= b->data.hp) {
+            a->next = merge_SL(a->next, b);
+            return a;
+        }
+        else {
+            b->next = merge_SL(a, b->next);
+            return b;
+        }
+    }
+
+    SNode* mergeSort_SL(SNode* node) {
+        if (!node || !node->next) return node;
+
+        SNode* slow = node;
+        SNode* fast = node->next;
+        while (fast && fast->next) {
+            slow = slow->next;
+            fast = fast->next->next;
+        }
+
+        SNode* mid = slow->next;
+        slow->next = nullptr;
+
+        SNode* left = mergeSort_SL(node);
+        SNode* right = mergeSort_SL(mid);
+        return merge_SL(left, right);
+    }
+
     void SortByHP_SL() {
-        if (!head) return;
-        bool swapped;
-        do {
-            swapped = false;
-            SNode* cur = head;
-            while (cur->next) {
-                if (cur->data.hp > cur->next->data.hp) {
-                    Champion temp = cur->data;
-                    cur->data = cur->next->data;
-                    cur->next->data = temp;
-                    swapped = true;
-                }
-                cur = cur->next;
-            }
-        } while (swapped);
+        head = mergeSort_SL(head);
     }
 
     Champion FindMaxHP_SL() {
@@ -130,22 +147,46 @@ public:
         }
     }
 
+    DNode* merge_DL(DNode* a, DNode* b) {
+        if (!a) return b;
+        if (!b) return a;
+        if (a->data.hp <= b->data.hp) {
+            a->next = merge_DL(a->next, b);
+            if (a->next) a->next->prev = a;
+            a->prev = nullptr;
+            return a;
+        }
+        else {
+            b->next = merge_DL(a, b->next);
+            if (b->next) b->next->prev = b;
+            b->prev = nullptr;
+            return b;
+        }
+    }
+
+    DNode* mergeSort_DL(DNode* node) {
+        if (!node || !node->next) return node;
+
+        DNode* slow = node;
+        DNode* fast = node->next;
+        while (fast && fast->next) {
+            slow = slow->next;
+            fast = fast->next->next;
+        }
+
+        DNode* mid = slow->next;
+        slow->next = nullptr;
+        if (mid) mid->prev = nullptr;
+
+        DNode* left = mergeSort_DL(node);
+        DNode* right = mergeSort_DL(mid);
+        return merge_DL(left, right);
+    }
+
     void SortByHP_DL() {
-        if (!head) return;
-        bool swapped;
-        do {
-            swapped = false;
-            DNode* cur = head;
-            while (cur->next) {
-                if (cur->data.hp > cur->next->data.hp) {
-                    Champion temp = cur->data;
-                    cur->data = cur->next->data;
-                    cur->next->data = temp;
-                    swapped = true;
-                }
-                cur = cur->next;
-            }
-        } while (swapped);
+        head = mergeSort_DL(head);
+        tail = head;
+        while (tail && tail->next) tail = tail->next;
     }
 
     Champion FindMaxHP_DL() {
@@ -190,8 +231,8 @@ void LoadFile(const string& filename, SinglyLinkedList& sl, DoublyLinkedList& dl
     auto start = high_resolution_clock::now(); \
     func; \
     auto end = high_resolution_clock::now(); \
-    auto ms = duration_cast<milliseconds>(end - start).count(); \
-    cout << label << " 수행시간: " << ms << " ms\n"; \
+    auto us = duration_cast<microseconds>(end - start).count(); \
+    cout << label << " 수행시간: " << us << " us\n"; \
 }
 
 int main() {
@@ -200,15 +241,16 @@ int main() {
 
     LoadFile("test.txt", sl, dl);
 
-    cout << "1. PrintAll 수행시간 비교" << endl;
+    cout << "1. PrintAll 수행시간 비교\n";
     MEASURE("PrintAll_SL", sl.PrintAll_SL());
+    cout << endl;
     MEASURE("PrintAll_DL", dl.PrintAll_DL());
 
-    cout << "2. SortByHP 수행시간 비교" << endl;
+    cout << "\n2. SortByHP 수행시간 비교\n";
     MEASURE("SortByHP_SL", sl.SortByHP_SL());
     MEASURE("SortByHP_DL", dl.SortByHP_DL());
 
-    cout << "3. FindMaxHP 수행시간 비교" << endl;
+    cout << "\n3. FindMaxHP 수행시간 비교\n";
     Champion maxSL, maxDL;
     MEASURE("FindMaxHP_SL", maxSL = sl.FindMaxHP_SL());
     MEASURE("FindMaxHP_DL", maxDL = dl.FindMaxHP_DL());
