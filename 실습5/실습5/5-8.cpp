@@ -88,7 +88,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message,
     GetClientRect(hWnd, &rect);
     int W = rect.right;
     int H = rect.bottom;
-
+    //삭제, 색반전, 
     switch (message) {
     case WM_CREATE:
     {
@@ -126,7 +126,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message,
         int my = GET_Y_LPARAM(lParam);
 
         if (paint && PointInSelRect(mx, my)) {
-            // 사각형 안을 클릭 → 이동 모드
+         
             g_movingRect = true;
             g_moveStartX = mx;
             g_moveStartY = my;

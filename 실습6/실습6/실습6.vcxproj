@@ -21,8 +21,8 @@
   <PropertyGroup Label="Globals">
     <VCProjectVersion>18.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
-    <ProjectGuid>{d7788ae2-7021-404c-a38c-e3132e71a0e4}</ProjectGuid>
-    <RootNamespace>실습5</RootNamespace>
+    <ProjectGuid>{1566110d-bbf3-4b0a-9e0e-0ad5d5722311}</ProjectGuid>
+    <RootNamespace>실습6</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -127,91 +127,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="5-1.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="5-2.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="5-3.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="5-4.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="5-5.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="5-6.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="5-7.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="5-8.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
-    </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <Image Include="..\..\..\..\Downloads\dog.bmp" />
-    <Image Include="..\..\..\..\OneDrive\Desktop\boom.png" />
-    <Image Include="..\..\..\..\OneDrive\Desktop\boom2.png" />
-    <Image Include="..\..\..\..\OneDrive\Desktop\ground.png" />
-    <Image Include="..\..\..\..\OneDrive\Desktop\sky.png" />
-    <Image Include="..\..\..\..\OneDrive\Desktop\tuk 2학년\goranirun1.png" />
-    <Image Include="..\..\..\..\OneDrive\Desktop\tuk 2학년\goranirun2.png" />
-    <Image Include="..\..\..\..\OneDrive\Desktop\tuk 2학년\goranirun3.png" />
-    <Image Include="..\..\..\..\OneDrive\Desktop\tuk 2학년\goranirun4.png" />
-    <Image Include="..\..\..\..\OneDrive\Desktop\tuk 2학년\goranirun5.png" />
-    <Image Include="back.bmp" />
-    <Image Include="back.png" />
-    <Image Include="background.bmp" />
-    <Image Include="ch1.bmp" />
-    <Image Include="ch1.png" />
-    <Image Include="ch2.bmp" />
-    <Image Include="ch2.png" />
-    <Image Include="ch3.bmp" />
-    <Image Include="ch3.png" />
-    <Image Include="ch4.bmp" />
-    <Image Include="ch4.png" />
-    <Image Include="ch5.bmp" />
-    <Image Include="ch5.png" />
-    <Image Include="ch6.bmp" />
-    <Image Include="ch6.png" />
-    <Image Include="d1.png" />
-    <Image Include="d2.png" />
-    <Image Include="d3.png" />
-    <Image Include="dog.bmp.bmp" />
-    <Image Include="gorani.bmp" />
-    <Image Include="goranirun1.png" />
-    <Image Include="goranirun2.png" />
-    <Image Include="goranirun3.png" />
-    <Image Include="goranirun4.png" />
-    <Image Include="goranirun5.png" />
-    <Image Include="goraniscream1.png" />
-    <Image Include="goraniscream2.png" />
-    <Image Include="goraniscream3.png" />
-    <Image Include="mouse1.png" />
-    <Image Include="mouse2.png" />
-    <Image Include="mouse3.png" />
-    <Image Include="num16.bmp" />
-    <Image Include="num2.bmp" />
-    <Image Include="num32.bmp" />
-    <Image Include="num4.bmp" />
-    <Image Include="num64.bmp" />
-    <Image Include="num8.bmp" />
-    <Image Include="packman1.png" />
-    <Image Include="packman2.png" />
-    <Image Include="packmanD.png" />
-    <Image Include="packmanD2.png" />
+    <ClCompile Include="6-1.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="resource.h" />
-    <ClInclude Include="resource1.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Resource.rc" />
-    <ResourceCompile Include="Resource1.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
