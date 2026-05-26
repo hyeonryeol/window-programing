@@ -213,7 +213,7 @@ public:
 void LoadFile(const string& filename, SinglyLinkedList& sl, DoublyLinkedList& dl) {
     ifstream fin(filename);
     if (!fin.is_open()) {
-        cerr << "파일을 열 수 없습니다: " << filename << "\n";
+        cout << "파일을 열 수 없습니다: " << filename << "\n";
         return;
     }
 
@@ -232,7 +232,7 @@ void LoadFile(const string& filename, SinglyLinkedList& sl, DoublyLinkedList& dl
     func; \
     auto end = high_resolution_clock::now(); \
     auto us = duration_cast<microseconds>(end - start).count(); \
-    cout << label << " 수행시간: " << us << " us\n"; \
+    cerr << label << " 수행시간: " << us << " us\n"; \
 }
 
 int main() {
@@ -242,9 +242,14 @@ int main() {
     LoadFile("test.txt", sl, dl);
 
     cout << "1. PrintAll 수행시간 비교\n";
+    ofstream nullStream("nul");
+    streambuf* originalBuf = cout.rdbuf(nullStream.rdbuf());
+
     MEASURE("PrintAll_SL", sl.PrintAll_SL());
     cout << endl;
     MEASURE("PrintAll_DL", dl.PrintAll_DL());
+
+    cout.rdbuf(originalBuf);
 
     cout << "\n2. SortByHP 수행시간 비교\n";
     MEASURE("SortByHP_SL", sl.SortByHP_SL());
