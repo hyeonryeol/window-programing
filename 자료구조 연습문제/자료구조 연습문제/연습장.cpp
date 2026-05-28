@@ -1,4 +1,4 @@
-#include <iostream>
+﻿#include <iostream>
 #include <fstream>
 #include <string>
 #include <chrono>
@@ -6,35 +6,29 @@
 using namespace std;
 using namespace chrono;
 
-struct Champion {
+struct champion {
 	string position;
 	string name;
 	int hp;
 	int attack;
 	int defense;
+
 };
 
 struct SNode {
-	Champion data;
+	champion data;
 	SNode* next;
-	SNode(Champion c) : data(c) , next(nullptr) {}
-};
-
-struct DNode {
-	Champion data;
-	DNode* prev;
-	DNode* next;
-	DNode(Champion c) : data(c), prev(nullptr), next(nullptr) {}
+	SNode(champion c) : data(c), next(nullptr) {}
 };
 
 class SinglyLinkedList {
-public:
+public: 
 	SNode* head;
 	int size;
 
 	SinglyLinkedList() : head(nullptr), size(0) {}
 
-	void Insert(Champion c)
+	void Insert(champion c)
 	{
 		SNode* newNode = new SNode(c);
 		if (!head)
@@ -44,7 +38,7 @@ public:
 		else
 		{
 			SNode* cur = head;
-			while (cur->next)cur = cur->next;
+			while (cur->next) cur = cur->next;
 			cur->next = newNode;
 		}
 		size++;
@@ -67,7 +61,7 @@ public:
 	{
 		if (!a) return b;
 		if (!b) return a;
-		if (a->data.hp <= b->data.hp)
+		if (a->data.hp >= b->data.hp)
 		{
 			a->next = merge_SL(a->next, b);
 			return a;
@@ -82,12 +76,15 @@ public:
 	SNode* mergeSort_SL(SNode* node)
 	{
 		if (!node || !node->next) return node;
+
 		SNode* slow = node;
 		SNode* fast = node->next;
+
 		while (fast && fast->next)
 		{
 			slow = slow->next;
 			fast = fast->next->next;
+
 		}
 
 		SNode* mid = slow->next;
@@ -103,191 +100,66 @@ public:
 		head = mergeSort_SL(head);
 	}
 
-	Champion FindMaxHp_SL()
+
+	champion FindMaxHp_SL()
 	{
 		SNode* cur = head;
-		Champion maxchamp = cur->data;
-		while (cur)
-		{
+		champion maxchamp = cur->data;
+		while (cur) {
 			if (cur->data.hp > maxchamp.hp)
-			{
 				maxchamp = cur->data;
-			}
 			cur = cur->next;
 		}
 		return maxchamp;
-
 	}
+
 
 	~SinglyLinkedList() {
 		SNode* cur = head;
-		while (cur) {
+		while (cur)
+		{
 			SNode* next = cur->next;
 			delete cur;
 			cur = next;
-
 		}
 	}
 
 };
 
-class DoublyLinkedList {
-public:
-	DNode* head;
-	DNode* tail;
-	int size;
-
-	DoublyLinkedList() : head(nullptr),tail(nullptr), size(0) {}
-
-	void Insert(Champion c)
-	{
-		DNode* newNode = new DNode(c);
-		if (!head)
-		{
-			head = tail= newNode;
-		}
-		else
-		{
-			tail->next = newNode;
-			newNode->prev = tail;
-			tail = newNode;
-
-		}
-		size++;
-	}
-
-	void PrintAll_DL()
-	{
-		DNode* cur = head;
-		while (cur) {
-			cout << cur->data.position << " "
-				<< cur->data.name << " "
-				<< cur->data.hp << " "
-				<< cur->data.attack << " "
-				<< cur->data.defense << endl;
-			cur = cur->next;
-		}
-	}
-
-	DNode* merge_DL(DNode* a, DNode* b)
-	{
-		if (!a) return b;
-		if (!b) return a;
-		if (a->data.hp <= b->data.hp)
-		{
-			a->next = merge_DL(a->next, b);
-			if (a->next) a->next->prev = a;
-			a->prev = nullptr;
-			return a;
-		}
-		else
-		{
-			b->next = merge_DL(a, b->next);
-			if (b->next) b->next->prev = b;
-			b->prev = nullptr;
-			return b;
-		}
-	}
-
-	DNode* mergeSort_DL(DNode* node)
-	{
-		if (!node || !node->next) return node;
-		DNode* slow = node;
-		DNode* fast = node->next;
-		while (fast && fast->next)
-		{
-			slow = slow->next;
-			fast = fast->next->next;
-		}
-
-		DNode* mid = slow->next;
-		slow->next = nullptr;
-		if (mid)mid->prev = nullptr;
-
-		DNode* left = mergeSort_DL(node);
-		DNode* right = mergeSort_DL(mid);
-		return merge_DL(left, right);
-	}
-
-	void SortByHp_DL()
-	{
-		head = mergeSort_DL(head);
-		tail = head;
-		while (tail && tail->next) tail = tail->next;
-	}
-
-	Champion FindMaxHp_DL()
-	{
-		DNode* cur = head;
-		Champion maxchamp = cur->data;
-		while (cur)
-		{
-			if (cur->data.hp > maxchamp.hp)
-			{
-				maxchamp = cur->data;
-			}
-			cur = cur->next;
-		}
-		return maxchamp;
-
-	}
-
-	~DoublyLinkedList() {
-		DNode* cur = head;
-		while (cur) {
-			DNode* next = cur->next;
-			delete cur;
-			cur = next;
-
-		}
-	}
-
-};
-
-void Loadfile(const string& filename, SinglyLinkedList& sl, DoublyLinkedList& dl)
+void Loadfile(const string& filename, SinglyLinkedList& sl)
 {
 	ifstream fin(filename);
-	if (!fin.is_open())
-	{
-		cout << "파일을 열 수 없음" << endl;
+	if (!fin.is_open()) {
+		cout << "파일 오류" << endl;
 		return;
 	}
-
-	Champion c;
+	champion c;
 	while (fin >> c.position >> c.name >> c.hp >> c.attack >> c.defense) {
 		sl.Insert(c);
-		dl.Insert(c);
-		
 	}
 	fin.close();
 	cout << "로드 완료" << endl;
 }
 
-#define MEASURE(label, func) {auto start = high_resolution_clock::now(); func; auto end = high_resolution_clock::now(); auto us = duration_cast<microseconds>(end - start).count(); cout << label<< "수행시간" << us << "us" <<endl;}
+#define MEASURE(label, func)  {auto start = high_resolution_clock::now(); func; auto end = high_resolution_clock::now(); auto us = duration_cast<microseconds>(end - start).count(); cout << label << "수행시간" << us << "us"<<endl;}
+
+
+
 
 int main()
 {
 	SinglyLinkedList sl;
-	DoublyLinkedList dl;
 
-	Loadfile("test.txt", sl, dl);
+	Loadfile("test.txt", sl);
+	
+	sl.SortByHp_SL();
 
-	cout << "1. printall수행시간 비교" << endl;
 	MEASURE("PrintAll_SL", sl.PrintAll_SL());
-	cout << endl;
-	cout << endl;
-	MEASURE("PrintAll_DL", dl.PrintAll_DL());
-	cout << endl;
 
-	cout << "2. sortbyhp 수행시간 비교" << endl;
-	MEASURE("SortByHp_SL", sl.SortByHp_SL());
-	MEASURE("SortByHp_DL", dl.SortByHp_DL());
+	champion maxsl;
+	maxsl = sl.FindMaxHp_SL();
+	cout << "최대체력" << endl;
+	cout << "이름:" << maxsl.name << "체력:" << maxsl.hp;
 
-	cout << "3" << endl;
-	Champion maxsl, maxdl;
-	MEASURE("FindMaxHp_SL", maxsl = sl.FindMaxHp_SL());
-	MEASURE("FindMaxHp_DL", maxdl = dl.FindMaxHp_DL());
-
-	cout << "sl" << maxsl.name << maxsl.hp;
-	cout << "dl" << maxdl.name << maxdl.hp;
 }
+
