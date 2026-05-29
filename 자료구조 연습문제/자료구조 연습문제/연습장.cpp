@@ -57,6 +57,22 @@ public:
 		}
 	}
 
+	void Search_SL(string champ)
+	{
+		SNode* cur = head;
+		while (cur)
+		{
+			if (cur->data.name == champ)
+			{
+				cout << cur->data.position << " "
+					<< cur->data.name << " "
+					<< cur->data.hp << " "
+					<< cur->data.attack << " "
+					<< cur->data.defense << endl;
+			}
+			cur = cur->next;
+		}
+	}
 	SNode* merge_SL(SNode* a, SNode* b)
 	{
 		if (!a) return b;
@@ -161,5 +177,12 @@ int main()
 	cout << "최대체력" << endl;
 	cout << "이름:" << maxsl.name << "체력:" << maxsl.hp;
 
+	while (1)
+	{
+		cout << "챔피언 이름을 입력";
+		string champ; 
+		cin >> champ;
+		sl.Search_SL(champ);
+	}
 }
 
