@@ -5,16 +5,14 @@
 #include <cwctype>
 #include "resource.h"
 
-// 실습 6-3 : 모덜리스 대화상자를 이용한 계산기
-//   - 에디트 박스에 직접 입력하거나 숫자/연산자 버튼으로 입력
-//   - 연산자(+ - * /), = , 그리고 R / CE / C / 2진수 / 1/2 / *10 / ← / x² / √ / 종료
+
 
 HINSTANCE g_hInst;
 HWND      g_hDlg;
-bool g_fresh   = true;    // 결과 직후 → 다음 숫자 입력 시 새로 시작
+bool g_fresh   = true;    // 결과 직후  다음 숫자 입력 시 새로 시작
 bool g_binMode = false;   // 2진수 표시 상태
 
-// --- 에디트 박스 읽기/쓰기 ---
+//에디트 박스 읽기/쓰기 
 std::wstring GetDisp()
 {
     wchar_t buf[256] = {};
