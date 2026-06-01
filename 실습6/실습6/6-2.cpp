@@ -11,7 +11,10 @@
 const double PI = 3.14159265358979;
 
 enum CurveType { CURVE_SIN, CURVE_HALF, CURVE_SPRING, CURVE_STAIR };
-enum AnimMode  { ANIM_NONE, ANIM_MOVEX, ANIM_MOVEY, ANIM_CIRCLE };
+
+
+// 변경
+enum AnimMode { ANIM_NONE = 0, ANIM_MOVEX = 1, ANIM_MOVEY = 2, ANIM_CIRCLE = 4 };
 
 HINSTANCE g_hInst;
 HWND      g_hMain;
@@ -83,14 +86,19 @@ void BuildCurve()
     }
     case CURVE_STAIR:
     {
-        int w = 60, h = 50;                // 계단 폭/높이
-        int x = -HALF_W, y = 0;
-        g_path.push_back({ x, y });
+        int w = 200, h = 50;
+        int x = -HALF_W + 600, y = 0;
+        // 가로 구간을 1픽셀씩 채움
         while (x < HALF_W) {
-            x += w; g_path.push_back({ x, y });   // 오른쪽으로
-            y -= h; g_path.push_back({ x, y });   // 위로
+            for (int i = 0; i <= w; i++)
+                g_path.push_back({ x + i, y });
+            x += w;
+            // 세로 구간을 1픽셀씩 채움
+            for (int i = 1; i <= h; i++)
+                g_path.push_back({ x, y - i });
+            y -= h;
         }
-        g_loopLenX = w;                    // 60
+        g_loopLenX = w;
         break;
     }
     }
@@ -137,7 +145,7 @@ void DrawScene(HDC hdc, RECT rc)
     DeleteObject(curvePen);
 
     // 원이동 : 경로를 따라가는 원 + "It's moving" 문자
-    if (g_anim == ANIM_CIRCLE) {
+    if (g_anim & ANIM_CIRCLE) {
         int idx = g_circleIdx % (int)g_path.size();
         int px = g_path[idx].x + ox;
         int py = g_path[idx].y + oy;
@@ -162,7 +170,7 @@ void DrawScene(HDC hdc, RECT rc)
 // 애니메이션 시작/정지
 void StartAnim(AnimMode mode)
 {
-    g_anim = mode;
+    g_anim = (AnimMode)(g_anim | mode);  // 기존 모드에 OR로 추가
     if (mode == ANIM_CIRCLE) g_circleIdx = 0;
     SetTimer(g_hMain, 1, 20, NULL);
 }
@@ -246,20 +254,17 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
     case WM_TIMER:
         if (wParam == 1) {
-            switch (g_anim) {
-            case ANIM_MOVEX:
+            if (g_anim & ANIM_MOVEX) {
                 g_offsetX += 4;
                 if (g_loopLenX > 0 && g_offsetX >= g_loopLenX) g_offsetX -= g_loopLenX;
-                break;
-            case ANIM_MOVEY:
+            }
+            if (g_anim & ANIM_MOVEY) {
                 g_phaseY += 0.06;
                 g_offsetY = (int)(100 * sin(g_phaseY));
-                break;
-            case ANIM_CIRCLE:
+            }
+            if (g_anim & ANIM_CIRCLE) {
                 g_circleIdx += 4;
                 if (g_circleIdx >= (int)g_path.size()) g_circleIdx = 0;
-                break;
-            default: break;
             }
             InvalidateRect(hWnd, NULL, FALSE);
         }
