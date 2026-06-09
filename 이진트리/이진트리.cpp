@@ -94,7 +94,45 @@ public:
     void SortByName_SL() {
         head = mergeSort_SL(head);
     }
+    void Delete(string name)
+    {
+        if (!head) { cout << "없음" << endl; return; }
+        bool found = false;
 
+        // head가 삭제 대상인 경우
+        while (head && head->data.name == name)
+        {
+            found = true;
+            SNode* todelete = head;
+            head = head->next;
+            delete todelete;
+            size--;
+        }
+
+        if (!head) { if (!found) cout << "없음" << endl; return; }
+
+        // 중간/끝 노드 삭제
+        SNode* prev = head;
+        SNode* cur = head->next;
+        while (cur)
+        {
+            if (cur->data.name == name)
+            {
+                found = true;
+                prev->next = cur->next;
+                delete cur;
+                cur = prev->next;
+                size--;
+            }
+            else
+            {
+                prev = cur;
+                cur = cur->next;
+            }
+        }
+
+        if (!found) cout << "없음" << endl;
+    }
     // 소멸자: 모든 노드 메모리 해제
     ~SinglyLinkedList() {
         SNode* cur = head;

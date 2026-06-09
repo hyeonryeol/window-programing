@@ -1,4 +1,4 @@
-﻿#include <iostream>
+#include <iostream>
 #include <string>
 #include <fstream>
 
@@ -89,6 +89,7 @@ public:
 				size--;
 				return;
 			}
+
 			SNode* last = head;
 			while (last->next != head) last = last->next;
 
@@ -101,11 +102,9 @@ public:
 		if (!head) return;
 		SNode* prev = head;
 		SNode* cur = head->next;
-		while (cur != head)
-		{
+		while (cur != head) {
 			if (cur->data.name == champ)
 			{
-
 			found = true;
 			prev->next = cur->next;
 			delete cur;
@@ -118,9 +117,8 @@ public:
 				cur = cur->next;
 			}
 		}
-		if (found == false) { cout << "찾지못함" << endl; }
+		if (found == false) { cout << "없음" << endl; }
 	}
-
 
 	void FindMaxHp_SL()
 	{
