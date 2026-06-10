@@ -74,12 +74,12 @@ public:
 		} while (cur != head);
 	}
 
-	void Delete(string champ)
+	void Delete_SL(string name)
 	{
 		if (!head) { cout << "없음" << endl; return; }
 		bool found = false;
 
-		while (head && head->data.name == champ)
+		while (head && head->data.name == name)
 		{
 			found = true;
 			if (head->next == head)
@@ -103,10 +103,9 @@ public:
 		SNode* cur = head->next;
 		while (cur != head)
 		{
-			if (cur->data.name == champ)
+			if (cur->data.name == name)
 			{
-
-			found = true;
+				found = true;
 			prev->next = cur->next;
 			delete cur;
 			cur = prev->next;
@@ -117,10 +116,9 @@ public:
 				prev = cur;
 				cur = cur->next;
 			}
-		}
-		if (found == false) { cout << "찾지못함" << endl; }
-	}
 
+		}
+	}
 
 	void FindMaxHp_SL()
 	{
@@ -147,23 +145,23 @@ public:
 		} while (cur != head);
 	}
 
-	SNode* mergesort(SNode* a, SNode* b)
+	SNode* mergeSort(SNode* a, SNode* b)
 	{
 		if (!a) return b;
 		if (!b) return a;
 		if (a->data.hp >= b->data.hp)
 		{
-			a->next = mergesort(a->next, b);
+			a->next = mergeSort(a->next, b);
 			return a;
 		}
 		else
 		{
-			b->next = mergesort(a, b->next);
+			b->next = mergeSort(a, b->next);
 			return b;
 		}
-	}
 
-	SNode* mergeSortByHp(SNode* node)
+	}
+	SNode* mergeSortHp(SNode* node)
 	{
 		if (!node || !node->next) return node;
 		SNode* slow = node;
@@ -176,20 +174,16 @@ public:
 		SNode* mid = slow->next;
 		slow->next = nullptr;
 
-		SNode* left = mergeSortByHp(node);
-		SNode* right = mergeSortByHp(mid);
-		return mergesort(left, right);
+		SNode* left = mergeSortHp(node);
+		SNode* right = mergeSortHp(mid);
+		return mergeSort(left, right);
 	}
-
-	void SortByHp_SL()
+	void SortByHp()
 	{
-		if (!head) return;
-
 		SNode* tail = head;
 		while (tail->next != head) tail = tail->next;
 		tail->next = nullptr;
-		head = mergeSortByHp(head);
-
+		head = mergeSortHp(head);
 		SNode* newtail = head;
 		while (newtail->next) newtail = newtail->next;
 		newtail->next = head;
