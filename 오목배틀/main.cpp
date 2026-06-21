@@ -2,8 +2,8 @@
 // To swap opponent: change the included header and the White* function names.
 #include <iostream>
 #include "오목 심판/Judgment.h"
-#include "Omock_2023184027.h"          // my AI
-#include "심판코드사용예/2020182001.h"  // opponent (example)
+#include "2023184027.h"          // my AI
+#include "2023184010.h"  // opponent (example)
 using namespace std;
 
 int main(void)
@@ -17,18 +17,10 @@ int main(void)
 
     // ── self-play: 내 AI끼리 두기 (끝까지 가는 진짜 게임 관전용) ──
     judgment.SetYourFunc(
-        BlackAttack_2023184027,   // Black = 내 AI
-        BlackDefence_2023184027,
-        WhiteAttack_2023184027,   // White = 내 AI
-        WhiteDefence_2023184027
+        BlackAttack_2023184010, BlackDefence_2023184010,   // 흑 = 내 AI
+        WhiteAttack_2023184027, WhiteDefence_2023184027    // 백 = 친구
     );
-
-    // ── 실제 상대와 둘 때는 위를 주석 처리하고 아래처럼 (상대 헤더 #include 추가) ──
-    // judgment.SetYourFunc(
-    //     BlackAttack_2023184027, BlackDefence_2023184027,   // 흑 = 내 AI
-    //     WhiteAttack_상대학번,   WhiteDefence_상대학번        // 백 = 상대
-    // );
-
     judgment.GamePlay();
-    return 0;
 }
+
+
