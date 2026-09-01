@@ -69,11 +69,24 @@ void BuildCurve()
     }
     case CURVE_HALF:
     {
-        double R = 80;                     // x축 위에 원을 한 줄로 (반원 위/아래 = 원)
+        double R = 80;
+        // 각 원을 위쪽 반원 → 아래쪽 반원 순서로 하나씩 이어서 경로 생성
         for (int cx = -HALF_W + (int)R; cx <= HALF_W; cx += (int)(2 * R))
-            for (double t = 0; t <= 2 * PI + 0.05; t += 0.05)
+        {
+            // 위쪽 반원: PI → 2PI (sin < 0, 화면 위쪽)
+            for (double t = PI; t <= 2 * PI + 0.05; t += 0.05)
                 g_path.push_back({ cx + (int)(R * cos(t)), (int)(R * sin(t)) });
-        g_loopLenX = (int)(2 * R);         // 160
+            // 아래쪽 반원: 2PI → 3PI (sin > 0, 화면 아래쪽)
+            
+        }
+        for (int cx = -HALF_W + (int)R; cx <= HALF_W; cx += (int)(2 * R))
+            for (double t = 2 * PI; t <= 3 * PI + 0.05; t += 0.05)
+                g_path.push_back({ cx + (int)(R * cos(t)), (int)(R * sin(t)) });
+        int sz = (int)g_path.size();
+        for (int i = sz - 1; i >= 0; i--)
+            g_path.push_back(g_path[i]);
+
+        g_loopLenX = (int)(2 * R);
         break;
     }
     case CURVE_SPRING:
