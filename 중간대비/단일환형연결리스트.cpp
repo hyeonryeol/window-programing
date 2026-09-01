@@ -1,4 +1,4 @@
-﻿#include <iostream>
+#include <iostream>
 #include <string>
 #include <fstream>
 
@@ -74,12 +74,12 @@ public:
 		} while (cur != head);
 	}
 
-	void Delete_SL(string name)
+	void Delete(string champ)
 	{
 		if (!head) { cout << "없음" << endl; return; }
 		bool found = false;
 
-		while (head && head->data.name == name)
+		while (head && head->data.name == champ)
 		{
 			found = true;
 			if (head->next == head)
@@ -89,6 +89,7 @@ public:
 				size--;
 				return;
 			}
+
 			SNode* last = head;
 			while (last->next != head) last = last->next;
 
@@ -101,11 +102,10 @@ public:
 		if (!head) return;
 		SNode* prev = head;
 		SNode* cur = head->next;
-		while (cur != head)
-		{
-			if (cur->data.name == name)
+		while (cur != head) {
+			if (cur->data.name == champ)
 			{
-				found = true;
+			found = true;
 			prev->next = cur->next;
 			delete cur;
 			cur = prev->next;
@@ -116,8 +116,8 @@ public:
 				prev = cur;
 				cur = cur->next;
 			}
-
 		}
+		if (found == false) { cout << "없음" << endl; }
 	}
 
 	void FindMaxHp_SL()
@@ -145,23 +145,23 @@ public:
 		} while (cur != head);
 	}
 
-	SNode* mergeSort(SNode* a, SNode* b)
+	SNode* mergesort(SNode* a, SNode* b)
 	{
 		if (!a) return b;
 		if (!b) return a;
 		if (a->data.hp >= b->data.hp)
 		{
-			a->next = mergeSort(a->next, b);
+			a->next = mergesort(a->next, b);
 			return a;
 		}
 		else
 		{
-			b->next = mergeSort(a, b->next);
+			b->next = mergesort(a, b->next);
 			return b;
 		}
-
 	}
-	SNode* mergeSortHp(SNode* node)
+
+	SNode* mergeSortByHp(SNode* node)
 	{
 		if (!node || !node->next) return node;
 		SNode* slow = node;
@@ -174,16 +174,20 @@ public:
 		SNode* mid = slow->next;
 		slow->next = nullptr;
 
-		SNode* left = mergeSortHp(node);
-		SNode* right = mergeSortHp(mid);
-		return mergeSort(left, right);
+		SNode* left = mergeSortByHp(node);
+		SNode* right = mergeSortByHp(mid);
+		return mergesort(left, right);
 	}
-	void SortByHp()
+
+	void SortByHp_SL()
 	{
+		if (!head) return;
+
 		SNode* tail = head;
 		while (tail->next != head) tail = tail->next;
 		tail->next = nullptr;
-		head = mergeSortHp(head);
+		head = mergeSortByHp(head);
+
 		SNode* newtail = head;
 		while (newtail->next) newtail = newtail->next;
 		newtail->next = head;
